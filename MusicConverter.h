@@ -6,6 +6,7 @@
 
 // Qt
 #include <QDir>
+#include <QFileInfo>
 #include <QMainWindow>
 
 class MusicConverter
@@ -24,19 +25,10 @@ class MusicConverter
 
 	private:
 	  enum class MusicFileType: unsigned char { UNKNOWN = 1, WMA = 2, M4A = 3, FLAC = 4, APE = 5, WAV = 6, TRACKER = 7 };
-	  struct MusicFile
-	  {
-	    QString fileName;
-	    MusicFileType type;
-	    unsigned long long size;
-	    unsigned long long convertedSize;
-
-	    MusicFile(): fileName{}, type{MusicFileType::UNKNOWN}, size{0}, convertedSize{0} {};
-	    ~MusicFile() {};
-	  };
 
 	  static const QString ROOT_DIRECTORY;
 	  static const QString NUMBER_OF_THREADS;
+	  static const QString CLEAN_FILENAMES;
 
 	  void loadConfiguration();
 	  void saveConfiguration();
@@ -44,7 +36,7 @@ class MusicConverter
 
 	  QDir         m_directory;
 	  unsigned int m_threadsNum;
-	  QList<MusicFile> m_files;
+	  QList<QFileInfo> m_files;
 };
 
 #endif // MUSIC_CONVERTER_H_

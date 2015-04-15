@@ -6,12 +6,15 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <QMessageBox>
+#include <QStack>
+#include <QDirIterator>
 
 // C++
 #include <thread>
 
 const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
 const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
+const QString MusicConverter::CLEAN_FILENAMES = QString("Clean File Names");
 
 //-----------------------------------------------------------------
 MusicConverter::MusicConverter()
@@ -49,15 +52,9 @@ void MusicConverter::loadConfiguration()
 {
   QSettings settings("MusicConverter.ini", QSettings::IniFormat);
 
-  if (settings.contains(ROOT_DIRECTORY))
-    m_directory.setPath(settings.value(ROOT_DIRECTORY).toString());
-  else
-    m_directory.setPath(QDir::currentPath());
-
-  if (settings.contains(NUMBER_OF_THREADS))
-    m_threadsNum = settings.value(NUMBER_OF_THREADS).toInt();
-  else
-    m_threadsNum = std::thread::hardware_concurrency()/2;
+  m_directory.setPath(settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString());
+  m_threadsNum = settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency()/2).toInt();
+  m_cleanNames->setChecked(settings.value(CLEAN_FILENAMES, true).toBool());
 }
 
 //-----------------------------------------------------------------
@@ -67,6 +64,7 @@ void MusicConverter::saveConfiguration()
 
   settings.setValue(ROOT_DIRECTORY, m_directory.absolutePath());
   settings.setValue(NUMBER_OF_THREADS, m_threads->value());
+  settings.setValue(CLEAN_FILENAMES, m_cleanNames->isChecked());
 
   settings.sync();
 }
@@ -113,5 +111,16 @@ void MusicConverter::startConversion()
 //-----------------------------------------------------------------
 void MusicConverter::findMusicFiles()
 {
-  // TODO: recorrer el arbol de directorios a partir del root y rellenar m_files con los ficheros a convertir.
+  m_directory.setFilter(QDir::Files|QDir::Dirs|QDir::NoDot|QDir::NoDotDot);
+  QStringList fileTypes;
+  fileTypes << "*.ogg" << "*.flac" << "*.wma" << "*.m4a" << "*.mod" << "*.it" << "*.s3m" << "*.xt" << "*.wav" << "*.ape";
+  m_directory.setNameFilters(fileTypes);
+
+  QDirIterator it(m_directory, QDirIterator::Subdirectories);
+  while(it.hasNext())
+  {
+    it.next();
+
+    m_files << it.fileInfo();
+  }
 }

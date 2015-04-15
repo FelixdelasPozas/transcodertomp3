@@ -10,14 +10,8 @@
     <x>0</x>
     <y>0</y>
     <width>472</width>
-    <height>122</height>
+    <height>145</height>
    </rect>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>496</width>
-    <height>142</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Music Converter To MP3</string>
@@ -76,6 +70,13 @@
        <widget class="QSpinBox" name="m_threads"/>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="m_cleanNames">
+      <property name="text">
+       <string>Clean file names</string>
+      </property>
+     </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
