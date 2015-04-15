@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/MusicConverter">
+    <file>application.ico</file>
+    <file>folder.ico</file>
+  </qresource>
+</RCC>
