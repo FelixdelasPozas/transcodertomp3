@@ -18,14 +18,14 @@
  */
 
 // Project
-#include "FSUtils.h"
+#include "Utils.h"
 
 // Qt
 #include <QDirIterator>
 #include <QDebug>
 
 //-----------------------------------------------------------------
-QList<QFileInfo> FileSystemUtils::findFiles(const QDir initialDir, const QStringList extensions)
+QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList extensions)
 {
   QList<QFileInfo> filesFound;
 
@@ -45,7 +45,7 @@ QList<QFileInfo> FileSystemUtils::findFiles(const QDir initialDir, const QString
 }
 
 //-----------------------------------------------------------------
-QString FileSystemUtils::cleanName(const QString filename, const FileSystemUtils::CleanConfiguration conf)
+QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration conf)
 {
   // Just the name
   auto fileInfo = QFileInfo(QFile(filename));

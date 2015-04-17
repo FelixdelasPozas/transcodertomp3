@@ -39,8 +39,8 @@ class MusicConverter
 		~MusicConverter();
 
 	private slots:
-	  void changeDirectory();
-	  void startConversion();
+	  void onDirectoryChanged();
+	  void onConversionStarted();
 
 	private:
 	  enum class MusicFileType: unsigned char { UNKNOWN = 1, WMA = 2, M4A = 3, FLAC = 4, APE = 5, WAV = 6, TRACKER = 7 };
@@ -51,8 +51,6 @@ class MusicConverter
 
 	  void loadSettings();
 
-	  QDir         m_directory;
-	  unsigned int m_threadsNum;
 	  QList<QFileInfo> m_files;
 };
 

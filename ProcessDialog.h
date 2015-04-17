@@ -23,17 +23,28 @@
 // Application
 #include "ui_ProcessDialog.h"
 
+// Qt
+#include <QFileInfo>
+#include <QProgressBar>
+#include <QList>
+
+// C++
+#include <memory>
+
 class ProcessDialog
 : public QDialog
 , public Ui_ProcessDialog
 {
     Q_OBJECT
   public:
-    explicit ProcessDialog();
+    explicit ProcessDialog(const QList<QFileInfo> &files, const int threadsNum);
     virtual ~ProcessDialog();
 
   private slots:
     void stop();
+
+  private:
+    QList<std::shared_ptr<QProgressBar>> m_progressGUI;
 };
 
 #endif // PROCESSDIALOG_H_

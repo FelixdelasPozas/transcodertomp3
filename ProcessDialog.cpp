@@ -19,16 +19,46 @@
 
 // Application
 #include <ProcessDialog.h>
+#include "Utils.h"
+
+// Qt
+#include <QLayout>
 
 //-----------------------------------------------------------------
-ProcessDialog::ProcessDialog()
+ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threadsNum)
 {
   setupUi(this);
+
+  Utils::CleanConfiguration conf;
+  conf.checkNumberPrefix = true;
+  conf.replaceCharacters << QPair<QChar, QChar>('_', ' ') << QPair<QChar, QChar>('.', ' ');
+  conf.numberAndNameSeparator = '-';
+  conf.numberDigits = 2;
+  conf.toTitleCase = true;
+
+  for(auto file: files)
+  {
+    m_log->append(Utils::cleanName(file.absoluteFilePath(), conf));
+  }
+
+  auto boxLayout = new QVBoxLayout();
+
+  for(auto i = 0; i < threadsNum; ++i)
+  {
+    auto bar = std::make_shared<QProgressBar>(this);
+    bar->setAlignment(Qt::AlignCenter);
+    bar->setValue(i*10);
+    bar->setFormat(QString("%1 %").arg(bar->value()));
+    m_progressGUI << bar;
+    boxLayout->addWidget(bar.get(),1);
+  }
+  m_converters->setLayout(boxLayout);
 }
 
 //-----------------------------------------------------------------
 ProcessDialog::~ProcessDialog()
 {
+  m_progressGUI.clear();
 }
 
 //-----------------------------------------------------------------

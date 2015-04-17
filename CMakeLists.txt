@@ -59,7 +59,7 @@ set (CORE_SOURCES
   Main.cpp
   MusicConverter.cpp
   ProcessDialog.cpp
-  FSUtils.cpp
+  Utils.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

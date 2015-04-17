@@ -1,5 +1,5 @@
 /*
-		File: FSUtils.h
+		File: Utils.h
     Created on: 17/4/2015
     Author: Felix
 
@@ -18,14 +18,14 @@
  */
 
 
-#ifndef FILESYSTEM_UTILS_H_
-#define FILESYSTEM_UTILS_H_
+#ifndef UTILS_H_
+#define UTILS_H_
 
 #include <QDir>
 #include <QString>
 #include <QPair>
 
-namespace FileSystemUtils
+namespace Utils
 {
   /** \brief Returns the files in the specified directory tree that has the specfied extensions.
    * \param[in] rootDir starting directory.

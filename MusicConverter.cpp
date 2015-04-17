@@ -20,7 +20,7 @@
 // Project
 #include "MusicConverter.h"
 #include "ProcessDialog.h"
-#include "FSUtils.h"
+#include "Utils.h"
 
 // Qt
 #include <QSettings>
@@ -37,12 +37,10 @@ const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
 const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
 const QString MusicConverter::CLEAN_FILENAMES = QString("Clean File Names");
 
-using namespace FileSystemUtils;
+using namespace Utils;
 
 //-----------------------------------------------------------------
 MusicConverter::MusicConverter()
-: m_directory{}
-, m_threadsNum{0}
 {
 	setupUi(this);
 
@@ -53,15 +51,12 @@ MusicConverter::MusicConverter()
 
 	m_threads->setMinimum(1);
 	m_threads->setMaximum(std::thread::hardware_concurrency());
-	m_threads->setValue(m_threadsNum);
-
-	m_directoryText->setText(m_directory.absolutePath().replace('/','\\'));
 
 	connect(m_directoryButton, SIGNAL(clicked()),
-	        this,              SLOT(changeDirectory()));
+	        this,              SLOT(onDirectoryChanged()));
 
 	connect(m_startButton, SIGNAL(clicked()),
-	        this,          SLOT(startConversion()));
+	        this,          SLOT(onConversionStarted()));
 }
 
 //-----------------------------------------------------------------
@@ -69,7 +64,7 @@ MusicConverter::~MusicConverter()
 {
   QSettings settings("MusicConverter.ini", QSettings::IniFormat);
 
-  settings.setValue(ROOT_DIRECTORY, m_directory.absolutePath());
+  settings.setValue(ROOT_DIRECTORY, m_directoryText->text());
   settings.setValue(NUMBER_OF_THREADS, m_threads->value());
   settings.setValue(CLEAN_FILENAMES, m_cleanNames->isChecked());
 
@@ -81,17 +76,17 @@ void MusicConverter::loadSettings()
 {
   QSettings settings("MusicConverter.ini", QSettings::IniFormat);
 
-  m_directory.setPath(settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString());
-  m_threadsNum = settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency()/2).toInt();
+  m_directoryText->setText(settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString());
+  m_threads->setValue(settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency()/2).toInt());
   m_cleanNames->setChecked(settings.value(CLEAN_FILENAMES, true).toBool());
 }
 
 //-----------------------------------------------------------------
-void MusicConverter::changeDirectory()
+void MusicConverter::onDirectoryChanged()
 {
   QFileDialog fileBrowser;
 
-  fileBrowser.setDirectory(m_directory.absolutePath());
+  fileBrowser.setDirectory(m_directoryText->text());
   fileBrowser.setWindowTitle("Select root directory");
   fileBrowser.setFileMode(QFileDialog::Directory);
   fileBrowser.setOption(QFileDialog::DontUseNativeDialog, false);
@@ -101,30 +96,17 @@ void MusicConverter::changeDirectory()
   if(fileBrowser.exec() == QDialog::Accepted)
   {
     auto newDirectory = fileBrowser.selectedFiles().first();
-    m_directory.setPath(newDirectory);
     m_directoryText->setText(newDirectory.replace('/','\\'));
   }
 }
 
 //-----------------------------------------------------------------
-void MusicConverter::startConversion()
+void MusicConverter::onConversionStarted()
 {
   QStringList fileTypes;
   fileTypes << "*.ogg" << "*.flac" << "*.wma" << "*.m4a" << "*.mod" << "*.it" << "*.s3m" << "*.xt" << "*.wav" << "*.ape";
 
-  m_files = findFiles(m_directory, fileTypes);
-
-//  FileSystemUtils::CleanConfiguration conf;
-//  conf.checkNumberPrefix = true;
-//  conf.replaceCharacters << QPair<QChar,QChar>('_', ' ') << QPair<QChar,QChar>('.', ' ');
-//  conf.numberAndNameSeparator = '-';
-//  conf.numberDigits = 2;
-//  conf.toTitleCase = true;
-//
-//  for(auto file: m_files)
-//  {
-//    cleanName(file.absoluteFilePath(), conf);
-//  }
+  m_files = findFiles(m_directoryText->text(), fileTypes);
 
   if(m_files.empty())
   {
@@ -141,7 +123,7 @@ void MusicConverter::startConversion()
 
   this->hide();
 
-  ProcessDialog pd;
+  ProcessDialog pd(m_files, m_threads->value());
   pd.exec();
 
   this->show();
