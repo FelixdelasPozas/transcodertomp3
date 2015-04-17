@@ -41,11 +41,13 @@ qt4_add_resources(RESOURCES
 qt4_wrap_ui(CORE_UI
   # .ui for Qt
   MusicConverter.ui
+  ProcessDialog.ui
   )
 	
 qt4_wrap_cpp(CORE_MOC
   # .h for Qt
   MusicConverter.h
+  ProcessDialog.h
   )
 
 set (CORE_SOURCES
@@ -56,6 +58,8 @@ set (CORE_SOURCES
   ${CORE_UI}
   Main.cpp
   MusicConverter.cpp
+  ProcessDialog.cpp
+  FSUtils.cpp
 )
 
 set(CORE_EXTERNAL_LIBS
