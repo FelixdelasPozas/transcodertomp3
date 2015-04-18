@@ -32,7 +32,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
    <item>
     <widget class="QGroupBox" name="m_converters">
      <property name="title">
@@ -50,6 +50,22 @@
        <widget class="QTextEdit" name="m_log"/>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="m_globalProgress">
+     <property name="toolTip">
+      <string>Total conversion progress</string>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="format">
+      <string>Processed %p%</string>
+     </property>
     </widget>
    </item>
    <item>

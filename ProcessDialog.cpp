@@ -23,22 +23,31 @@
 
 // Qt
 #include <QLayout>
+#include <QFileInfo>
+#include <QProgressBar>
 
 //-----------------------------------------------------------------
 ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threadsNum)
+: m_musicFiles{files}
+, m_numThreads{threadsNum}
 {
   setupUi(this);
 
-  Utils::CleanConfiguration conf;
-  conf.checkNumberPrefix = true;
-  conf.replaceCharacters << QPair<QChar, QChar>('_', ' ') << QPair<QChar, QChar>('.', ' ');
-  conf.numberAndNameSeparator = '-';
-  conf.numberDigits = 2;
-  conf.toTitleCase = true;
+  connect(m_cancelButton, SIGNAL(clicked()),
+          this,           SLOT(stop()));
+
+  setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
+
+  cleanConfiguration.checkNumberPrefix = true;
+  cleanConfiguration.replaceCharacters << QPair<QChar, QChar>('_', ' ') << QPair<QChar, QChar>('.', ' ')
+                                       << QPair<QChar, QChar>('[', '(') << QPair<QChar, QChar>(']', ')');
+  cleanConfiguration.numberAndNameSeparator = '-';
+  cleanConfiguration.numberDigits = 2;
+  cleanConfiguration.toTitleCase = true;
 
   for(auto file: files)
   {
-    m_log->append(Utils::cleanName(file.absoluteFilePath(), conf));
+    m_log->append(Utils::cleanName(file.absoluteFilePath(), cleanConfiguration));
   }
 
   auto boxLayout = new QVBoxLayout();
@@ -62,7 +71,22 @@ ProcessDialog::~ProcessDialog()
 }
 
 //-----------------------------------------------------------------
+void ProcessDialog::log(const QString &message)
+{
+}
+
+//-----------------------------------------------------------------
+void ProcessDialog::progress(int value, int converter)
+{
+  m_progressGUI[converter]->setValue(value);
+}
+
+//-----------------------------------------------------------------
 void ProcessDialog::stop()
 {
+//  for(auto converter: m_converterThreads)
+//  {
+//    converter->stop();
+//  }
 }
 

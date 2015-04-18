@@ -22,11 +22,13 @@
 
 // Application
 #include "ui_ProcessDialog.h"
+#include "Utils.h"
 
 // Qt
-#include <QFileInfo>
-#include <QProgressBar>
 #include <QList>
+
+class QProgressBar;
+class QFileInfo;
 
 // C++
 #include <memory>
@@ -42,9 +44,15 @@ class ProcessDialog
 
   private slots:
     void stop();
+    void log(const QString &);
+    void progress(int value, int converter);
 
   private:
     QList<std::shared_ptr<QProgressBar>> m_progressGUI;
+    QList<QFileInfo> m_mp3Files;
+    QList<QFileInfo> m_musicFiles;
+    int m_numThreads;
+    Utils::CleanConfiguration cleanConfiguration;
 };
 
 #endif // PROCESSDIALOG_H_
