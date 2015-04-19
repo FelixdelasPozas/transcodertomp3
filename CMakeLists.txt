@@ -26,10 +26,15 @@ set(LAME_DIR "D:/Desarrollo/Bibliotecas/lame-3.99.5")
 set(LAME_INCLUDE_DIR ${LAME_DIR}/include)
 set(LAME_LIBRARY     ${LAME_DIR}/libmp3lame/.libs/libmp3lame.a)
 
-# OggVorbis library
+# Vorbis library
 set(VORBIS_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5")
 set(VORBIS_INCLUDE_DIR ${VORBIS_DIR}/include)
-set(VORBIS_LIBRARIES   ${VORBIS_DIR}/lib/.libs/libvorbis.a ${VORBIS_DIR}/lib/.libs/libvorbisfile.a)
+set(VORBIS_LIBRARIES   ${VORBIS_DIR}/lib/.libs/libvorbisfile.a ${VORBIS_DIR}/lib/.libs/libvorbis.a)
+
+# Ogg library
+set(OGG_DIR "D:/Desarrollo/Bibliotecas/libogg-1.3.2")
+set(OGG_INCLUDE_DIR ${OGG_DIR}/include)
+set(OGG_LIBRARY     ${OGG_DIR}/src/.libs/libogg.a)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -39,6 +44,7 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}  # For wrap/ui files
   ${LAME_INCLUDE_DIR}
   ${VORBIS_INCLUDE_DIR}
+  ${OGG_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive -mwindows")
@@ -79,6 +85,7 @@ set(CORE_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${LAME_LIBRARY}
   ${VORBIS_LIBRARIES}
+  ${OGG_LIBRARY}
 )
 
 add_executable(MusicConverter ${CORE_SOURCES})

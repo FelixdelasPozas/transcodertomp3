@@ -23,16 +23,25 @@
 // Project
 #include <ConverterThread.h>
 
-class OGGConverter: public ConverterThread
+// Ogg Vorbis lib
+#include <vorbis/vorbisfile.h>
+
+class OGGConverter
+: public ConverterThread
 {
   public:
     explicit OGGConverter(const QFileInfo &origin_info, const QString &destination);
     virtual ~OGGConverter();
 
   private:
-    virtual int read_data() override;
+    virtual bool open_source_file() override;
+
+    virtual long int read_data() override;
 
     virtual void get_source_properties(Source_Info &information) override;
+
+    OggVorbis_File m_vorbis_file;
+    bool           m_init;
 };
 
-#endif // OGGCONVERTER_H_
+#endif // OGG_CONVERTER_H_

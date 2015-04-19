@@ -38,6 +38,8 @@ class ConverterThread
     explicit ConverterThread(const QFileInfo &origin_info, const QString &destination);
     virtual ~ConverterThread();
 
+    void stop();
+
   signals:
     void error_message(const QString &message);
     void information_message(const QString &message);
@@ -59,15 +61,22 @@ class ConverterThread
       struct Source_Info
       {
         int         num_channels;
-        int         samplerate;
+        long        samplerate;
         MPEG_mode_e mode;
         PCM_FORMAT  format;
       };
 
+      const QFileInfo &m_originInfo;
+      const QString   &m_destination;
+
   private:
+      // derived classes will use this funcion to open and make the necessary decoder
+      // initializations.
+      virtual bool open_source_file() = 0;
+
       // derived classes will use this function to decode the source file and write the
       // data to the PCM buffers. returns the number of bytes copies to the PCM buffer.
-      virtual int read_data() = 0;
+      virtual long int read_data() = 0;
 
       // derived classes will return the properties of the PCM data that will be generated.
       virtual void get_source_properties(Source_Info &information) = 0;
@@ -76,11 +85,8 @@ class ConverterThread
 
       lame_global_flags *m_gfp;
       unsigned char      m_mp3_buffer[8480];
-
-      const QFileInfo &m_originInfo;
-      const QString   &m_destination;
-      std::ifstream    m_originFile;
-      std::ofstream    m_mp3File;
+      std::ofstream      m_mp3File;
+      bool               m_stop;
 };
 
 #endif // CONVERTER_THREAD_H_

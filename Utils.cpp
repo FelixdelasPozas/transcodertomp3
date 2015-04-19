@@ -104,7 +104,36 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
     int i = index;
     while(i < parts.size())
     {
+      if(parts[i].isEmpty()) continue;
+      bool starts_with_parenthesis = false;
+      bool ends_with_parenthesis = false;
+
+      if(parts[i].startsWith('(') && parts[i].size() > 1)
+      {
+        starts_with_parenthesis = true;
+        parts[i].remove('(');
+      }
+
+      if(parts[i].endsWith(')') && parts[i].size() > 1)
+      {
+        ends_with_parenthesis = true;
+        parts[i].remove(')');
+      }
+
+      parts[i] = parts[i].toLower();
+
       parts[i].replace(0,1, parts[i][0].toUpper());
+
+      if(starts_with_parenthesis)
+      {
+        parts[i] = QString('(') + parts[i];
+      }
+
+      if(ends_with_parenthesis)
+      {
+        parts[i] = parts[i] + QString(')');
+      }
+
       ++i;
     }
   }

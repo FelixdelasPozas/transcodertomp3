@@ -28,9 +28,10 @@
 
 //-----------------------------------------------------------------
 ConverterThread::ConverterThread(const QFileInfo &origin_info, const QString &destination)
-: m_gfp            {nullptr}
-, m_originInfo     {origin_info}
+: m_originInfo     {origin_info}
 , m_destination    {destination}
+, m_gfp            {nullptr}
+, m_stop           {false}
 {
 }
 
@@ -64,11 +65,10 @@ void ConverterThread::run()
     return;
   }
 
-  auto musicFile = m_originInfo.absoluteFilePath().replace('/','\\');
-  m_originFile.open(musicFile.toStdString().c_str(), std::ios::binary);
-  if(!m_originFile.is_open())
+  auto music_file = m_originInfo.absoluteFilePath().replace('/','\\');
+  if(!open_source_file())
   {
-    emit error_message(QString("Couldn't open source file: %1") + musicFile);
+    emit error_message(QString("Couldn't open source file: %1") + music_file);
     return;
   }
 
@@ -95,7 +95,8 @@ void ConverterThread::run()
   auto mp3_name = m_destination.split('/').last();
   emit information_message(QString("%1 -> %2").arg(source_name).arg(mp3_name));
 
-  while(source_bytes > 0)
+  int old_progress_value = 0;
+  while(source_bytes > 0 && !m_stop)
   {
     auto bytes_read = read_data();
 
@@ -112,7 +113,12 @@ void ConverterThread::run()
 
       m_mp3File.write(reinterpret_cast<char *>(&m_mp3_buffer), bytes_read);
 
-      emit progress(((total-source_bytes) * 100) / total);
+      auto progress_value = ((total-source_bytes) * 100) / total;
+      if(progress_value != old_progress_value)
+      {
+        emit progress(((total-source_bytes) * 100) / total);
+        old_progress_value = progress_value;
+      }
     }
 
     source_bytes -= bytes_read;
@@ -120,5 +126,15 @@ void ConverterThread::run()
 
   lame_close(m_gfp);
   m_mp3File.close();
-  m_originFile.close();
+
+  if(m_stop)
+  {
+    QFile::remove(m_destination);
+  }
+}
+
+//-----------------------------------------------------------------
+void ConverterThread::stop()
+{
+  m_stop = true;
 }
