@@ -36,12 +36,21 @@ namespace Utils
 
   struct CleanConfiguration
   {
-    QString deleteCharacters;                     // characters to delete
-    QList<QPair<QChar,QChar>> replaceCharacters;  // characters to replace (pair <to replace, with>
-    bool checkNumberPrefix;                       // check if the name starts with a number
-    int numberDigits;                             // number of digits the number should have.
-    QChar numberAndNameSeparator;                 // separator character between the number and the rest of the name.
-    bool toTitleCase;                             // capitalize the first letter of every word in the name.
+    QString chars_to_delete;                     // characters to delete
+    QList<QPair<QChar,QChar>> chars_to_replace;  // characters to replace (pair <to replace, with>
+    bool check_number_prefix;                    // check if the name starts with a number
+    int number_of_digits;                        // number of digits the number should have.
+    QChar number_and_name_separator;             // separator character between the number and the rest of the name.
+    bool to_title_case;                          // capitalize the first letter of every word in the name.
+
+    CleanConfiguration()
+    {
+      check_number_prefix = true;
+      chars_to_replace << QPair<QChar, QChar>('_', ' ') << QPair<QChar, QChar>('.', ' ') << QPair<QChar, QChar>('[', '(') << QPair<QChar, QChar>(']', ')');
+      number_and_name_separator = '-';
+      number_of_digits = 2;
+      to_title_case = true;
+    }
   };
 
   /** \brief Returns a transformed filename according to the specified parameters.

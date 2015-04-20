@@ -24,9 +24,8 @@
 #include "ui_MusicConverter.h"
 
 // Qt
-#include <QDir>
-#include <QFileInfo>
 #include <QMainWindow>
+#include <QFileInfo>
 
 class MusicConverter
 : public QMainWindow

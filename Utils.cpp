@@ -54,15 +54,15 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
   QString cleanedName = name.remove(name.lastIndexOf('.'), extension.length() + 1);
 
   // Delete characters
-  for(int i = 0; i < conf.deleteCharacters.length(); ++i)
+  for(int i = 0; i < conf.chars_to_delete.length(); ++i)
   {
-    cleanedName.remove(conf.deleteCharacters[i], Qt::CaseInsensitive);
+    cleanedName.remove(conf.chars_to_delete[i], Qt::CaseInsensitive);
   }
 
   // Replace characters
-  for(int i = 0; i < conf.replaceCharacters.size(); ++i)
+  for(int i = 0; i < conf.chars_to_replace.size(); ++i)
   {
-    auto charPair = conf.replaceCharacters[i];
+    auto charPair = conf.chars_to_replace[i];
     cleanedName.replace(charPair.first, charPair.second, Qt::CaseInsensitive);
   }
 
@@ -74,23 +74,23 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
   int index = 0;
 
   // Adjust the number prefix and insert the default separator.
-  if(conf.checkNumberPrefix)
+  if(conf.check_number_prefix)
   {
     QRegExp re("\\d*");
     if (re.exactMatch(parts[index]))
     {
-      while(conf.numberDigits > parts[index].length())
+      while(conf.number_of_digits > parts[index].length())
       {
         parts[index] = "0" + parts[index];
       }
 
-      if((parts.size() > index) && (parts[index+1] != QString(conf.numberAndNameSeparator)))
+      if((parts.size() > index) && (parts[index+1] != QString(conf.number_and_name_separator)))
       {
-        parts[index] += QString(' ' + conf.numberAndNameSeparator + ' ');
+        parts[index] += QString(' ' + conf.number_and_name_separator + ' ');
       }
       else
       {
-        parts[index+1] = QString(' ' + conf.numberAndNameSeparator);
+        parts[index+1] = QString(' ' + conf.number_and_name_separator);
       }
 
       cleanedName = parts[index];
@@ -99,7 +99,7 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
   }
 
   // Capitalize the first letter of every word.
-  if(conf.toTitleCase)
+  if(conf.to_title_case)
   {
     int i = index;
     while(i < parts.size())
@@ -145,7 +145,7 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
   {
     cleanedName += ' ' + parts[index++];
   }
-  cleanedName += "." + fileInfo.suffix();
+  cleanedName += ".mp3";
 
   return cleanedName;
 }

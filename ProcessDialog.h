@@ -22,16 +22,15 @@
 
 // Application
 #include "ui_ProcessDialog.h"
-#include "Utils.h"
-#include "ConverterThread.h"
 
 // Qt
 #include <QList>
+#include <QMap>
 #include <QMutex>
-#include <QWaitCondition>
 
 class QProgressBar;
 class QFileInfo;
+class ConverterThread;
 
 // C++
 #include <memory>
@@ -50,20 +49,19 @@ class ProcessDialog
     void log_error(const QString &message);
     void log_information(const QString &message);
     void increment_global_progress();
-    void increment_thread_progress(int value);
+    void exit_dialog();
 
   private:
-    const QString clean_output_name(const QFileInfo file_info) const;
+    void create_threads();
+    ConverterThread *create_converter(const QFileInfo file_info);
 
     QList<QFileInfo>          m_mp3_files;
     QList<QFileInfo>          m_music_files;
-    int                       m_num_threads;
-    Utils::CleanConfiguration m_clean_configuration;
+    int                       m_max_workers;
+    int                       m_num_workers;
 
     QMutex m_mutex, m_mutex_main;
-    QWaitCondition m_wait_condition;
-    QMap<ConverterThread *, QProgressBar *> m_progress_GUI;
-    QList<std::shared_ptr<ConverterThread>> m_converter_threads;
+    QMap<QProgressBar *, ConverterThread *> m_progress_bars;
 };
 
 #endif // PROCESSDIALOG_H_

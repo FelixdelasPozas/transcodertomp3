@@ -19,7 +19,6 @@
 
 // Application
 #include <ProcessDialog.h>
-#include "Utils.h"
 #include "OggConverter.h"
 
 // Qt
@@ -32,90 +31,43 @@
 //-----------------------------------------------------------------
 ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threads_num)
 : m_music_files{files}
-, m_num_threads{threads_num}
+, m_max_workers{threads_num}
 {
   setupUi(this);
 
-  connect(m_cancelButton, SIGNAL(clicked()),
-          this,           SLOT(stop()));
+  connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
 
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
-
-  m_clean_configuration.checkNumberPrefix = true;
-  m_clean_configuration.replaceCharacters << QPair<QChar, QChar>('_', ' ') << QPair<QChar, QChar>('.', ' ')
-                                       << QPair<QChar, QChar>('[', '(') << QPair<QChar, QChar>(']', ')');
-  m_clean_configuration.numberAndNameSeparator = '-';
-  m_clean_configuration.numberDigits = 2;
-  m_clean_configuration.toTitleCase = false;
 
   m_globalProgress->setMinimum(0);
   m_globalProgress->setMaximum(m_music_files.size());
 
-  for(auto file: m_music_files)
-  {
-    log_information(Utils::cleanName(file.absoluteFilePath(), m_clean_configuration));
-  }
-
   auto boxLayout = new QVBoxLayout();
   m_converters->setLayout(boxLayout);
 
-  while (m_music_files.size() > 0)
+  auto bars_num = std::min(m_max_workers, m_music_files.size());
+
+  for(int i = 0; i < bars_num; ++i)
   {
-    qDebug() << "enter" << m_music_files.size();
-    while (m_progress_GUI.size() < m_num_threads && m_music_files.size() > 0)
-    {
-      auto music_file = m_music_files.first();
-      m_music_files.removeFirst();
+    auto bar = new QProgressBar();
+    bar->setAlignment(Qt::AlignCenter);
+    bar->setMaximum(0);
+    bar->setMaximum(100);
+    bar->setValue(0);
+    bar->setEnabled(false);
 
-      auto extension = music_file.absoluteFilePath().split('.').last().toLower();
-      auto output_name = clean_output_name(music_file);
-      auto file_output_name = output_name.split('/').last();
+    m_progress_bars[bar] = nullptr;
 
-      ConverterThread *converter = nullptr;
-
-      qDebug() << extension << output_name;
-      if (extension.compare("ogg"))
-      {
-        converter = new OGGConverter(music_file, output_name);
-      }
-      else
-      {
-        qDebug() << "ein?";
-        break;
-      }
-
-      // TODO separar GUI y procesamiento, hace falta un thread de gestión de threads y dejar el GUI aparte.
-
-      connect(converter, SIGNAL(progress(int)), this, SLOT(increment_thread_progress(int)));
-      connect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
-      connect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
-      connect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));
-
-      auto bar = new QProgressBar();
-      bar->setAlignment(Qt::AlignCenter);
-      bar->setMaximum(0);
-      bar->setMaximum(100);
-      bar->setValue(0);
-      bar->setFormat(QString("%1 - %2 %").arg(output_name.split('/').last()).arg(bar->value()));
-
-      m_progress_GUI[converter] = bar;
-
-      boxLayout->addWidget(bar);
-
-      converter->start();
-    }
-
-    m_mutex_main.lock();
-    qDebug() << "stopped at condition";
-    m_wait_condition.wait(&m_mutex_main);
+    boxLayout->addWidget(bar);
   }
-  qDebug() << "salida";
+
+  create_threads();
 }
 
 //-----------------------------------------------------------------
 ProcessDialog::~ProcessDialog()
 {
-  m_progress_GUI.clear();
+  m_progress_bars.clear();
 }
 
 //-----------------------------------------------------------------
@@ -137,43 +89,116 @@ void ProcessDialog::log_information(const QString &message)
 //-----------------------------------------------------------------
 void ProcessDialog::stop()
 {
-  for(auto converter: m_converter_threads)
+  for(auto converter: m_progress_bars.values())
   {
-    disconnect(converter.get(), SIGNAL(progress(int)),
-               this,            SLOT(increment_thread_progress(int)));
-
-    disconnect(converter.get(), SIGNAL(error_message(const QString &)),
-               this,            SLOT(log_error(const QString &)));
-
-    disconnect(converter.get(), SIGNAL(information_message(const QString &)),
-               this,            SLOT(log_information(const QString &)));
-
-    converter->stop();
+    if(converter != nullptr)
+    {
+      converter->stop();
+    }
   }
 }
 
 //-----------------------------------------------------------------
 void ProcessDialog::increment_global_progress()
 {
-  QMutexLocker lock(&m_mutex);
-  auto value = m_globalProgress->value();
-  m_globalProgress->setValue(++value);
+  m_mutex.lock();
 
-  m_wait_condition.wakeAll();
-}
-
-//-----------------------------------------------------------------
-void ProcessDialog::increment_thread_progress(int value)
-{
   auto converter = qobject_cast<ConverterThread *>(sender());
-  m_progress_GUI[converter]->setValue(value);
+  disconnect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
+  disconnect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
+  disconnect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));
+
+  if(!converter->has_been_cancelled())
+  {
+    auto value = m_globalProgress->value();
+    m_globalProgress->setValue(++value);
+  }
+
+  --m_num_workers;
+
+  auto bar = m_progress_bars.key(converter);
+  Q_ASSERT(bar);
+
+  disconnect(converter, SIGNAL(progress(int)), bar, SLOT(setValue(int)));
+
+  m_progress_bars[bar] = nullptr;
+  bar->setEnabled(false);
+  bar->setFormat("Idle");
+
+  delete converter;
+
+  if((m_globalProgress->maximum() == m_globalProgress->value()) || converter->has_been_cancelled())
+  {
+    disconnect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
+    connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(exit_dialog()));
+    m_cancelButton->setText("Exit");
+  }
+
+  m_mutex.unlock();
+
+  if(!converter->has_been_cancelled())
+  {
+    create_threads();
+  }
 }
 
 //-----------------------------------------------------------------
-const QString ProcessDialog::clean_output_name(const QFileInfo file_info) const
+void ProcessDialog::create_threads()
 {
-  auto name = file_info.absoluteFilePath().split('/').last();
-  auto path = file_info.absoluteFilePath().remove(name);
+  m_mutex.lock();
+  while(m_num_workers < m_max_workers && m_music_files.size() > 0)
+  {
+    ++m_num_workers;
+    auto music_file = m_music_files.first();
+    m_music_files.removeFirst();
 
-  return path + Utils::cleanName(file_info.absoluteFilePath(), m_clean_configuration);
+    auto converter = create_converter(music_file);
+    if (converter == nullptr)
+    {
+      m_mutex.unlock();
+      log_error(QString("Unavailable converter for extension '%1', ommitting file '%2'").arg(music_file.fileName().split('.').last()).arg(music_file.fileName()));
+      return;
+    }
+
+    connect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
+    connect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
+    connect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));
+
+    for(auto bar: m_progress_bars.keys())
+    {
+      if(m_progress_bars[bar] == nullptr)
+      {
+        m_progress_bars[bar] = converter;
+        bar->setEnabled(true);
+        bar->setFormat(QString("%1").arg(music_file.baseName()));
+        connect(converter, SIGNAL(progress(int)), bar, SLOT(setValue(int)));
+
+        break;
+      }
+    }
+
+    converter->start();
+  }
+  m_mutex.unlock();
+}
+
+//-----------------------------------------------------------------
+ConverterThread *ProcessDialog::create_converter(const QFileInfo file_info)
+{
+  ConverterThread *converter = nullptr;
+
+  auto extension = file_info.absoluteFilePath().split('.').last().toLower();
+
+  if (0 == extension.compare(QString("ogg"), Qt::CaseInsensitive))
+  {
+    converter = new OGGConverter(file_info);
+  }
+
+  return converter;
+}
+
+//-----------------------------------------------------------------
+void ProcessDialog::exit_dialog()
+{
+  close();
 }

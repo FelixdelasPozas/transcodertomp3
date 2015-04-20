@@ -20,6 +20,9 @@
 #ifndef CONVERTER_THREAD_H_
 #define CONVERTER_THREAD_H_
 
+// Project
+#include "Utils.h"
+
 // Qt
 #include <QThread>
 #include <QFileInfo>
@@ -35,14 +38,15 @@ class ConverterThread
 {
     Q_OBJECT
   public:
-    explicit ConverterThread(const QFileInfo &origin_info, const QString &destination);
+    explicit ConverterThread(const QFileInfo origin_info);
     virtual ~ConverterThread();
 
     void stop();
+    bool has_been_cancelled();
 
   signals:
-    void error_message(const QString &message);
-    void information_message(const QString &message);
+    void error_message(const QString message);
+    void information_message(const QString message);
     void progress(int value);
 
   protected:
@@ -64,11 +68,10 @@ class ConverterThread
         long        samplerate;
         MPEG_mode_e mode;
         PCM_FORMAT  format;
+        long        num_samples;
       };
 
-      const QFileInfo &m_originInfo;
-      const QString   &m_destination;
-
+      const QFileInfo m_origin_info;
   private:
       // derived classes will use this funcion to open and make the necessary decoder
       // initializations.
@@ -85,8 +88,8 @@ class ConverterThread
 
       lame_global_flags *m_gfp;
       unsigned char      m_mp3_buffer[8480];
-      std::ofstream      m_mp3File;
       bool               m_stop;
+      const Utils::CleanConfiguration m_clean_configuration;
 };
 
 #endif // CONVERTER_THREAD_H_

@@ -23,10 +23,13 @@
 // Vorbis lib
 #include <vorbis/vorbisfile.h>
 
+// Qt
+#include <QDebug>
+
 //-----------------------------------------------------------------
-OGGConverter::OGGConverter(const QFileInfo &origin_info, const QString &destination)
-: ConverterThread  {origin_info, destination}
-, m_init           {false}
+OGGConverter::OGGConverter(const QFileInfo origin_info)
+: ConverterThread{origin_info}
+, m_init         {false}
 {
 }
 
@@ -42,7 +45,8 @@ OGGConverter::~OGGConverter()
 //-----------------------------------------------------------------
 bool OGGConverter::open_source_file()
 {
-  auto file_name = this->m_originInfo.absoluteFilePath().replace('/','\\').toStdString().c_str();
+  auto file_name = this->m_origin_info.absoluteFilePath().replace('/','\\').toStdString().c_str();
+  qDebug() << "-" << file_name << "-";
   int result = ov_fopen(file_name, &m_vorbis_file);
   switch(result)
   {
@@ -66,6 +70,7 @@ bool OGGConverter::open_source_file()
       break;
   }
 
+  qDebug() << "result opening" << file_name << "is" << result;
   m_init = (result == 0);
 
   return m_init;
@@ -74,8 +79,12 @@ bool OGGConverter::open_source_file()
 //-----------------------------------------------------------------
 long int OGGConverter::read_data()
 {
-  int unused;
-  return ov_read(&m_vorbis_file, reinterpret_cast<char *>(m_pcm_interleaved), 4096*2, 0, 2, 1, &unused);
+  if(!m_init) Q_ASSERT(false);
+
+  int unused = 0;
+  auto returnVal = ov_read(&m_vorbis_file, reinterpret_cast<char *>(m_pcm_interleaved), 4096*2, 0, 2, 1, &unused);
+//  qDebug() << "ogg read value" << returnVal;
+  return returnVal;
 }
 
 //-----------------------------------------------------------------
@@ -87,12 +96,17 @@ void OGGConverter::get_source_properties(Source_Info &information)
   information.samplerate   = info->rate;
   information.format       = PCM_FORMAT::INTERLEAVED;
   information.mode         = (info->channels == 2) ? MPEG_mode_e::STEREO : MPEG_mode_e::MONO;
+  information.num_samples  = ov_pcm_total(&m_vorbis_file, -1);
 
-  auto file_name = this->m_originInfo.absoluteFilePath().replace('/','\\').toStdString().c_str();
+  auto file_name = this->m_origin_info.absoluteFilePath().replace('/','\\').toStdString().c_str();
 
   if(info->channels > 2)
   {
     emit error_message(QString("Source is not mono or stereo (%1).").arg(file_name));
   }
+
+  qDebug() << "ogg file channels" << info->channels;
+  qDebug() << "ogg file sample rate" << info->rate;
+  qDebug() << "ogg file version" << info->version;
 }
 

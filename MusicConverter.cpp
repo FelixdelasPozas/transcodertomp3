@@ -23,12 +23,13 @@
 #include "Utils.h"
 
 // Qt
-#include <QSettings>
-#include <QFileDialog>
-#include <QDebug>
-#include <QMessageBox>
-#include <QStack>
+#include <QDir>
 #include <QDirIterator>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QSettings>
+
+#include <QDebug>
 
 // C++
 #include <thread>
@@ -36,8 +37,6 @@
 const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
 const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
 const QString MusicConverter::CLEAN_FILENAMES = QString("Clean File Names");
-
-using namespace Utils;
 
 //-----------------------------------------------------------------
 MusicConverter::MusicConverter()
@@ -106,7 +105,7 @@ void MusicConverter::onConversionStarted()
   QStringList fileTypes;
   fileTypes << "*.ogg"; // << "*.flac" << "*.wma" << "*.m4a" << "*.mod" << "*.it" << "*.s3m" << "*.xt" << "*.wav" << "*.ape";
 
-  m_files = findFiles(m_directoryText->text(), fileTypes);
+  m_files = Utils::findFiles(m_directoryText->text(), fileTypes);
 
   if(m_files.empty())
   {

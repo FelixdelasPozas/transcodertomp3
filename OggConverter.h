@@ -30,7 +30,7 @@ class OGGConverter
 : public ConverterThread
 {
   public:
-    explicit OGGConverter(const QFileInfo &origin_info, const QString &destination);
+    explicit OGGConverter(const QFileInfo origin_info);
     virtual ~OGGConverter();
 
   private:
