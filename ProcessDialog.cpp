@@ -75,7 +75,7 @@ void ProcessDialog::log_error(const QString &message)
 {
   QMutexLocker lock(&m_mutex);
   m_log->setTextColor(Qt::red);
-  m_log->append(message);
+  m_log->append(QString("ERROR:") + message);
 }
 
 //-----------------------------------------------------------------
@@ -125,9 +125,10 @@ void ProcessDialog::increment_global_progress()
   bar->setEnabled(false);
   bar->setFormat("Idle");
 
+  auto cancelled = converter->has_been_cancelled();
   delete converter;
 
-  if((m_globalProgress->maximum() == m_globalProgress->value()) || converter->has_been_cancelled())
+  if((m_globalProgress->maximum() == m_globalProgress->value()) || cancelled)
   {
     disconnect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
     connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(exit_dialog()));
@@ -136,7 +137,7 @@ void ProcessDialog::increment_global_progress()
 
   m_mutex.unlock();
 
-  if(!converter->has_been_cancelled())
+  if(!cancelled)
   {
     create_threads();
   }

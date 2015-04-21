@@ -25,7 +25,6 @@
 
 // Qt
 #include <QStringList>
-#include <QDebug>
 
 //-----------------------------------------------------------------
 ConverterThread::ConverterThread(const QFileInfo origin_info)
@@ -143,7 +142,6 @@ void ConverterThread::run()
 
       if(output_bytes > 0)
       {
-//        qDebug() << "mp3 write" << output_bytes;
         mp3_file_stream.write(reinterpret_cast<char *>(&m_mp3_buffer), output_bytes);
       }
 
@@ -156,13 +154,11 @@ void ConverterThread::run()
     }
 
     source_bytes -= bytes_read/4;
-//    qDebug() << "pending" << source_bytes;
   }
 
   auto flush_bytes = lame_encode_flush(m_gfp, m_mp3_buffer, 8480);
   if(flush_bytes != 0)
   {
-    qDebug() << "mp3 write flush" << flush_bytes;
     mp3_file_stream.write(reinterpret_cast<char *>(&m_mp3_buffer), flush_bytes);
   }
 

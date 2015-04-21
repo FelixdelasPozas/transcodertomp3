@@ -20,6 +20,8 @@
 #ifndef OGG_CONVERTER_H_
 #define OGG_CONVERTER_H_
 
+#define OV_EXCLUDE_STATIC_CALLBACKS
+
 // Project
 #include <ConverterThread.h>
 

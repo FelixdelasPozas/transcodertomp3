@@ -23,9 +23,6 @@
 // Vorbis lib
 #include <vorbis/vorbisfile.h>
 
-// Qt
-#include <QDebug>
-
 //-----------------------------------------------------------------
 OGGConverter::OGGConverter(const QFileInfo origin_info)
 : ConverterThread{origin_info}
@@ -45,9 +42,10 @@ OGGConverter::~OGGConverter()
 //-----------------------------------------------------------------
 bool OGGConverter::open_source_file()
 {
-  auto file_name = this->m_origin_info.absoluteFilePath().replace('/','\\').toStdString().c_str();
-  qDebug() << "-" << file_name << "-";
-  int result = ov_fopen(file_name, &m_vorbis_file);
+  auto file_name = m_origin_info.absoluteFilePath();
+  auto transformed_name = file_name.replace('/', '\\');
+
+  int result = ov_fopen(transformed_name.toStdString().c_str(), &m_vorbis_file);
   switch(result)
   {
     case OV_EREAD:
@@ -70,7 +68,6 @@ bool OGGConverter::open_source_file()
       break;
   }
 
-  qDebug() << "result opening" << file_name << "is" << result;
   m_init = (result == 0);
 
   return m_init;
@@ -82,9 +79,7 @@ long int OGGConverter::read_data()
   if(!m_init) Q_ASSERT(false);
 
   int unused = 0;
-  auto returnVal = ov_read(&m_vorbis_file, reinterpret_cast<char *>(m_pcm_interleaved), 4096*2, 0, 2, 1, &unused);
-//  qDebug() << "ogg read value" << returnVal;
-  return returnVal;
+  return ov_read(&m_vorbis_file, reinterpret_cast<char *>(m_pcm_interleaved), 4096*2, 0, 2, 1, &unused);
 }
 
 //-----------------------------------------------------------------
@@ -104,9 +99,5 @@ void OGGConverter::get_source_properties(Source_Info &information)
   {
     emit error_message(QString("Source is not mono or stereo (%1).").arg(file_name));
   }
-
-  qDebug() << "ogg file channels" << info->channels;
-  qDebug() << "ogg file sample rate" << info->rate;
-  qDebug() << "ogg file version" << info->version;
 }
 
