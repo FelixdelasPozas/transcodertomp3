@@ -10,19 +10,19 @@
     <x>0</x>
     <y>0</y>
     <width>472</width>
-    <height>145</height>
+    <height>122</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>472</width>
-    <height>145</height>
+    <height>122</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>472</width>
-    <height>145</height>
+    <height>122</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -82,13 +82,6 @@
        <widget class="QSpinBox" name="m_threads"/>
       </item>
      </layout>
-    </item>
-    <item>
-     <widget class="QCheckBox" name="m_cleanNames">
-      <property name="text">
-       <string>Clean file names</string>
-      </property>
-     </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">

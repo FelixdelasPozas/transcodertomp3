@@ -36,7 +36,6 @@
 
 const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
 const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
-const QString MusicConverter::CLEAN_FILENAMES = QString("Clean File Names");
 
 //-----------------------------------------------------------------
 MusicConverter::MusicConverter()
@@ -65,7 +64,6 @@ MusicConverter::~MusicConverter()
 
   settings.setValue(ROOT_DIRECTORY, m_directoryText->text());
   settings.setValue(NUMBER_OF_THREADS, m_threads->value());
-  settings.setValue(CLEAN_FILENAMES, m_cleanNames->isChecked());
 
   settings.sync();
 }
@@ -77,7 +75,6 @@ void MusicConverter::loadSettings()
 
   m_directoryText->setText(settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString());
   m_threads->setValue(settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency()/2).toInt());
-  m_cleanNames->setChecked(settings.value(CLEAN_FILENAMES, true).toBool());
 }
 
 //-----------------------------------------------------------------

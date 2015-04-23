@@ -46,7 +46,6 @@ class MusicConverter
 
 	  static const QString ROOT_DIRECTORY;
 	  static const QString NUMBER_OF_THREADS;
-	  static const QString CLEAN_FILENAMES;
 
 	  void loadSettings();
 
