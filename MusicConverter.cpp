@@ -100,7 +100,7 @@ void MusicConverter::onDirectoryChanged()
 void MusicConverter::onConversionStarted()
 {
   QStringList fileTypes;
-  fileTypes << "*.ogg"; // << "*.flac" << "*.wma" << "*.m4a" << "*.mod" << "*.it" << "*.s3m" << "*.xt" << "*.wav" << "*.ape";
+  fileTypes << "*.ogg" << "*.flac" << "*.wma" << "*.m4a" << "*.mod" << "*.it" << "*.s3m" << "*.xt" << "*.wav" << "*.ape";
 
   m_files = Utils::findFiles(m_directoryText->text(), fileTypes);
 

@@ -28,6 +28,12 @@
 #include <QMap>
 #include <QMutex>
 
+// libav
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+}
+
 class QProgressBar;
 class QFileInfo;
 class ConverterThread;
@@ -53,14 +59,17 @@ class ProcessDialog
 
   private:
     void create_threads();
-    ConverterThread *create_converter(const QFileInfo file_info);
+    void register_av_lock_manager();
+    void unregister_av_lock_manager();
+
+    static int lock_manager(void **mutex, enum AVLockOp op);
 
     QList<QFileInfo>          m_mp3_files;
     QList<QFileInfo>          m_music_files;
     int                       m_max_workers;
     int                       m_num_workers;
 
-    QMutex m_mutex, m_mutex_main;
+    QMutex m_mutex;
     QMap<QProgressBar *, ConverterThread *> m_progress_bars;
 };
 

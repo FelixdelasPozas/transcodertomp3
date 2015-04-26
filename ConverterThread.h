@@ -26,9 +26,16 @@
 // Qt
 #include <QThread>
 #include <QFileInfo>
+#include <QMutex>
 
 // Lame
 #include <lame.h>
+
+// libav
+extern "C"
+{
+#include <libavformat/avformat.h>
+}
 
 // C++
 #include <fstream>
@@ -52,44 +59,61 @@ class ConverterThread
   protected:
       virtual void run() override final;
 
+  private:
       // the derived classes will write the raw PCM data into these buffers.
       // what buffer will be used to encode will be given by the "format"
       // field in the Source_Info of the source file.
-      short int m_pcm_interleaved[4096];
+      short int m_pcm_interleaved[4096 + FF_INPUT_BUFFER_PADDING_SIZE];
       short int m_pcm_right[4096];
       short int m_pcm_left[4096];
 
-      enum class PCM_FORMAT: unsigned char { STEREO, INTERLEAVED, UNSUPPORTED };
+      enum class MODE: unsigned char { MONO, STEREO, INTERLEAVED, UNSUPPORTED };
 
       // information of the PCM data the decoding of the source file will produce.
       struct Source_Info
       {
+        bool        init;
         int         num_channels;
         long        samplerate;
         MPEG_mode_e mode;
-        PCM_FORMAT  format;
-        long        num_samples;
       };
 
+      bool init_decoder();
+      void deinit_decoder();
+
+      int init_encoder();
+      bool encode();
+
+      void transcode();
+      bool extract_cover_picture() const;
+
+      QString av_error_string(const int error_number) const;
+
       const QFileInfo m_origin_info;
-  private:
-      // derived classes will use this funcion to open and make the necessary decoder
-      // initializations.
-      virtual bool open_source_file() = 0;
-
-      // derived classes will use this function to decode the source file and write the
-      // data to the PCM buffers. returns the number of bytes copies to the PCM buffer.
-      virtual long int read_data() = 0;
-
-      // derived classes will return the properties of the PCM data that will be generated.
-      virtual void get_source_properties(Source_Info &information) = 0;
-
-      int init_LAME_codec(const Source_Info &information);
+      Source_Info     m_information;
 
       lame_global_flags *m_gfp;
       unsigned char      m_mp3_buffer[8480];
       bool               m_stop;
+
       const Utils::CleanConfiguration m_clean_configuration;
+
+      AVFormatContext *m_libav_context;
+      AVCodec         *m_audio_decoder;
+      AVCodecContext  *m_audio_decoder_context;
+      AVCodec         *m_cover_encoder;
+      AVCodecContext  *m_cover_encoder_context;
+      AVCodec         *m_cover_decoder;
+      AVCodecContext  *m_cover_decoder_context;
+      AVPacket         m_packet;
+      AVPacket         m_cover_packet;
+      AVFrame         *m_frame;
+      AVFrame         *m_cover_frame;
+      int              m_audio_stream_id;
+      int              m_cover_stream_id;
+
+      std::ofstream    m_mp3_file_stream;
+      static QMutex    s_mutex;
 };
 
 #endif // CONVERTER_THREAD_H_

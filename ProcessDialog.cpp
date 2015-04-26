@@ -19,7 +19,7 @@
 
 // Application
 #include <ProcessDialog.h>
-#include "OggConverter.h"
+#include "ConverterThread.h"
 
 // Qt
 #include <QLayout>
@@ -27,6 +27,14 @@
 #include <QProgressBar>
 #include <QMutexLocker>
 #include <QDebug>
+#include <string>
+#include <pthread.h>
+
+// libav
+extern "C"
+{
+  #include <libavformat/avformat.h>
+}
 
 //-----------------------------------------------------------------
 ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threads_num)
@@ -34,6 +42,9 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threads_nu
 , m_max_workers{threads_num}
 {
   setupUi(this);
+
+  av_register_all();
+  register_av_lock_manager();
 
   connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
 
@@ -68,6 +79,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threads_nu
 ProcessDialog::~ProcessDialog()
 {
   m_progress_bars.clear();
+  unregister_av_lock_manager();
 }
 
 //-----------------------------------------------------------------
@@ -153,14 +165,7 @@ void ProcessDialog::create_threads()
     auto music_file = m_music_files.first();
     m_music_files.removeFirst();
 
-    auto converter = create_converter(music_file);
-    if (converter == nullptr)
-    {
-      m_mutex.unlock();
-      log_error(QString("Unavailable converter for extension '%1', ommitting file '%2'").arg(music_file.fileName().split('.').last()).arg(music_file.fileName()));
-      return;
-    }
-
+    auto converter = new ConverterThread(music_file);
     connect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
     connect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
     connect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));
@@ -184,18 +189,40 @@ void ProcessDialog::create_threads()
 }
 
 //-----------------------------------------------------------------
-ConverterThread *ProcessDialog::create_converter(const QFileInfo file_info)
+int ProcessDialog::lock_manager(void **mutex, AVLockOp operation)
 {
-  ConverterThread *converter = nullptr;
-
-  auto extension = file_info.absoluteFilePath().split('.').last().toLower();
-
-  if (0 == extension.compare(QString("ogg"), Qt::CaseInsensitive))
+  QMutex *passed_mutex;
+  switch (operation)
   {
-    converter = new OGGConverter(file_info);
+    case AV_LOCK_CREATE:
+      *mutex =  new QMutex();
+      return 0;
+    case AV_LOCK_OBTAIN:
+      passed_mutex = reinterpret_cast<QMutex *>(*mutex);
+      passed_mutex->lock();
+      return 0;
+    case AV_LOCK_RELEASE:
+      passed_mutex = reinterpret_cast<QMutex *>(*mutex);
+      passed_mutex->unlock();
+      return 0;
+    case AV_LOCK_DESTROY:
+      passed_mutex = reinterpret_cast<QMutex *>(*mutex);
+      delete passed_mutex;
+      return 0;
   }
+  return 1;
+}
 
-  return converter;
+//-----------------------------------------------------------------
+void ProcessDialog::register_av_lock_manager()
+{
+  av_lockmgr_register(ProcessDialog::lock_manager);
+}
+
+//-----------------------------------------------------------------
+void ProcessDialog::unregister_av_lock_manager()
+{
+  av_lockmgr_register(nullptr);
 }
 
 //-----------------------------------------------------------------
