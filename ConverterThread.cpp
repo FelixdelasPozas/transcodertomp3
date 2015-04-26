@@ -22,32 +22,38 @@
 
 // C++
 #include <fstream>
+#include <iostream>
 
 // Qt
 #include <QStringList>
 #include <QDebug>
 
+// libav
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
 }
 
-#include <iostream>
 
 QMutex ConverterThread::s_mutex;
 
 //-----------------------------------------------------------------
 ConverterThread::ConverterThread(const QFileInfo origin_info)
-: m_origin_info  {origin_info}
-, m_gfp          {nullptr}
-, m_stop         {false}
-, m_libav_context{nullptr}
-, m_audio_decoder      {nullptr}
+: m_origin_info          {origin_info}
+, m_gfp                  {nullptr}
+, m_stop                 {false}
+, m_libav_context        {nullptr}
+, m_audio_decoder        {nullptr}
 , m_audio_decoder_context{nullptr}
-, m_frame  {nullptr}
-, m_audio_stream_id{-1}
-, m_cover_stream_id{-1}
+, m_cover_encoder        {nullptr}
+, m_cover_encoder_context{nullptr}
+, m_cover_decoder        {nullptr}
+, m_cover_decoder_context{nullptr}
+, m_frame                {nullptr}
+, m_cover_frame          {nullptr}
+, m_audio_stream_id      {-1}
+, m_cover_stream_id      {-1}
 {
 }
 
@@ -57,7 +63,57 @@ ConverterThread::~ConverterThread()
 }
 
 //-----------------------------------------------------------------
-bool ConverterThread::init_decoder()
+void ConverterThread::stop()
+{
+  auto source_name = m_origin_info.absoluteFilePath().split('/').last();
+  emit information_message(QString("Converter for '%1' has been cancelled.").arg(source_name));
+  m_stop = true;
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::has_been_cancelled()
+{
+  return m_stop;
+}
+
+//-----------------------------------------------------------------
+void ConverterThread::run()
+{
+  auto destination = Utils::cleanName(m_origin_info.absoluteFilePath(), m_clean_configuration);
+  auto music_file = m_origin_info.absoluteFilePath().replace('/','\\');
+  auto path = m_origin_info.absoluteFilePath().remove(m_origin_info.absoluteFilePath().split('/').last());
+  auto mp3_file = path + destination;
+
+  m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
+  if(!m_mp3_file_stream.is_open())
+  {
+    emit error_message(QString("Couldn't open destination file: %1") + mp3_file);
+    return;
+  }
+
+  if(!init_libav())
+  {
+    emit error_message(QString("Error in LibAV init stage for '%1'").arg(music_file));
+    return;
+  }
+
+  if(0 != init_lame())
+  {
+    emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
+    return;
+  }
+
+  auto source_name = m_origin_info.absoluteFilePath().split('/').last();
+  emit information_message(QString("%1 -> %2").arg(source_name).arg(destination));
+
+  transcode();
+
+  deinit_libav();
+  deinit_lame();
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::init_libav()
 {
   auto file_name = m_origin_info.absoluteFilePath().replace('/','\\');
   auto path      = m_origin_info.absoluteFilePath().remove(m_origin_info.absoluteFilePath().split('/').last());
@@ -78,7 +134,7 @@ bool ConverterThread::init_decoder()
   if(value < 0)
   {
     emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(value)));
-    deinit_decoder();
+    deinit_libav();
     return false;
   }
 
@@ -86,7 +142,7 @@ bool ConverterThread::init_decoder()
   if (m_audio_stream_id < 0)
   {
     emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(m_audio_stream_id)));
-    deinit_decoder();
+    deinit_libav();
     return false;
   }
 
@@ -97,7 +153,7 @@ bool ConverterThread::init_decoder()
     if (!m_audio_decoder)
     {
       emit error_message(QString("Couldn't find decoder for '%1'.").arg(file_name));
-      deinit_decoder();
+      deinit_libav();
       return false;
     }
   }
@@ -107,81 +163,14 @@ bool ConverterThread::init_decoder()
 
   if(m_libav_context->nb_streams != 1)
   {
-    // try to guess if the other stream is the audio cover picture.
-    m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
-    if(m_cover_stream_id > 0)
-    {
-      auto path = m_origin_info.absoluteFilePath().remove(m_origin_info.absoluteFilePath().split('/').last());
-      auto cover_name = path + QString("Frontal.jpg");
-
-      s_mutex.lock();
-      if(!QFile::exists(cover_name))
-      {
-        // if there are several files with the same cover i just need one of the coverters to dump the cover, not all of them.
-        QFile file(cover_name);
-        file.open(QIODevice::WriteOnly|QIODevice::Append);
-        file.close();
-      }
-      else
-      {
-        // for the rest of converters there is no cover stream.
-        m_cover_stream_id = -1;
-      }
-      s_mutex.unlock();
-
-      if(m_cover_stream_id > 0)
-      {
-        auto cover_codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
-        if(cover_codec_id != AV_CODEC_ID_MJPEG)
-        {
-          m_cover_frame = av_frame_alloc();
-          av_init_packet(&m_cover_packet);
-
-          m_cover_decoder = avcodec_find_decoder(cover_codec_id);
-          m_cover_decoder_context = m_libav_context->streams[m_cover_stream_id]->codec;
-
-          if (!m_cover_decoder)
-          {
-            emit error_message(QString("Couldn't find decoder for cover in '%1'.").arg(file_name));
-            m_cover_stream_id = -1;
-          }
-          else
-          {
-            value = avcodec_open2(m_cover_decoder_context, m_cover_decoder, nullptr);
-            if (value < 0)
-            {
-              emit error_message(QString("Couldn't open decoder for cover in '%1'. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
-              m_cover_stream_id = -1;
-            }
-          }
-
-          m_cover_encoder = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
-          m_cover_encoder_context = avcodec_alloc_context3(m_cover_encoder);
-
-          if (!m_cover_encoder)
-          {
-            emit error_message(QString("Couldn't find encoder for cover in '%1'.").arg(file_name));
-            m_cover_stream_id = -1;
-          }
-          else
-          {
-            value = avcodec_open2(m_cover_encoder_context, m_cover_encoder, nullptr);
-            if (value < 0)
-            {
-              emit error_message(QString("Couldn't open encoder for '%1'. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
-              m_cover_stream_id = -1;
-            }
-          }
-        }
-      }
-    }
+    init_libav_cover_transcoding();
   }
 
   value = avcodec_open2(m_audio_decoder_context, m_audio_decoder, nullptr);
   if (value < 0)
   {
     emit error_message(QString("Couldn't open decoder for '%1'. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
-    deinit_decoder();
+    deinit_libav();
     return false;
   }
 
@@ -196,7 +185,83 @@ bool ConverterThread::init_decoder()
 }
 
 //-----------------------------------------------------------------
-void ConverterThread::deinit_decoder()
+void ConverterThread::init_libav_cover_transcoding()
+{
+  auto file_name = m_origin_info.absoluteFilePath().replace('/','\\');
+  int value = 0;
+
+  // try to guess if the other stream is the audio cover picture.
+  m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+  if(m_cover_stream_id > 0)
+  {
+    auto path = m_origin_info.absoluteFilePath().remove(m_origin_info.absoluteFilePath().split('/').last());
+    auto cover_name = path + QString("Frontal.jpg");
+
+    s_mutex.lock();
+    if(!QFile::exists(cover_name))
+    {
+      // if there are several files with the same cover i just need one of the coverters to dump the cover, not all of them.
+      QFile file(cover_name);
+      file.open(QIODevice::WriteOnly|QIODevice::Append);
+      file.close();
+    }
+    else
+    {
+      // for the rest of converters there is no cover stream.
+      m_cover_stream_id = -1;
+    }
+    s_mutex.unlock();
+
+    if(m_cover_stream_id > 0)
+    {
+      auto cover_codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
+      if(cover_codec_id != AV_CODEC_ID_MJPEG)
+      {
+        av_init_packet(&m_cover_packet);
+        m_cover_frame = av_frame_alloc();
+
+        m_cover_decoder = avcodec_find_decoder(cover_codec_id);
+        m_cover_decoder_context = m_libav_context->streams[m_cover_stream_id]->codec;
+
+        if (!m_cover_decoder)
+        {
+          emit error_message(QString("Couldn't find decoder for cover in '%1'.").arg(file_name));
+          m_cover_stream_id = -1;
+        }
+        else
+        {
+          value = avcodec_open2(m_cover_decoder_context, m_cover_decoder, nullptr);
+          if (value < 0)
+          {
+            emit error_message(QString("Couldn't open decoder for cover in '%1'. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
+            m_cover_stream_id = -1;
+          }
+        }
+
+        m_cover_encoder = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
+        m_cover_encoder_context = avcodec_alloc_context3(m_cover_encoder);
+
+        if (!m_cover_encoder)
+        {
+          emit error_message(QString("Couldn't find encoder for cover in '%1'.").arg(file_name));
+          m_cover_stream_id = -1;
+        }
+        else
+        {
+          value = avcodec_open2(m_cover_encoder_context, m_cover_encoder, nullptr);
+          if (value < 0)
+          {
+            emit error_message(QString("Couldn't open encoder for '%1'. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
+            m_cover_stream_id = -1;
+          }
+        }
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------
+void ConverterThread::deinit_libav()
 {
   if(m_libav_context)
   {
@@ -211,6 +276,16 @@ void ConverterThread::deinit_decoder()
   if(m_cover_frame)
   {
     av_frame_free(&m_cover_frame);
+  }
+
+  if(m_cover_encoder_context)
+  {
+    avcodec_free_context(&m_cover_encoder_context);
+  }
+
+  if(m_cover_decoder_context)
+  {
+    avcodec_free_context(&m_cover_decoder_context);
   }
 }
 
@@ -238,7 +313,7 @@ void ConverterThread::transcode()
           m_packet.size -= result;
           m_packet.data += result;
 
-          if(!encode())
+          if(!lame_encode())
           {
             emit error_message(QString("Error in encode phase, unknown sample format. Format is '%1'").arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
             return;
@@ -287,7 +362,7 @@ void ConverterThread::transcode()
     int result = 0;
     while ((result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet) >= 0) && gotFrame)
     {
-      if(!encode())
+      if(!lame_encode())
       {
         emit error_message(QString("Error in encode phase, unknown sample format. Format is '%1'").arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
         return;
@@ -319,19 +394,26 @@ bool ConverterThread::extract_cover_picture() const
 
   if(m_cover_encoder)
   {
-    AVPacket *packet = const_cast<AVPacket *>(&m_packet); // remove the constness of the reference.
+    AVPacket *packet = const_cast<AVPacket *>(&m_packet);             // remove the constness of the reference.
     AVPacket *cover_packet = const_cast<AVPacket *>(&m_cover_packet); // remove the constness of the reference.
 
-    int gotFrame = 0;
-    int result = avcodec_decode_video2(m_cover_decoder_context, m_cover_frame, &gotFrame, packet);
-
-    if (result >= 0 && gotFrame)
+    while(packet->size > 0)
     {
-      result = avcodec_encode_video2(m_cover_encoder_context, cover_packet, m_cover_frame, &gotFrame);
+      int gotFrame = 0;
+      int result = avcodec_decode_video2(m_cover_decoder_context, m_cover_frame, &gotFrame, packet);
 
-      if(result >= 0 && gotFrame)
+      if (result >= 0 && gotFrame)
       {
-        file.write(reinterpret_cast<const char *>(cover_packet->data), static_cast<long long int>(cover_packet->size));
+        packet->size -= result;
+        packet->data += result;
+
+        int gotFrame2 = 0;
+        int result2 = avcodec_encode_video2(m_cover_encoder_context, cover_packet, m_cover_frame, &gotFrame);
+
+        if(result2 >= 0 && gotFrame2)
+        {
+          file.write(reinterpret_cast<const char *>(cover_packet->data), static_cast<long long int>(cover_packet->size));
+        }
       }
     }
   }
@@ -354,7 +436,7 @@ QString ConverterThread::av_error_string(const int error_num) const
 }
 
 //-----------------------------------------------------------------
-int ConverterThread::init_encoder()
+int ConverterThread::init_lame()
 {
   Q_ASSERT(m_information.init);
 
@@ -374,10 +456,24 @@ int ConverterThread::init_encoder()
 }
 
 //-----------------------------------------------------------------
-bool ConverterThread::encode()
+void ConverterThread::deinit_lame()
 {
-//  qDebug() << "sample format" << QString(av_get_sample_fmt_name(m_coder_context->sample_fmt));
+  lame_close(m_gfp);
+  m_mp3_file_stream.close();
 
+  if(m_stop)
+  {
+    auto destination = Utils::cleanName(m_origin_info.absoluteFilePath(), m_clean_configuration);
+    auto path = m_origin_info.absoluteFilePath().remove(m_origin_info.absoluteFilePath().split('/').last());
+    auto mp3_file = path + destination;
+
+    QFile::remove(mp3_file);
+  }
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::lame_encode()
+{
   int output_bytes = 0;
   switch(m_frame->format)
   {
@@ -438,59 +534,4 @@ bool ConverterThread::encode()
   }
 
   return true;
-}
-//-----------------------------------------------------------------
-void ConverterThread::run()
-{
-  auto destination = Utils::cleanName(m_origin_info.absoluteFilePath(), m_clean_configuration);
-  auto path = m_origin_info.absoluteFilePath().remove(m_origin_info.absoluteFilePath().split('/').last());
-  auto mp3_file = path + destination;
-
-  m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
-  if(!m_mp3_file_stream.is_open())
-  {
-    emit error_message(QString("Couldn't open destination file: %1") + mp3_file);
-    return;
-  }
-
-  if(!init_decoder())
-  {
-    auto music_file = m_origin_info.absoluteFilePath().replace('/','\\');
-    emit error_message(QString("Couldn't open source file: %1").arg(music_file));
-    return;
-  }
-
-  auto correct = init_encoder();
-  if(0 != correct)
-  {
-    emit error_message(QString("Error in LAME init stage, code: %1").arg(correct));
-    return;
-  }
-
-  auto source_name = m_origin_info.absoluteFilePath().split('/').last();
-  emit information_message(QString("%1 -> %2").arg(source_name).arg(destination));
-
-  transcode();
-
-  lame_close(m_gfp);
-  m_mp3_file_stream.close();
-
-  if(m_stop)
-  {
-    QFile::remove(mp3_file);
-  }
-}
-
-//-----------------------------------------------------------------
-void ConverterThread::stop()
-{
-  auto source_name = m_origin_info.absoluteFilePath().split('/').last();
-  emit information_message(QString("Converter for '%1' has been cancelled.").arg(source_name));
-  m_stop = true;
-}
-
-//-----------------------------------------------------------------
-bool ConverterThread::has_been_cancelled()
-{
-  return m_stop;
 }

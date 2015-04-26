@@ -48,7 +48,14 @@ class ConverterThread
     explicit ConverterThread(const QFileInfo origin_info);
     virtual ~ConverterThread();
 
+    /** \brief Aborts the coversion process.
+     *
+     */
     void stop();
+
+    /** \brief Returns true if the process has been aborted.
+     *
+     */
     bool has_been_cancelled();
 
   signals:
@@ -60,15 +67,6 @@ class ConverterThread
       virtual void run() override final;
 
   private:
-      // the derived classes will write the raw PCM data into these buffers.
-      // what buffer will be used to encode will be given by the "format"
-      // field in the Source_Info of the source file.
-      short int m_pcm_interleaved[4096 + FF_INPUT_BUFFER_PADDING_SIZE];
-      short int m_pcm_right[4096];
-      short int m_pcm_left[4096];
-
-      enum class MODE: unsigned char { MONO, STEREO, INTERLEAVED, UNSUPPORTED };
-
       // information of the PCM data the decoding of the source file will produce.
       struct Source_Info
       {
@@ -78,15 +76,53 @@ class ConverterThread
         MPEG_mode_e mode;
       };
 
-      bool init_decoder();
-      void deinit_decoder();
+      /** \brief Initializes libav library structures and data to decode the source file to
+       *         pcm data.
+       *
+       */
+      bool init_libav();
 
-      int init_encoder();
-      bool encode();
+      /** \brief Initializes additional libav structures to decode the video stream
+       *         containing the cover picture of the source file if the stream is not
+       *         an jpg codec, and also structures to encode the cover to jpg format.
+       *         If the cover is already in jpg format this method doesn't need
+       *         to be called, as the picture will be just dumped to disk.
+       */
+      void init_libav_cover_transcoding();
 
+      /** \brief Frees the structures allocated in the init stages of libav library.
+       *
+       */
+      void deinit_libav();
+
+      /** \brief Initializes lame library structures and data to encode the pcm data.
+       *
+       */
+      int init_lame();
+
+      /** \brief Frees the structures allocated in the init stages of lame library.
+       *
+       */
+      void deinit_lame();
+
+      /** \brief Encodes the pcm data in the libav packet to the mp3 buffer and writes it
+       *         to disk.
+       */
+      bool lame_encode();
+
+      /** \brief Decodes the source file and encodes the resulting pcm data with the mp3 codec.
+       *
+       */
       void transcode();
+
+      /** \brief Extracts the cover picture and dumps it to the disk. An additional transcode
+       *         process might be needed if the source isn't already in jpeg format.
+       */
       bool extract_cover_picture() const;
 
+      /** \brief Helper method to print the libav errors.
+       *
+       */
       QString av_error_string(const int error_number) const;
 
       const QFileInfo m_origin_info;
