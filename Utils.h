@@ -27,35 +27,37 @@
 
 namespace Utils
 {
-  /** \brief Returns the files in the specified directory tree that has the specfied extensions.
+  /** \brief Returns the files in the specified directory tree that has the specified extensions.
    * \param[in] rootDir starting directory.
-   * \param[in] extensions extesions of the files to return.
+   * \param[in] extensions extensions of the files to return.
    *
    */
   QList<QFileInfo> findFiles(const QDir rootDirectory, const QStringList extensions);
 
   struct CleanConfiguration
   {
-    QString chars_to_delete;                     // characters to delete
-    QList<QPair<QChar,QChar>> chars_to_replace;  // characters to replace (pair <to replace, with>
-    bool check_number_prefix;                    // check if the name starts with a number
-    int number_of_digits;                        // number of digits the number should have.
-    QChar number_and_name_separator;             // separator character between the number and the rest of the name.
-    bool to_title_case;                          // capitalize the first letter of every word in the name.
+    bool                      apply;                     // true to apply the cleaning process.
+    QString                   chars_to_delete;           // characters to delete
+    QList<QPair<QChar,QChar>> chars_to_replace;          // characters to replace (pair <to replace, with>
+    bool                      check_number_prefix;       // check if the name starts with a number
+    int                       number_of_digits;          // number of digits the number should have.
+    QChar                     number_and_name_separator; // separator character between the number and the rest of the name.
+    bool                      to_title_case;             // capitalize the first letter of every word in the name.
 
     CleanConfiguration()
     {
-      check_number_prefix = true;
-      chars_to_replace << QPair<QChar, QChar>('_', ' ') << QPair<QChar, QChar>('.', ' ') << QPair<QChar, QChar>('[', '(') << QPair<QChar, QChar>(']', ')');
+      apply                     = true;
+      check_number_prefix       = true;
+      chars_to_replace          << QPair<QChar, QChar>('_', ' ') << QPair<QChar, QChar>('.', ' ') << QPair<QChar, QChar>('[', '(') << QPair<QChar, QChar>(']', ')');
       number_and_name_separator = '-';
-      number_of_digits = 2;
-      to_title_case = true;
+      number_of_digits          = 2;
+      to_title_case             = true;
     }
   };
 
   /** \brief Returns a transformed filename according to the specified parameters.
    * \param[in] filename file name with absolute path.
-   * \param[in] conf configuration.
+   * \param[in] conf configuration parameters.
    *
    */
   QString cleanName(const QString filename, const CleanConfiguration conf);

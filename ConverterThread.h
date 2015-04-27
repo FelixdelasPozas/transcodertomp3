@@ -76,6 +76,16 @@ class ConverterThread
         MPEG_mode_e mode;
       };
 
+      // information of a destination file that will be created.
+      struct Destination
+      {
+          QString  name;
+          long int duration;
+
+          Destination(QString destiny_name, long int destiny_duration): name{destiny_name}, duration{destiny_duration} {};
+      };
+
+
       /** \brief Initializes libav library structures and data to decode the source file to
        *         pcm data.
        *
@@ -125,7 +135,19 @@ class ConverterThread
        */
       QString av_error_string(const int error_number) const;
 
-      const QFileInfo m_origin_info;
+      /** \brief Computes the file or files that will be created.
+       *
+       */
+      QList<Destination> compute_destinations() const;
+
+      /** \brief Parses the cue file and returns the destinations and lengths of all
+       * related files.
+       *
+       */
+      QList<Destination> parse_cue_file() const;
+
+      const QFileInfo m_source_info;
+      const QString   m_source_path;
       Source_Info     m_information;
 
       lame_global_flags *m_gfp;
