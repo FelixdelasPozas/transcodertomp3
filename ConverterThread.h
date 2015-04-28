@@ -1,7 +1,7 @@
 /*
  File: ConverterThread.h
  Created on: 18/4/2015
- Author: Felix
+ Author: Felix de las Pozas Alvarez
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -138,13 +138,7 @@ class ConverterThread
       /** \brief Computes the file or files that will be created.
        *
        */
-      QList<Destination> compute_destinations() const;
-
-      /** \brief Parses the cue file and returns the destinations and lengths of all
-       * related files.
-       *
-       */
-      QList<Destination> parse_cue_file() const;
+      QList<Destination> compute_destinations();
 
       const QFileInfo m_source_info;
       const QString   m_source_path;

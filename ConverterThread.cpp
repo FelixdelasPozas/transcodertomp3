@@ -1,7 +1,7 @@
 /*
  File: ConverterThread.cpp
  Created on: 18/4/2015
- Author: Felix
+ Author: Felix de las Pozas Alvarez
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -33,6 +33,12 @@ extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
+}
+
+// libcue
+extern "C"
+{
+#include <libcue/libcue.h>
 }
 
 
@@ -547,7 +553,7 @@ bool ConverterThread::extract_cover_picture() const
 }
 
 //-----------------------------------------------------------------
-QList<ConverterThread::Destination> ConverterThread::compute_destinations() const
+QList<ConverterThread::Destination> ConverterThread::compute_destinations()
 {
   QList<Destination> destinations;
 
@@ -561,22 +567,32 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations() cons
 
   if(!files.empty() && QFile::exists(source_cue))
   {
-    destinations << parse_cue_file();
+    QFile cue_file(source_cue);
+    if(!cue_file.open(QIODevice::ReadOnly))
+    {
+      emit error_message(QString("Error opening cue file '%1'.").arg(source_cue));
+    }
+    else
+    {
+      auto content = cue_file.readAll();
+      auto cd = cue_parse_string(content.data());
+      if(cd == nullptr)
+      {
+        emit error_message(QString("Error parsing cue file '%1'.").arg(source_cue));
+      }
+      else
+      {
+        for(int i = 0; i < cd_get_ntrack(cd); ++i)
+        {
+          // MAGIC
+        }
+      }
+    }
   }
-  else
+//  else
   {
     destinations << Destination(Utils::cleanName(m_source_info.absoluteFilePath(), m_clean_configuration), 0);
   }
-
-  return destinations;
-}
-
-//-----------------------------------------------------------------
-QList<ConverterThread::Destination> ConverterThread::parse_cue_file() const
-{
-  QList<Destination> destinations;
-
-  // TODO: parse cue file and return destinations.
 
   return destinations;
 }

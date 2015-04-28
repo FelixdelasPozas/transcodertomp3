@@ -1,9 +1,9 @@
 /*
-		File: Utils.h
+	File: Utils.h
     Created on: 17/4/2015
-    Author: Felix
+    Author: Felix de las Pozas Alvarez
 
-		This program is free software: you can redistribute it and/or modify
+	This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.

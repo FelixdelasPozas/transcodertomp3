@@ -34,6 +34,11 @@ set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a
                       ${LIBAV_DIR}/libavutil/libavutil.a 
                       ${LIBAV_DIR}/libavresample/libavresample.a)
 
+# libcue library
+set(LIBCUE_DIR "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src")
+set(LIBCUE_INCLUDE_DIR ${LIBCUE_DIR})
+set(LIBCUE_LIBRARY     ${LIBCUE_DIR}/libcue/.libs/libcue.a)
+
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
@@ -41,7 +46,8 @@ include_directories(
   ${CMAKE_BINARY_DIR}          # Generated .h files
   ${CMAKE_CURRENT_BINARY_DIR}  # For wrap/ui files
   ${LAME_INCLUDE_DIR}
-  ${LIBAV_DIR}
+  ${LIBAV_INCLUDE_DIR}
+  ${LIBCUE_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive -mwindows")
@@ -81,6 +87,7 @@ set(CORE_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${LAME_LIBRARY}
   ${LIBAV_LIBRARIES}
+  ${LIBCUE_LIBRARY}
 )
 
 add_executable(MusicConverter ${CORE_SOURCES})
