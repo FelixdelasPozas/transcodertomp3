@@ -35,6 +35,9 @@
 const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
 const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
 
+const QStringList MusicConverter::MODULE_FILE_EXTENSIONS = {"669", "amf", "apun", "dsm", "far", "gdm", "it", "imf", "mod", "med", "mtm", "okt", "s3m", "stm", "stx", "ult", "uni", "xt"};
+const QStringList MusicConverter::WAVE_FILE_EXTENSIONS   = {"flac", "ogg", "ape", "wav", "wma", "m4a", "voc"};
+
 //-----------------------------------------------------------------
 MusicConverter::MusicConverter()
 {
@@ -83,10 +86,7 @@ void MusicConverter::onDirectoryChanged()
 //-----------------------------------------------------------------
 void MusicConverter::onConversionStarted()
 {
-  QStringList fileTypes;
-  fileTypes << "*.ogg" << "*.flac" << "*.wma" << "*.m4a" << "*.mod" << "*.it" << "*.s3m" << "*.xt" << "*.wav" << "*.ape";
-
-  m_files = Utils::findFiles(m_directoryText->text(), fileTypes);
+  m_files = Utils::findFiles(m_directoryText->text(), WAVE_FILE_EXTENSIONS);
 
   if(m_files.empty())
   {
@@ -95,7 +95,7 @@ void MusicConverter::onConversionStarted()
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setWindowIcon(QIcon(":/MusicConverter/application.ico"));
-    msgBox.setWindowTitle(QObject::tr("Unable to start conversion process"));
+    msgBox.setWindowTitle(QObject::tr("Unable to start the conversion process"));
     msgBox.exec();
 
     return;

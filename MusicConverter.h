@@ -59,6 +59,9 @@ class MusicConverter
 	  static const QString ROOT_DIRECTORY;
 	  static const QString NUMBER_OF_THREADS;
 
+	  static const QStringList MODULE_FILE_EXTENSIONS;
+	  static const QStringList WAVE_FILE_EXTENSIONS;
+
 	  /** \brief Loads the program settings.
 	   *
 	   */

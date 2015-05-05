@@ -39,6 +39,11 @@ set(LIBCUE_DIR "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src")
 set(LIBCUE_INCLUDE_DIR ${LIBCUE_DIR})
 set(LIBCUE_LIBRARY     ${LIBCUE_DIR}/libcue/.libs/libcue.a)
 
+# libmikmod library
+set(LIBMIKMOD_DIR "D:/Desarrollo/Bibliotecas/libmikmod-3.3.7")
+set(LIBMIKMOD_INCLUDE_DIR ${LIBMIKMOD_DIR}/include)
+set(LIBMIKMOD_LIBRARY     ${LIBMIKMOD_DIR}/../libmikmod-build/libmikmod.a)
+
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
@@ -48,6 +53,7 @@ include_directories(
   ${LAME_INCLUDE_DIR}
   ${LIBAV_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
+  ${LIBMIKMOD_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive -mwindows")
@@ -88,6 +94,7 @@ set(CORE_EXTERNAL_LIBS
   ${LAME_LIBRARY}
   ${LIBAV_LIBRARIES}
   ${LIBCUE_LIBRARY}
+  ${LIBMIKMOD_LIBRARY}
 )
 
 add_executable(MusicConverter ${CORE_SOURCES})

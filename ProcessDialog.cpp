@@ -48,7 +48,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threads_nu
 
   connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
 
-  setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint & Qt::WindowMaximizeButtonHint & ~Qt::WindowCloseButtonHint);
 
   m_globalProgress->setMinimum(0);
   m_globalProgress->setMaximum(m_music_files.size());
@@ -158,7 +158,8 @@ void ProcessDialog::increment_global_progress()
 //-----------------------------------------------------------------
 void ProcessDialog::create_threads()
 {
-  m_mutex.lock();
+  QMutexLocker lock(&m_mutex);
+
   while(m_num_workers < m_max_workers && m_music_files.size() > 0)
   {
     ++m_num_workers;
@@ -185,7 +186,6 @@ void ProcessDialog::create_threads()
 
     converter->start();
   }
-  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------

@@ -149,7 +149,7 @@ class ConverterThread
       unsigned char      m_mp3_buffer[8480];
       bool               m_stop;
 
-      const Utils::CleanConfiguration m_clean_configuration;
+      const Utils::FormatConfiguration m_clean_configuration;
 
       AVFormatContext *m_libav_context;
       AVCodec         *m_audio_decoder;

@@ -587,7 +587,7 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations()
 
           auto cdtext = track_get_cdtext(track);
           auto track_name = QString(cdtext_get(PTI_TITLE, cdtext));
-          auto track_clean_name = Utils::cleanName(track_name, m_clean_configuration);
+          auto track_clean_name = Utils::formatString(track_name, m_clean_configuration);
           auto track_length = track_get_length(track);
           auto number_prefix = QString().number(i);
 
@@ -611,7 +611,7 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations()
   }
 //  else
   {
-    destinations << Destination(Utils::cleanName(m_source_info.absoluteFilePath(), m_clean_configuration), 0);
+    destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_clean_configuration), 0);
   }
 
   return destinations;

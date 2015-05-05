@@ -48,7 +48,10 @@ namespace Utils
     {
       apply                     = true;
       check_number_prefix       = true;
-      chars_to_replace          << QPair<QString, QString>("_", " ") << QPair<QString, QString>(".", " ") << QPair<QString, QString>("[", "(") << QPair<QString, QString>("]", ")");
+      chars_to_replace          << QPair<QString, QString>("_", " ")
+                                << QPair<QString, QString>(".", " ")
+                                << QPair<QString, QString>("[", "(")
+                                << QPair<QString, QString>("]", ")");
       number_and_name_separator = '-';
       number_of_digits          = 2;
       to_title_case             = true;
