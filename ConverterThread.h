@@ -45,29 +45,51 @@ class ConverterThread
 {
     Q_OBJECT
   public:
-    explicit ConverterThread(const QFileInfo origin_info);
+    /** \brief ConverterThread class constructor.
+     * \param[in] source_info QFileInfo struct of the source file.
+     *
+     */
+    explicit ConverterThread(const QFileInfo source_info);
+
+    /** \brief ConverterThread class virtual destructor.
+     *
+     */
     virtual ~ConverterThread();
 
-    /** \brief Aborts the coversion process.
+    /** \brief Aborts the conversion process.
      *
      */
     void stop();
 
-    /** \brief Returns true if the process has been aborted.
+    /** \brief Returns true if the process has been aborted and false otherwise.
      *
      */
     bool has_been_cancelled();
 
   signals:
+    /** \brief Emits a error message signal.
+     * \param[in] message error message.
+     *
+     */
     void error_message(const QString message);
+
+    /** \brief Emits an information message signal.
+     * \param[in] message information message.
+     *
+     */
     void information_message(const QString message);
+
+    /** \brief Emits a progress signal.
+     * \param[in] value progress in [0-100].
+     *
+     */
     void progress(int value);
 
   protected:
       virtual void run() override final;
 
   private:
-      // information of the PCM data the decoding of the source file will produce.
+      // information of the source file needed to init the mp3 encoder.
       struct Source_Info
       {
         bool        init;
@@ -80,7 +102,8 @@ class ConverterThread
       struct Destination
       {
           QString  name;
-          long int duration; // there are 75 frames per second in a cue sheet duration
+          long int duration; // there are 75 frames per second in a cue sheet duration.
+                             // 0 indicates not to worry about duration and encode until the end of the source file.
 
           Destination(QString destiny_name, long int destiny_duration): name{destiny_name}, duration{destiny_duration} {};
       };
@@ -117,26 +140,31 @@ class ConverterThread
 
       /** \brief Encodes the pcm data in the libav packet to the mp3 buffer and writes it
        *         to disk.
-       */
-      bool lame_encode();
-
-      /** \brief Decodes the source file and encodes the resulting pcm data with the mp3 codec.
-       * \param[in] length file length in cue sheet frames (there are 75 frames in a second).
+       * \param[in] buffer_start starting position in the data buffer to convert.
+       * \param[in] buffer_length number of samples per channel in the data buffer.
        *
        */
-      void transcode(long int length);
+      bool lame_encode(unsigned int buffer_start, unsigned int buffer_length);
+
+      /** \brief Decodes the source file and encodes the resulting pcm data with the mp3
+       *         codec into the destination files.
+       *
+       */
+      void transcode();
 
       /** \brief Extracts the cover picture and dumps it to the disk. An additional transcode
        *         process might be needed if the source isn't already in jpeg format.
        */
       bool extract_cover_picture() const;
 
-      /** \brief Helper method to print the libav errors.
+      /** \brief Helper method to get a user-friendly description of a libav error code.
        *
        */
       QString av_error_string(const int error_number) const;
 
-      /** \brief Computes the file or files that will be created.
+      /** \brief Computes the file or files that will be created in case there is a cue file. If there
+       * is no cue file in the same directory as the source file only the formatted file will be
+       * the only destiny. Formats the output file names.
        *
        */
       QList<Destination> compute_destinations();
@@ -149,7 +177,7 @@ class ConverterThread
       unsigned char      m_mp3_buffer[8480];
       bool               m_stop;
 
-      const Utils::FormatConfiguration m_clean_configuration;
+      const Utils::FormatConfiguration m_format_configuration;
 
       AVFormatContext *m_libav_context;
       AVCodec         *m_audio_decoder;

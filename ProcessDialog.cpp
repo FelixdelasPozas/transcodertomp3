@@ -48,7 +48,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threads_nu
 
   connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
 
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint & Qt::WindowMaximizeButtonHint & ~Qt::WindowCloseButtonHint);
+  setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
 
   m_globalProgress->setMinimum(0);
   m_globalProgress->setMaximum(m_music_files.size());
@@ -82,6 +82,13 @@ ProcessDialog::~ProcessDialog()
   unregister_av_lock_manager();
 }
 
+void ProcessDialog::closeEvent(QCloseEvent *e)
+{
+  stop();
+
+  QDialog::closeEvent(e);
+}
+
 //-----------------------------------------------------------------
 void ProcessDialog::log_error(const QString &message)
 {
@@ -106,6 +113,7 @@ void ProcessDialog::stop()
     if(converter != nullptr)
     {
       converter->stop();
+      converter->wait();
     }
   }
 }

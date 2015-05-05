@@ -59,6 +59,9 @@ class ProcessDialog
      */
     virtual ~ProcessDialog();
 
+  protected:
+    virtual void closeEvent(QCloseEvent *e) override final;
+
   private slots:
     /** \brief Stops the conversion process.
      *

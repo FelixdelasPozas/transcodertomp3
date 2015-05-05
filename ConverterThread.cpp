@@ -169,7 +169,7 @@ bool ConverterThread::init_libav()
 
   if(!m_audio_decoder)
   {
-    // try to get it using other ways
+    // try to get the decoder using other ways
     m_audio_decoder = avcodec_find_decoder(m_libav_context->streams[m_audio_stream_id]->codec->codec_id);
     if (!m_audio_decoder)
     {
@@ -211,7 +211,7 @@ void ConverterThread::init_libav_cover_transcoding()
   auto source_name = m_source_info.absoluteFilePath();
   int value = 0;
 
-  // try to guess if the other stream is the audio cover picture.
+  // try to guess if the other stream is the album cover picture.
   m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
   if(m_cover_stream_id > 0)
   {
@@ -220,14 +220,14 @@ void ConverterThread::init_libav_cover_transcoding()
     s_mutex.lock();
     if(!QFile::exists(cover_name))
     {
-      // if there are several files with the same cover i just need one of the coverters to dump the cover, not all of them.
+      // if there are several files with the same cover I just need one of the converters to dump the cover, not all of them.
       QFile file(cover_name);
       file.open(QIODevice::WriteOnly|QIODevice::Append);
       file.close();
     }
     else
     {
-      // for the rest of converters there is no cover stream.
+      // the rest of converters will ignore the cover stream.
       m_cover_stream_id = -1;
     }
     s_mutex.unlock();
@@ -344,31 +344,35 @@ void ConverterThread::deinit_lame()
 }
 
 //-----------------------------------------------------------------
-bool ConverterThread::lame_encode()
+bool ConverterThread::lame_encode(unsigned int buffer_start, unsigned int buffer_length)
 {
   int output_bytes = 0;
+  auto data_pointer = m_frame->data[0] + buffer_start;
+  auto extended_data_pointer0 = m_frame->extended_data[0] + buffer_start;
+  auto extended_data_pointer1 = m_frame->extended_data[1] + buffer_start;
+
   switch(m_frame->format)
   {
     case AV_SAMPLE_FMT_S16:         // signed 16 bits
-      output_bytes = lame_encode_buffer_interleaved(m_gfp, reinterpret_cast<short int *>(m_frame->data[0]), m_frame->nb_samples, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_interleaved(m_gfp, reinterpret_cast<short int *>(data_pointer), buffer_length, m_mp3_buffer, 8480);
       break;
     case AV_SAMPLE_FMT_FLT:         // float
-      output_bytes = lame_encode_buffer_interleaved_ieee_float(m_gfp, reinterpret_cast<const float *>(m_frame->data[0]), m_frame->nb_samples, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_interleaved_ieee_float(m_gfp, reinterpret_cast<const float *>(data_pointer), buffer_length, m_mp3_buffer, 8480);
       break;
     case AV_SAMPLE_FMT_DBL:         // double
-      output_bytes = lame_encode_buffer_interleaved_ieee_double(m_gfp, reinterpret_cast<const double *>(m_frame->data[0]), m_frame->nb_samples, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_interleaved_ieee_double(m_gfp, reinterpret_cast<const double *>(data_pointer), buffer_length, m_mp3_buffer, 8480);
       break;
     case AV_SAMPLE_FMT_S16P:        // signed 16 bits, planar
-      output_bytes = lame_encode_buffer(m_gfp, reinterpret_cast<const short int *>(m_frame->extended_data[0]), reinterpret_cast<const short int *>(m_frame->extended_data[1]), m_frame->nb_samples, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer(m_gfp, reinterpret_cast<const short int *>(extended_data_pointer0), reinterpret_cast<const short int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
       break;
     case AV_SAMPLE_FMT_S32P:        // signed 32 bits, planar
-      output_bytes = lame_encode_buffer_long2(m_gfp, reinterpret_cast<const long int *>(m_frame->extended_data[0]), reinterpret_cast<const long int *>(m_frame->extended_data[1]), m_frame->nb_samples, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_long2(m_gfp, reinterpret_cast<const long int *>(extended_data_pointer0), reinterpret_cast<const long int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
       break;
     case AV_SAMPLE_FMT_FLTP:        // float, planar
-      output_bytes = lame_encode_buffer_ieee_float(m_gfp, reinterpret_cast<const float *>(m_frame->extended_data[0]), reinterpret_cast<const float *>(m_frame->extended_data[1]), m_frame->nb_samples, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_ieee_float(m_gfp, reinterpret_cast<const float *>(extended_data_pointer0), reinterpret_cast<const float *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
       break;
     case AV_SAMPLE_FMT_DBLP:        // double, planar
-      output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(m_frame->extended_data[0]), reinterpret_cast<const double *>(m_frame->extended_data[1]), m_frame->nb_samples, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(extended_data_pointer0), reinterpret_cast<const double *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
       break;
       // Unsupported formats
     case AV_SAMPLE_FMT_U8:          // unsigned 8 bits
@@ -409,7 +413,7 @@ bool ConverterThread::lame_encode()
 }
 
 //-----------------------------------------------------------------
-void ConverterThread::transcode(long int length)
+void ConverterThread::transcode()
 {
   // TODO: handle multiple files.
   auto source_file = m_source_info.absoluteFilePath();
@@ -434,7 +438,7 @@ void ConverterThread::transcode(long int length)
           m_packet.size -= result;
           m_packet.data += result;
 
-          if(!lame_encode())
+          if(!lame_encode(0, m_frame->nb_samples))
           {
             emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
             return;
@@ -475,7 +479,7 @@ void ConverterThread::transcode(long int length)
     int result = 0;
     while ((result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet) >= 0) && gotFrame)
     {
-      if(!lame_encode())
+      if(!lame_encode(0, m_frame->nb_samples))
       {
         emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
         return;
@@ -587,16 +591,16 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations()
 
           auto cdtext = track_get_cdtext(track);
           auto track_name = QString(cdtext_get(PTI_TITLE, cdtext));
-          auto track_clean_name = Utils::formatString(track_name, m_clean_configuration);
+          auto track_clean_name = Utils::formatString(track_name, m_format_configuration);
           auto track_length = track_get_length(track);
           auto number_prefix = QString().number(i);
 
-          while(number_prefix.length() < m_clean_configuration.number_of_digits)
+          while(number_prefix.length() < m_format_configuration.number_of_digits)
           {
             number_prefix = "0" + number_prefix;
           }
 
-          auto final_name = number_prefix + QString(" ") + QString(m_clean_configuration.number_and_name_separator) + QString(" ") + track_clean_name;
+          auto final_name = number_prefix + QString(" ") + QString(m_format_configuration.number_and_name_separator) + QString(" ") + track_clean_name;
 
           destinations << Destination(final_name, track_length);
         }
@@ -611,7 +615,7 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations()
   }
 //  else
   {
-    destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_clean_configuration), 0);
+    destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_format_configuration), 0);
   }
 
   return destinations;
