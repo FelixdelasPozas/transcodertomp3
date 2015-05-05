@@ -34,20 +34,40 @@ class MusicConverter
 	Q_OBJECT
 
 	public:
+	  /** \brief MusicConverter class constructor.
+	   *
+	   */
 		explicit MusicConverter();
+
+		/** \brief MusicConverter class destructor.
+		 *
+		 */
 		~MusicConverter();
 
 	private slots:
+	  /** \brief Displays the directory selection dialog.
+	   *
+	   */
 	  void onDirectoryChanged();
+
+	  /** \brief Starts the conversion process if files can be found in the specified directory.
+	   *
+	   */
 	  void onConversionStarted();
 
 	private:
-	  enum class MusicFileType: unsigned char { UNKNOWN = 1, WMA = 2, M4A = 3, FLAC = 4, APE = 5, WAV = 6, TRACKER = 7 };
-
 	  static const QString ROOT_DIRECTORY;
 	  static const QString NUMBER_OF_THREADS;
 
+	  /** \brief Loads the program settings.
+	   *
+	   */
 	  void loadSettings();
+
+	  /** \brief Saves the program settings.
+	   *
+	   */
+	  void saveSettings() const;
 
 	  QList<QFileInfo> m_files;
 };

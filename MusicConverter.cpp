@@ -29,8 +29,6 @@
 #include <QMessageBox>
 #include <QSettings>
 
-#include <QDebug>
-
 // C++
 #include <thread>
 
@@ -60,21 +58,7 @@ MusicConverter::MusicConverter()
 //-----------------------------------------------------------------
 MusicConverter::~MusicConverter()
 {
-  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
-
-  settings.setValue(ROOT_DIRECTORY, m_directoryText->text());
-  settings.setValue(NUMBER_OF_THREADS, m_threads->value());
-
-  settings.sync();
-}
-
-//-----------------------------------------------------------------
-void MusicConverter::loadSettings()
-{
-  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
-
-  m_directoryText->setText(settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString());
-  m_threads->setValue(settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency()/2).toInt());
+  saveSettings();
 }
 
 //-----------------------------------------------------------------
@@ -107,7 +91,7 @@ void MusicConverter::onConversionStarted()
   if(m_files.empty())
   {
     QMessageBox msgBox;
-    msgBox.setText("The specified folder doesn't contain files of the types that can be converted.");
+    msgBox.setText("Can't find any music file in the specified folder.");
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setWindowIcon(QIcon(":/MusicConverter/application.ico"));
@@ -123,4 +107,25 @@ void MusicConverter::onConversionStarted()
   pd.exec();
 
   this->show();
+}
+
+
+//-----------------------------------------------------------------
+void MusicConverter::loadSettings()
+{
+  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
+
+  m_directoryText->setText(settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString());
+  m_threads->setValue(settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency()/2).toInt());
+}
+
+//-----------------------------------------------------------------
+void MusicConverter::saveSettings() const
+{
+  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
+
+  settings.setValue(ROOT_DIRECTORY, m_directoryText->text());
+  settings.setValue(NUMBER_OF_THREADS, m_threads->value());
+
+  settings.sync();
 }

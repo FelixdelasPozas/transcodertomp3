@@ -1,20 +1,20 @@
 /*
 	File: Utils.cpp
-    Created on: 17/4/2015
-    Author: Felix de las Pozas Alvarez
+  Created on: 17/4/2015
+  Author: Felix de las Pozas Alvarez
 
 	This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // Project
@@ -22,7 +22,6 @@
 
 // Qt
 #include <QDirIterator>
-#include <QDebug>
 
 //-----------------------------------------------------------------
 QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList extensions)
@@ -45,42 +44,44 @@ QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList exten
 }
 
 //-----------------------------------------------------------------
-QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration conf)
+QString Utils::formatString(const QString filename, const Utils::FormatConfiguration conf)
 {
-  // Just the name
+  // works for filenames and plain strings
   auto fileInfo = QFileInfo(QFile(filename));
   auto name = fileInfo.absoluteFilePath().split('/').last();
   auto extension = name.split('.').last();
-  QString cleanedName = name;
+  QString formattedName = name;
   if(name.contains('.'))
   {
-    cleanedName = name.remove(name.lastIndexOf('.'), extension.length() + 1);
+    formattedName = name.remove(name.lastIndexOf('.'), extension.length() + 1);
   }
 
-  // Delete characters
+  // delete specified chars
   for(int i = 0; i < conf.chars_to_delete.length(); ++i)
   {
-    cleanedName.remove(conf.chars_to_delete[i], Qt::CaseInsensitive);
+    formattedName.remove(conf.chars_to_delete[i], Qt::CaseInsensitive);
   }
 
-  // Replace characters
+  // replace specified strings
   for(int i = 0; i < conf.chars_to_replace.size(); ++i)
   {
     auto charPair = conf.chars_to_replace[i];
-    cleanedName.replace(charPair.first, charPair.second, Qt::CaseInsensitive);
+    formattedName.replace(charPair.first, charPair.second, Qt::CaseInsensitive);
   }
 
-  // Get the parts and remove consecutive spaces.
-  QStringList parts = cleanedName.split(' ');
+  // remove consecutive spaces
+  QStringList parts = formattedName.split(' ');
   parts.removeAll("");
 
-  cleanedName.clear();
+  formattedName.clear();
   int index = 0;
 
-  // Adjust the number prefix and insert the default separator.
+  // adjust the number prefix and insert the default separator.
   if(conf.check_number_prefix)
   {
     QRegExp re("\\d*");
+
+    // only check number format if it exists
     if (re.exactMatch(parts[index]))
     {
       while(conf.number_of_digits > parts[index].length())
@@ -97,12 +98,12 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
         parts[index+1] = QString(' ' + conf.number_and_name_separator);
       }
 
-      cleanedName = parts[index];
+      formattedName = parts[index];
       ++index;
     }
   }
 
-  // Capitalize the first letter of every word.
+  // capitalize the first letter of every word
   if(conf.to_title_case)
   {
     int i = index;
@@ -112,13 +113,13 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
       bool starts_with_parenthesis = false;
       bool ends_with_parenthesis = false;
 
-      if(parts[i].startsWith('(') && parts[i].size() > 1)
+      while(parts[i].startsWith('(') && parts[i].size() > 1)
       {
         starts_with_parenthesis = true;
         parts[i].remove('(');
       }
 
-      if(parts[i].endsWith(')') && parts[i].size() > 1)
+      while(parts[i].endsWith(')') && parts[i].size() > 1)
       {
         ends_with_parenthesis = true;
         parts[i].remove(')');
@@ -142,14 +143,14 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
     }
   }
 
-  cleanedName += parts[index++];
+  formattedName += parts[index++];
 
-  // Compose the name.
+  // compose the name.
   while(index < parts.size())
   {
-    cleanedName += ' ' + parts[index++];
+    formattedName += ' ' + parts[index++];
   }
-  cleanedName += ".mp3";
+  formattedName += ".mp3";
 
-  return cleanedName;
+  return formattedName;
 }
