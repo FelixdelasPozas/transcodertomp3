@@ -51,7 +51,11 @@ QString Utils::cleanName(const QString filename, const Utils::CleanConfiguration
   auto fileInfo = QFileInfo(QFile(filename));
   auto name = fileInfo.absoluteFilePath().split('/').last();
   auto extension = name.split('.').last();
-  QString cleanedName = name.remove(name.lastIndexOf('.'), extension.length() + 1);
+  QString cleanedName = name;
+  if(name.contains('.'))
+  {
+    cleanedName = name.remove(name.lastIndexOf('.'), extension.length() + 1);
+  }
 
   // Delete characters
   for(int i = 0; i < conf.chars_to_delete.length(); ++i)

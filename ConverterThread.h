@@ -80,7 +80,7 @@ class ConverterThread
       struct Destination
       {
           QString  name;
-          long int duration;
+          long int duration; // there are 75 frames per second in a cue sheet duration
 
           Destination(QString destiny_name, long int destiny_duration): name{destiny_name}, duration{destiny_duration} {};
       };
@@ -121,9 +121,10 @@ class ConverterThread
       bool lame_encode();
 
       /** \brief Decodes the source file and encodes the resulting pcm data with the mp3 codec.
+       * \param[in] length file length in cue sheet frames (there are 75 frames in a second).
        *
        */
-      void transcode();
+      void transcode(long int length);
 
       /** \brief Extracts the cover picture and dumps it to the disk. An additional transcode
        *         process might be needed if the source isn't already in jpeg format.

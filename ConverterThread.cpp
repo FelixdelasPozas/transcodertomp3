@@ -93,14 +93,14 @@ void ConverterThread::run()
     return;
   }
 
-  if(0 != init_lame())
-  {
-    emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
-    return;
-  }
-
   for(auto destiny: compute_destinations())
   {
+    if(0 != init_lame())
+    {
+      emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
+      return;
+    }
+
     auto mp3_file = m_source_path + destiny.name;
     m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
 
@@ -113,12 +113,24 @@ void ConverterThread::run()
     auto source_name = m_source_info.absoluteFilePath().split('/').last();
     emit information_message(QString("%1 -> %2").arg(source_name).arg(destiny.name));
 
-    transcode();
+    transcode(destiny.duration);
+
+    deinit_lame();
+
+    m_mp3_file_stream.close();
+
+    if(m_stop)
+    {
+      for(auto destiny: compute_destinations())
+      {
+        auto mp3_file = m_source_path + destiny.name;
+        QFile::remove(mp3_file);
+      }
+      break;
+    }
   }
 
-
   deinit_libav();
-  deinit_lame();
 }
 
 //-----------------------------------------------------------------
@@ -329,16 +341,6 @@ int ConverterThread::init_lame()
 void ConverterThread::deinit_lame()
 {
   lame_close(m_gfp);
-  m_mp3_file_stream.close();
-
-  if(m_stop)
-  {
-    for(auto destiny: compute_destinations())
-    {
-      auto mp3_file = m_source_path + destiny.name;
-      QFile::remove(mp3_file);
-    }
-  }
 }
 
 //-----------------------------------------------------------------
@@ -407,16 +409,15 @@ bool ConverterThread::lame_encode()
 }
 
 //-----------------------------------------------------------------
-void ConverterThread::transcode()
+void ConverterThread::transcode(long int length)
 {
   // TODO: handle multiple files.
-
   auto source_file = m_source_info.absoluteFilePath();
-  int total_duration = m_libav_context->streams[m_audio_stream_id]->duration;
-  int partial_duration = 0;
 
   while(0 == av_read_frame(m_libav_context, &m_packet))
   {
+    emit progress(m_libav_context->pb->pos * 100 / m_source_info.size());
+
     // decode audio and encode it to mp3
     if (m_packet.stream_index == m_audio_stream_id)
     {
@@ -437,14 +438,6 @@ void ConverterThread::transcode()
           {
             emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
             return;
-          }
-          else
-          {
-            if(total_duration != 0)
-            {
-              partial_duration += m_packet.duration;
-              emit progress(partial_duration*100/total_duration);
-            }
           }
         }
         else
@@ -582,12 +575,39 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations()
       }
       else
       {
-        for(int i = 0; i < cd_get_ntrack(cd); ++i)
+        auto num_tracks = cd_get_ntrack(cd);
+        for(int i = 1; i < num_tracks + 1; ++i)
         {
-          // MAGIC
+          auto track = cd_get_track(cd, i);
+
+          if(track_get_mode(track) != MODE_AUDIO)
+          {
+            continue;
+          }
+
+          auto cdtext = track_get_cdtext(track);
+          auto track_name = QString(cdtext_get(PTI_TITLE, cdtext));
+          auto track_clean_name = Utils::cleanName(track_name, m_clean_configuration);
+          auto track_length = track_get_length(track);
+          auto number_prefix = QString().number(i);
+
+          while(number_prefix.length() < m_clean_configuration.number_of_digits)
+          {
+            number_prefix = "0" + number_prefix;
+          }
+
+          auto final_name = number_prefix + QString(" ") + QString(m_clean_configuration.number_and_name_separator) + QString(" ") + track_clean_name;
+
+          destinations << Destination(final_name, track_length);
         }
       }
     }
+
+    for(auto dest: destinations)
+    {
+      qDebug() << "track:" << dest.name << "duration" << dest.duration;
+    }
+    destinations.clear();
   }
 //  else
   {
