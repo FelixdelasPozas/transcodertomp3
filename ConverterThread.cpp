@@ -23,6 +23,7 @@
 // C++
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 // Qt
 #include <QStringList>
@@ -48,6 +49,7 @@ QMutex ConverterThread::s_mutex;
 ConverterThread::ConverterThread(const QFileInfo origin_info)
 : m_source_info          {origin_info}
 , m_source_path          {m_source_info.absoluteFilePath().remove(m_source_info.absoluteFilePath().split('/').last())}
+, m_num_tracks           {0}
 , m_gfp                  {nullptr}
 , m_stop                 {false}
 , m_libav_context        {nullptr}
@@ -93,41 +95,15 @@ void ConverterThread::run()
     return;
   }
 
-  for(auto destiny: compute_destinations())
+  m_destinations = compute_destinations();
+  m_num_tracks   = m_destinations.size();
+
+  transcode();
+
+  if(m_stop)
   {
-    if(0 != init_lame())
-    {
-      emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
-      return;
-    }
-
-    auto mp3_file = m_source_path + destiny.name;
-    m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
-
-    if(!m_mp3_file_stream.is_open())
-    {
-      emit error_message(QString("Couldn't open destination file: %1") + mp3_file);
-      return;
-    }
-
-    auto source_name = m_source_info.absoluteFilePath().split('/').last();
-    emit information_message(QString("%1 -> %2").arg(source_name).arg(destiny.name));
-
-    transcode(destiny.duration);
-
-    deinit_lame();
-
-    m_mp3_file_stream.close();
-
-    if(m_stop)
-    {
-      for(auto destiny: compute_destinations())
-      {
-        auto mp3_file = m_source_path + destiny.name;
-        QFile::remove(mp3_file);
-      }
-      break;
-    }
+    auto mp3_file = m_source_path + m_destinations.first().name;
+    QFile::remove(mp3_file);
   }
 
   deinit_libav();
@@ -283,6 +259,16 @@ void ConverterThread::init_libav_cover_transcoding()
 //-----------------------------------------------------------------
 void ConverterThread::deinit_libav()
 {
+  avcodec_close(m_audio_decoder_context);
+  av_frame_free(&m_frame);
+
+  if(m_cover_decoder_context)
+  {
+    avcodec_close(m_cover_decoder_context);
+    avcodec_close(m_cover_encoder_context);
+    av_frame_free(&m_cover_frame);
+  }
+
   if(m_libav_context)
   {
     avformat_close_input(&m_libav_context);
@@ -346,33 +332,36 @@ void ConverterThread::deinit_lame()
 //-----------------------------------------------------------------
 bool ConverterThread::lame_encode(unsigned int buffer_start, unsigned int buffer_length)
 {
+  auto bytes_per_sample = av_get_bytes_per_sample(m_audio_decoder_context->sample_fmt);
+  buffer_start *= bytes_per_sample;
+
   int output_bytes = 0;
-  auto data_pointer = m_frame->data[0] + buffer_start;
-  auto extended_data_pointer0 = m_frame->extended_data[0] + buffer_start;
-  auto extended_data_pointer1 = m_frame->extended_data[1] + buffer_start;
+  auto data_pointer = m_frame->data[0] + (buffer_start);
+  auto extended_data_pointer0 = m_frame->extended_data[0] + (buffer_start);
+  auto extended_data_pointer1 = m_frame->extended_data[1] + (buffer_start);
 
   switch(m_frame->format)
   {
     case AV_SAMPLE_FMT_S16:         // signed 16 bits
-      output_bytes = lame_encode_buffer_interleaved(m_gfp, reinterpret_cast<short int *>(data_pointer), buffer_length, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_interleaved(m_gfp, reinterpret_cast<short int *>(data_pointer), buffer_length, m_mp3_buffer, s_mp3_buffer_size);
       break;
     case AV_SAMPLE_FMT_FLT:         // float
-      output_bytes = lame_encode_buffer_interleaved_ieee_float(m_gfp, reinterpret_cast<const float *>(data_pointer), buffer_length, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_interleaved_ieee_float(m_gfp, reinterpret_cast<const float *>(data_pointer), buffer_length, m_mp3_buffer, s_mp3_buffer_size);
       break;
     case AV_SAMPLE_FMT_DBL:         // double
-      output_bytes = lame_encode_buffer_interleaved_ieee_double(m_gfp, reinterpret_cast<const double *>(data_pointer), buffer_length, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_interleaved_ieee_double(m_gfp, reinterpret_cast<const double *>(data_pointer), buffer_length, m_mp3_buffer, s_mp3_buffer_size);
       break;
     case AV_SAMPLE_FMT_S16P:        // signed 16 bits, planar
-      output_bytes = lame_encode_buffer(m_gfp, reinterpret_cast<const short int *>(extended_data_pointer0), reinterpret_cast<const short int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer(m_gfp, reinterpret_cast<const short int *>(extended_data_pointer0), reinterpret_cast<const short int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, s_mp3_buffer_size);
       break;
     case AV_SAMPLE_FMT_S32P:        // signed 32 bits, planar
-      output_bytes = lame_encode_buffer_long2(m_gfp, reinterpret_cast<const long int *>(extended_data_pointer0), reinterpret_cast<const long int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_long2(m_gfp, reinterpret_cast<const long int *>(extended_data_pointer0), reinterpret_cast<const long int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, s_mp3_buffer_size);
       break;
     case AV_SAMPLE_FMT_FLTP:        // float, planar
-      output_bytes = lame_encode_buffer_ieee_float(m_gfp, reinterpret_cast<const float *>(extended_data_pointer0), reinterpret_cast<const float *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_ieee_float(m_gfp, reinterpret_cast<const float *>(extended_data_pointer0), reinterpret_cast<const float *>(extended_data_pointer1), buffer_length, m_mp3_buffer, s_mp3_buffer_size);
       break;
     case AV_SAMPLE_FMT_DBLP:        // double, planar
-      output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(extended_data_pointer0), reinterpret_cast<const double *>(extended_data_pointer1), buffer_length, m_mp3_buffer, 8480);
+      output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(extended_data_pointer0), reinterpret_cast<const double *>(extended_data_pointer1), buffer_length, m_mp3_buffer, s_mp3_buffer_size);
       break;
       // Unsupported formats
     case AV_SAMPLE_FMT_U8:          // unsigned 8 bits
@@ -415,8 +404,9 @@ bool ConverterThread::lame_encode(unsigned int buffer_start, unsigned int buffer
 //-----------------------------------------------------------------
 void ConverterThread::transcode()
 {
-  // TODO: handle multiple files.
-  auto source_file = m_source_info.absoluteFilePath();
+  auto destination = m_destinations.first();
+
+  open_next_destination_file();
 
   while(0 == av_read_frame(m_libav_context, &m_packet))
   {
@@ -428,26 +418,9 @@ void ConverterThread::transcode()
       // Audio packets can have multiple audio frames in a single packet
       while (m_packet.size > 0)
       {
-        // Try to decode the packet into a frame. Some frames rely on multiple packets, so we have to
-        // make sure the frame is finished before we can use it.
-        int gotFrame = 0;
-        int result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet);
-
-        if (result >= 0 && gotFrame)
+        if(!process_audio_packet())
         {
-          m_packet.size -= result;
-          m_packet.data += result;
-
-          if(!lame_encode(0, m_frame->nb_samples))
-          {
-            emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
-            return;
-          }
-        }
-        else
-        {
-          m_packet.size = 0;
-          m_packet.data = nullptr;
+          return;
         }
       }
     }
@@ -479,9 +452,8 @@ void ConverterThread::transcode()
     int result = 0;
     while ((result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet) >= 0) && gotFrame)
     {
-      if(!lame_encode(0, m_frame->nb_samples))
+      if(!lame_encode_frame(0, m_frame->nb_samples))
       {
-        emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
         return;
       }
     }
@@ -489,21 +461,99 @@ void ConverterThread::transcode()
     av_free_packet(&m_packet);
   }
 
-  auto flush_bytes = lame_encode_flush(m_gfp, m_mp3_buffer, 8480);
+  auto flush_bytes = lame_encode_flush(m_gfp, m_mp3_buffer, s_mp3_buffer_size);
   if (flush_bytes != 0)
   {
     m_mp3_file_stream.write(reinterpret_cast<char *>(&m_mp3_buffer), flush_bytes);
   }
 
-  avcodec_close(m_audio_decoder_context);
-  av_frame_free(&m_frame);
+  emit progress(100);
 
-  if(m_cover_decoder_context)
+  close_destination_file();
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::process_audio_packet()
+{
+  // Try to decode the packet into a frame. Some frames rely on multiple packets, so we have to
+  // make sure the frame is finished before we can use it.
+  int gotFrame = 0;
+  auto result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet);
+
+  if (result >= 0 && gotFrame)
   {
-    avcodec_close(m_cover_decoder_context);
-    avcodec_close(m_cover_encoder_context);
-    av_frame_free(&m_cover_frame);
+    m_packet.size -= result;
+    m_packet.data += result;
+
+    if(m_destinations.first().duration == 0)
+    {
+      if (!lame_encode_frame(0, m_frame->nb_samples))
+      {
+        return false;
+      }
+    }
+    else
+    {
+      if (m_destinations.first().duration <= m_frame->nb_samples)
+      {
+        auto remaining_samples = m_destinations.first().duration;
+
+        if (!lame_encode_frame(0, remaining_samples))
+        {
+          return false;
+        }
+
+        auto flush_bytes = lame_encode_flush(m_gfp, m_mp3_buffer, s_mp3_buffer_size);
+        if (flush_bytes != 0)
+        {
+          m_mp3_file_stream.write(reinterpret_cast<char *>(&m_mp3_buffer), flush_bytes);
+        }
+
+        close_destination_file();
+
+        open_next_destination_file();
+
+        if(m_destinations.first().duration != 0)
+        {
+          m_destinations.first().duration -= m_frame->nb_samples - remaining_samples;
+        }
+
+        if (!lame_encode_frame(remaining_samples, m_frame->nb_samples - remaining_samples))
+        {
+          return false;
+        }
+      }
+      else
+      {
+        m_destinations.first().duration -= m_frame->nb_samples;
+
+        if (!lame_encode_frame(0, m_frame->nb_samples))
+        {
+          return false;
+        }
+      }
+    }
   }
+  else
+  {
+    m_packet.size = 0;
+    m_packet.data = nullptr;
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::lame_encode_frame(unsigned int buffer_start, unsigned int buffer_length)
+{
+  if (!lame_encode(buffer_start, buffer_length))
+  {
+    auto source_file = m_source_info.absoluteFilePath();
+    emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
+    return false;
+  }
+
+  return true;
 }
 
 //-----------------------------------------------------------------
@@ -559,23 +609,31 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations()
 
   auto files = Utils::findFiles(QDir(m_source_path), extensions);
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
+  auto source_cue_name1 = m_source_path + source_name + QString(".cue");
   auto source_basename = source_name.remove(source_name.split('.').last());
-  auto source_cue = m_source_path + source_basename + QString("cue");
+  auto source_cue_name2 = m_source_path + source_basename + QString("cue");
 
-  if(!files.empty() && QFile::exists(source_cue))
+  if(!files.empty() && (QFile::exists(source_cue_name1) || QFile::exists(source_cue_name2)))
   {
-    QFile cue_file(source_cue);
+    auto name = source_cue_name1;
+    if(!QFile::exists(source_cue_name1))
+    {
+      name = source_cue_name2;
+    }
+
+    QFile cue_file(name);
+
     if(!cue_file.open(QIODevice::ReadOnly))
     {
-      emit error_message(QString("Error opening cue file '%1'.").arg(source_cue));
+      emit error_message(QString("Error opening cue file '%1'.").arg(name));
     }
     else
     {
       auto content = cue_file.readAll();
-      auto cd = cue_parse_string(content.data());
+      auto cd = cue_parse_string(content.constData());
       if(cd == nullptr)
       {
-        emit error_message(QString("Error parsing cue file '%1'.").arg(source_cue));
+        emit error_message(QString("Error parsing cue file '%1'.").arg(name));
       }
       else
       {
@@ -606,17 +664,68 @@ QList<ConverterThread::Destination> ConverterThread::compute_destinations()
         }
       }
     }
-
-    for(auto dest: destinations)
-    {
-      qDebug() << "track:" << dest.name << "duration" << dest.duration;
-    }
-    destinations.clear();
   }
-//  else
+  else
   {
     destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_format_configuration), 0);
   }
 
   return destinations;
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::open_next_destination_file()
+{
+  Q_ASSERT(!m_mp3_file_stream.is_open() && !m_destinations.empty());
+
+  std::memset(m_mp3_buffer, 0, s_mp3_buffer_size);
+
+  auto destination = m_destinations.first();
+  auto music_file = m_source_info.absoluteFilePath().replace('/','\\');
+  if(0 != init_lame())
+  {
+    emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
+    return false;
+  }
+
+  auto mp3_file = m_source_path + destination.name;
+  m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
+
+  if(!m_mp3_file_stream.is_open())
+  {
+    emit error_message(QString("Couldn't open destination file: %1") + mp3_file);
+    return false;
+  }
+
+  auto source_name = m_source_info.absoluteFilePath().split('/').last();
+
+  if(m_num_tracks != 1)
+  {
+    emit information_message(QString("%1: extracting %2").arg(source_name).arg(destination.name));
+  }
+  else
+  {
+    emit information_message(QString("%1: converting to %2").arg(source_name).arg(destination.name));
+  }
+
+  if(destination.duration != 0)
+  {
+    // convert cd frames to number of audio samples.
+    m_destinations.first().duration = m_information.samplerate * (destination.duration / s_cd_frames_per_second);
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------
+void ConverterThread::close_destination_file()
+{
+  auto destination = m_destinations.first();
+  auto mp3_file = m_source_path + destination.name;
+
+  m_destinations.removeFirst();
+
+  deinit_lame();
+  m_mp3_file_stream.close();
+  return;
 }
