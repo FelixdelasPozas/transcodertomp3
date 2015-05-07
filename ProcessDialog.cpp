@@ -19,7 +19,7 @@
 
 // Application
 #include <ProcessDialog.h>
-#include "ConverterThread.h"
+#include "AudioConverterThread.h"
 
 // Qt
 #include <QLayout>
@@ -174,7 +174,7 @@ void ProcessDialog::create_threads()
     auto music_file = m_music_files.first();
     m_music_files.removeFirst();
 
-    auto converter = new ConverterThread(music_file);
+    auto converter = new AudioConverterThread(music_file);
     connect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
     connect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
     connect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));

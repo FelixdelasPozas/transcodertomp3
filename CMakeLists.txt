@@ -87,6 +87,7 @@ set (CORE_SOURCES
   ProcessDialog.cpp
   Utils.cpp
   ConverterThread.cpp
+  AudioConverterThread.cpp
 )
 
 set(CORE_EXTERNAL_LIBS
