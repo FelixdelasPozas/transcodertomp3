@@ -32,10 +32,7 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
-// C++
-#include <fstream>
-
-class AudioConverterThread
+class AudioConverter
 : public ConverterThread
 {
   public:
@@ -43,12 +40,12 @@ class AudioConverterThread
      * \param[in] source_info QFileInfo struct of the source file.
      *
      */
-    explicit AudioConverterThread(const QFileInfo source_info);
+    explicit AudioConverter(const QFileInfo source_info);
 
     /** \brief ConverterThread class virtual destructor.
      *
      */
-    virtual ~AudioConverterThread();
+    virtual ~AudioConverter();
 
   protected:
       virtual void run() override final;
@@ -73,36 +70,11 @@ class AudioConverterThread
        */
       void deinit_libav();
 
-      /** \brief Initializes lame library structures and data to encode the pcm data.
+      /** \brief Helper method to send the buffers to encode. Returns the value of the lame library buffer
+       *         encoding method called.
        *
        */
-      int init_lame();
-
-      /** \brief Frees the structures allocated in the init stages of lame library.
-       *
-       */
-      void deinit_lame();
-
-      /** \brief Encodes the pcm data in the libav packet to the mp3 buffer and writes it
-       *         to disk.
-       * \param[in] buffer_start starting position in the data buffer to convert.
-       * \param[in] buffer_length number of samples per channel in the data buffer.
-       *
-       */
-      bool lame_encode_internal_buffer(unsigned int buffer_start, unsigned int buffer_length);
-
-      /** \brief Encodes the data using the lame_encode() method and emits a message
-       *         in case of error.
-       * \param[in] buffer_start starting position in the data buffer to convert.
-       * \param[in] buffer_length number of samples per channel in the data buffer.
-       *
-       */
-      bool lame_encode_frame(unsigned int buffer_start, unsigned int buffer_length);
-
-      /** \brief Flushes the encoder to write the last bytes of the encoder.
-       *
-       */
-      void lame_encoder_flush();
+      bool encode_buffers(unsigned int buffer_start, unsigned int buffer_length);
 
       /** \brief Decodes the source file and encodes the resulting pcm data with the mp3
        *         codec into the destination files.
@@ -126,30 +98,10 @@ class AudioConverterThread
        */
       QString av_error_string(const int error_number) const;
 
-      /** \brief Computes the file or files that will be created in case there is a cue file. If there
-       * is no cue file in the same directory as the source file only the formatted file will be
-       * the only destination. Formats the output file names.
-       *
-       */
-      QList<Destination> compute_destinations();
+      virtual Destinations compute_destinations() override final;
 
-      /** \brief Opens the next destination file, initializes the lame context and computes the number
-       *         of samples of duration if specified by the cue file.
-       *
-       */
-      bool open_next_destination_file();
-
-      /** \brief Closes the destination file and de-initializes the lame context.
-       *
-       */
-      void close_destination_file();
-
-      static const int   MP3_BUFFER_SIZE = 33920;
       static const int   CD_FRAMES_PER_SECOND = 75;
 
-      lame_global_flags *m_gfp;
-      unsigned char      m_mp3_buffer[MP3_BUFFER_SIZE];
-      int                m_num_tracks;
       AVFormatContext   *m_libav_context;
       AVCodec           *m_audio_decoder;
       AVCodecContext    *m_audio_decoder_context;
@@ -163,7 +115,7 @@ class AudioConverterThread
       AVFrame           *m_cover_frame;
       int                m_audio_stream_id;
       int                m_cover_stream_id;
-      std::ofstream      m_mp3_file_stream;
+
       static QMutex      s_mutex;
 };
 

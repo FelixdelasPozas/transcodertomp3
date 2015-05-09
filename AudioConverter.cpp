@@ -18,12 +18,10 @@
  */
 
 // Project
-#include "AudioConverterThread.h"
+#include "AudioConverter.h"
 
 // C++
-#include <fstream>
 #include <iostream>
-#include <cstring>
 
 // Qt
 #include <QStringList>
@@ -42,14 +40,11 @@ extern "C"
 #include <libcue/libcue.h>
 }
 
-
-QMutex AudioConverterThread::s_mutex;
+QMutex AudioConverter::s_mutex;
 
 //-----------------------------------------------------------------
-AudioConverterThread::AudioConverterThread(const QFileInfo origin_info)
+AudioConverter::AudioConverter(const QFileInfo origin_info)
 : ConverterThread{origin_info}
-, m_gfp                  {nullptr}
-, m_num_tracks           {0}
 , m_libav_context        {nullptr}
 , m_audio_decoder        {nullptr}
 , m_audio_decoder_context{nullptr}
@@ -65,37 +60,27 @@ AudioConverterThread::AudioConverterThread(const QFileInfo origin_info)
 }
 
 //-----------------------------------------------------------------
-AudioConverterThread::~AudioConverterThread()
+AudioConverter::~AudioConverter()
 {
 }
 
 //-----------------------------------------------------------------
-void AudioConverterThread::run()
+void AudioConverter::run()
 {
   auto music_file = m_source_info.absoluteFilePath().replace('/','\\');
-
   if(!init_libav())
   {
     emit error_message(QString("Error in LibAV init stage for '%1'").arg(music_file));
     return;
   }
 
-  m_destinations = compute_destinations();
-  m_num_tracks   = m_destinations.size();
-
   transcode();
-
-  if(has_been_cancelled())
-  {
-    auto mp3_file = m_source_path + m_destinations.first().name;
-    QFile::remove(mp3_file);
-  }
 
   deinit_libav();
 }
 
 //-----------------------------------------------------------------
-bool AudioConverterThread::init_libav()
+bool AudioConverter::init_libav()
 {
   auto source_name = m_source_info.absoluteFilePath();
   auto source_name_string = source_name.replace('/','\\');
@@ -162,12 +147,49 @@ bool AudioConverterThread::init_libav()
   m_information.init         = true;
   m_information.samplerate   = m_audio_decoder_context->sample_rate;
   m_information.num_channels = m_audio_decoder_context->channels;
+  m_information.format       = Sample_format::UNDEFINED;
+
+  switch(m_audio_decoder_context->sample_fmt)
+  {
+    case AV_SAMPLE_FMT_U8:
+      m_information.format = Sample_format::UNSIGNED_8;
+      break;
+    case AV_SAMPLE_FMT_S16:
+      m_information.format = Sample_format::SIGNED_16;
+      break;
+    case AV_SAMPLE_FMT_S32:
+      m_information.format = Sample_format::SIGNED_32;
+      break;
+    case AV_SAMPLE_FMT_FLT:
+      m_information.format = Sample_format::FLOAT;
+      break;
+    case AV_SAMPLE_FMT_DBL:
+      m_information.format = Sample_format::DOUBLE;
+      break;
+    case AV_SAMPLE_FMT_U8P:
+      m_information.format = Sample_format::UNSIGNED_8_PLANAR;
+      break;
+    case AV_SAMPLE_FMT_S16P:
+      m_information.format = Sample_format::SIGNED_16_PLANAR;
+      break;
+    case AV_SAMPLE_FMT_S32P:
+      m_information.format = Sample_format::SIGNED_32_PLANAR;
+      break;
+    case AV_SAMPLE_FMT_FLTP:
+      m_information.format = Sample_format::FLOAT_PLANAR;
+      break;
+    case AV_SAMPLE_FMT_DBLP:
+      m_information.format = Sample_format::DOUBLE_PLANAR;
+      break;
+    default:
+      break;
+  }
 
   return true;
 }
 
 //-----------------------------------------------------------------
-void AudioConverterThread::init_libav_cover_transcoding()
+void AudioConverter::init_libav_cover_transcoding()
 {
   auto source_name = m_source_info.absoluteFilePath();
   int value = 0;
@@ -242,7 +264,7 @@ void AudioConverterThread::init_libav_cover_transcoding()
 }
 
 //-----------------------------------------------------------------
-void AudioConverterThread::deinit_libav()
+void AudioConverter::deinit_libav()
 {
   avcodec_close(m_audio_decoder_context);
   av_frame_free(&m_frame);
@@ -281,7 +303,7 @@ void AudioConverterThread::deinit_libav()
 }
 
 //-----------------------------------------------------------------
-QString AudioConverterThread::av_error_string(const int error_num) const
+QString AudioConverter::av_error_string(const int error_num) const
 {
   char buffer[255];
   av_strerror(error_num, buffer, sizeof(buffer));
@@ -289,108 +311,35 @@ QString AudioConverterThread::av_error_string(const int error_num) const
 }
 
 //-----------------------------------------------------------------
-int AudioConverterThread::init_lame()
+bool AudioConverter::encode_buffers(unsigned int buffer_start, unsigned int buffer_length)
 {
-  Q_ASSERT(m_information.init);
+  unsigned char *buffer1 = nullptr;
+  unsigned char *buffer2 = nullptr;
 
-  m_gfp = lame_init();
-
-  lame_set_num_channels(m_gfp, m_information.num_channels);
-  lame_set_in_samplerate(m_gfp, m_information.samplerate);
-  lame_set_brate(m_gfp, 320);
-  lame_set_quality(m_gfp, 0);
-  lame_set_mode(m_gfp, m_information.num_channels == 2 ? MPEG_mode_e::STEREO : MPEG_mode_e::MONO);
-  lame_set_bWriteVbrTag(m_gfp, 0);
-  lame_set_copyright(m_gfp, 0);
-  lame_set_original(m_gfp, 0);
-  lame_set_preset(m_gfp, preset_mode_e::INSANE);
-
-  return lame_init_params(m_gfp);
-}
-
-//-----------------------------------------------------------------
-void AudioConverterThread::deinit_lame()
-{
-  lame_close(m_gfp);
-}
-
-//-----------------------------------------------------------------
-bool AudioConverterThread::lame_encode_internal_buffer(unsigned int buffer_start, unsigned int buffer_length)
-{
-  auto bytes_per_sample = av_get_bytes_per_sample(m_audio_decoder_context->sample_fmt);
-  buffer_start *= bytes_per_sample;
-
-  int output_bytes = 0;
-  auto data_pointer = m_frame->data[0] + (buffer_start);
-  auto extended_data_pointer0 = m_frame->extended_data[0] + (buffer_start);
-  auto extended_data_pointer1 = m_frame->extended_data[1] + (buffer_start);
-
-  switch(m_frame->format)
+  switch(m_audio_decoder_context->sample_fmt)
   {
-    case AV_SAMPLE_FMT_S16:         // signed 16 bits
-      output_bytes = lame_encode_buffer_interleaved(m_gfp, reinterpret_cast<short int *>(data_pointer), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+    case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_FLT:
+    case AV_SAMPLE_FMT_DBL:
+      buffer1 = m_frame->data[0];
       break;
-    case AV_SAMPLE_FMT_FLT:         // float
-      output_bytes = lame_encode_buffer_interleaved_ieee_float(m_gfp, reinterpret_cast<const float *>(data_pointer), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+    case AV_SAMPLE_FMT_S16P:
+    case AV_SAMPLE_FMT_S32:
+    case AV_SAMPLE_FMT_FLTP:
+    case AV_SAMPLE_FMT_DBLP:
+      buffer1 = m_frame->extended_data[0];
+      buffer2 = m_frame->extended_data[1];
       break;
-    case AV_SAMPLE_FMT_DBL:         // double
-      output_bytes = lame_encode_buffer_interleaved_ieee_double(m_gfp, reinterpret_cast<const double *>(data_pointer), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
-      break;
-    case AV_SAMPLE_FMT_S16P:        // signed 16 bits, planar
-      output_bytes = lame_encode_buffer(m_gfp, reinterpret_cast<const short int *>(extended_data_pointer0), reinterpret_cast<const short int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
-      break;
-    case AV_SAMPLE_FMT_S32P:        // signed 32 bits, planar
-      output_bytes = lame_encode_buffer_long2(m_gfp, reinterpret_cast<const long int *>(extended_data_pointer0), reinterpret_cast<const long int *>(extended_data_pointer1), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
-      break;
-    case AV_SAMPLE_FMT_FLTP:        // float, planar
-      output_bytes = lame_encode_buffer_ieee_float(m_gfp, reinterpret_cast<const float *>(extended_data_pointer0), reinterpret_cast<const float *>(extended_data_pointer1), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
-      break;
-    case AV_SAMPLE_FMT_DBLP:        // double, planar
-      output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(extended_data_pointer0), reinterpret_cast<const double *>(extended_data_pointer1), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
-      break;
-      // Unsupported formats
-    case AV_SAMPLE_FMT_U8:          // unsigned 8 bits
-    case AV_SAMPLE_FMT_U8P:         // unsigned 8 bits, planar
-    case AV_SAMPLE_FMT_S32:         // signed 32 bits
     default:
-      return false;
       break;
   }
 
-  if (output_bytes < 0)
-  {
-    switch (output_bytes)
-    {
-      case -1:
-        emit error_message(QString("Error in LAME code stage, mp3 buffer was too small."));
-        break;
-      case -2:
-        emit error_message(QString("Error in LAME code stage, malloc() problem."));
-        break;
-      case -3:
-        emit error_message(QString("Error in LAME code stage, lame_init_params() not called."));
-        break;
-      case -4:
-        emit error_message(QString("Error in LAME code stage, psycho acoustic problems."));
-        break;
-      default:
-        Q_ASSERT(false);
-    }
-  }
-
-  if (output_bytes > 0)
-  {
-    m_mp3_file_stream.write(reinterpret_cast<char *>(&m_mp3_buffer), output_bytes);
-  }
-
-  return true;
+  return encode(buffer_start, buffer_length, buffer1, buffer2);
 }
 
 //-----------------------------------------------------------------
-void AudioConverterThread::transcode()
+void AudioConverter::transcode()
 {
-  auto destination = m_destinations.first();
-
   open_next_destination_file();
 
   while(0 == av_read_frame(m_libav_context, &m_packet))
@@ -437,7 +386,7 @@ void AudioConverterThread::transcode()
     int result = 0;
     while ((result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet) >= 0) && gotFrame)
     {
-      if(!lame_encode_frame(0, m_frame->nb_samples))
+      if(!encode_buffers(0, m_frame->nb_samples))
       {
         return;
       }
@@ -454,7 +403,7 @@ void AudioConverterThread::transcode()
 }
 
 //-----------------------------------------------------------------
-bool AudioConverterThread::process_audio_packet()
+bool AudioConverter::process_audio_packet()
 {
   // Try to decode the packet into a frame. Some frames rely on multiple packets, so we have to
   // make sure the frame is finished before we can use it.
@@ -466,20 +415,20 @@ bool AudioConverterThread::process_audio_packet()
     m_packet.size -= result;
     m_packet.data += result;
 
-    if(m_destinations.first().duration == 0)
+    if(destination().duration == 0)
     {
-      if (!lame_encode_frame(0, m_frame->nb_samples))
+      if (!encode_buffers(0, m_frame->nb_samples))
       {
         return false;
       }
     }
     else
     {
-      if (m_destinations.first().duration <= m_frame->nb_samples)
+      if (destination().duration <= m_frame->nb_samples)
       {
-        auto remaining_samples = m_destinations.first().duration;
+        auto remaining_samples = destination().duration;
 
-        if (!lame_encode_frame(0, remaining_samples))
+        if (!encode_buffers(0, remaining_samples))
         {
           return false;
         }
@@ -490,21 +439,21 @@ bool AudioConverterThread::process_audio_packet()
 
         open_next_destination_file();
 
-        if(m_destinations.first().duration != 0)
+        if(destination().duration != 0)
         {
-          m_destinations.first().duration -= m_frame->nb_samples - remaining_samples;
+          destination().duration -= m_frame->nb_samples - remaining_samples;
         }
 
-        if (!lame_encode_frame(remaining_samples, m_frame->nb_samples - remaining_samples))
+        if (!encode_buffers(remaining_samples, m_frame->nb_samples - remaining_samples))
         {
           return false;
         }
       }
       else
       {
-        m_destinations.first().duration -= m_frame->nb_samples;
+        destination().duration -= m_frame->nb_samples;
 
-        if (!lame_encode_frame(0, m_frame->nb_samples))
+        if (!encode_buffers(0, m_frame->nb_samples))
         {
           return false;
         }
@@ -521,30 +470,7 @@ bool AudioConverterThread::process_audio_packet()
 }
 
 //-----------------------------------------------------------------
-bool AudioConverterThread::lame_encode_frame(unsigned int buffer_start, unsigned int buffer_length)
-{
-  if (!lame_encode_internal_buffer(buffer_start, buffer_length))
-  {
-    auto source_file = m_source_info.absoluteFilePath();
-    emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(QString(av_get_sample_fmt_name(m_audio_decoder_context->sample_fmt))));
-    return false;
-  }
-
-  return true;
-}
-
-//-----------------------------------------------------------------
-void AudioConverterThread::lame_encoder_flush()
-{
-  auto flush_bytes = lame_encode_flush(m_gfp, m_mp3_buffer, MP3_BUFFER_SIZE);
-  if (flush_bytes != 0)
-  {
-    m_mp3_file_stream.write(reinterpret_cast<char *>(&m_mp3_buffer), flush_bytes);
-  }
-}
-
-//-----------------------------------------------------------------
-bool AudioConverterThread::extract_cover_picture() const
+bool AudioConverter::extract_cover_picture() const
 {
   auto cover_name = m_source_path + QString("Frontal.jpg");
 
@@ -587,7 +513,7 @@ bool AudioConverterThread::extract_cover_picture() const
 }
 
 //-----------------------------------------------------------------
-QList<AudioConverterThread::Destination> AudioConverterThread::compute_destinations()
+QList<AudioConverter::Destination> AudioConverter::compute_destinations()
 {
   QList<Destination> destinations;
 
@@ -638,6 +564,8 @@ QList<AudioConverterThread::Destination> AudioConverterThread::compute_destinati
           auto track_name = QString(cdtext_get(PTI_TITLE, cdtext));
           auto track_clean_name = Utils::formatString(track_name, m_format_configuration);
           auto track_length = track_get_length(track);
+          // convert to number of samples.
+          track_length = m_information.samplerate * (track_length / CD_FRAMES_PER_SECOND);
           auto number_prefix = QString().number(i);
 
           while(number_prefix.length() < m_format_configuration.number_of_digits)
@@ -658,61 +586,4 @@ QList<AudioConverterThread::Destination> AudioConverterThread::compute_destinati
   }
 
   return destinations;
-}
-
-//-----------------------------------------------------------------
-bool AudioConverterThread::open_next_destination_file()
-{
-  Q_ASSERT(!m_mp3_file_stream.is_open() && !m_destinations.empty());
-
-  std::memset(m_mp3_buffer, 0, MP3_BUFFER_SIZE);
-
-  auto destination = m_destinations.first();
-  auto music_file = m_source_info.absoluteFilePath().replace('/','\\');
-  if(0 != init_lame())
-  {
-    emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
-    return false;
-  }
-
-  auto mp3_file = m_source_path + destination.name;
-  m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
-
-  if(!m_mp3_file_stream.is_open())
-  {
-    emit error_message(QString("Couldn't open destination file: %1") + mp3_file);
-    return false;
-  }
-
-  auto source_name = m_source_info.absoluteFilePath().split('/').last();
-
-  if(m_num_tracks != 1)
-  {
-    emit information_message(QString("%1: extracting %2").arg(source_name).arg(destination.name));
-  }
-  else
-  {
-    emit information_message(QString("%1: converting to %2").arg(source_name).arg(destination.name));
-  }
-
-  if(destination.duration != 0)
-  {
-    // convert cd frames to number of audio samples.
-    m_destinations.first().duration = m_information.samplerate * (destination.duration / CD_FRAMES_PER_SECOND);
-  }
-
-  return true;
-}
-
-//-----------------------------------------------------------------
-void AudioConverterThread::close_destination_file()
-{
-  auto destination = m_destinations.first();
-  auto mp3_file = m_source_path + destination.name;
-
-  m_destinations.removeFirst();
-
-  deinit_lame();
-  m_mp3_file_stream.close();
-  return;
 }

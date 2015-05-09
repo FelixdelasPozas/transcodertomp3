@@ -44,6 +44,11 @@ set(LIBMIKMOD_DIR "D:/Desarrollo/Bibliotecas/libmikmod-3.3.7")
 set(LIBMIKMOD_INCLUDE_DIR ${LIBMIKMOD_DIR}/include)
 set(LIBMIKMOD_LIBRARY     ${LIBMIKMOD_DIR}/../libmikmod-build/libmikmod.a)
 
+# taglib library
+set(TAGLIB_DIR "D:/Desarrollo/Bibliotecas/taglib-1.9.1")
+set(TAGLIB_INCLUDE_DIR ${TAGLIB_DIR})
+set(TAGLIB_LIBRARY     ${TAGLIB_DIR}/../taglib-build/taglib/taglib.a)
+
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
@@ -54,6 +59,7 @@ include_directories(
   ${LIBAV_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
   ${LIBMIKMOD_INCLUDE_DIR}
+  ${TAGLIB_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive -mwindows")
@@ -87,7 +93,7 @@ set (CORE_SOURCES
   ProcessDialog.cpp
   Utils.cpp
   ConverterThread.cpp
-  AudioConverterThread.cpp
+  AudioConverter.cpp
 )
 
 set(CORE_EXTERNAL_LIBS
@@ -96,6 +102,7 @@ set(CORE_EXTERNAL_LIBS
   ${LIBAV_LIBRARIES}
   ${LIBCUE_LIBRARY}
   ${LIBMIKMOD_LIBRARY}
+  ${TAGLIB_LIBRARY}
 )
 
 add_executable(MusicConverter ${CORE_SOURCES})
