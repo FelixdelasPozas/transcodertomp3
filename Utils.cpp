@@ -125,9 +125,15 @@ QString Utils::formatString(const QString filename, const Utils::FormatConfigura
         parts[i].remove(')');
       }
 
-      parts[i] = parts[i].toLower();
-
-      parts[i].replace(0,1, parts[i][0].toUpper());
+      if(isRomanNumerals(parts[i]))
+      {
+        parts[i] = parts[i].toUpper();
+      }
+      else
+      {
+        parts[i] = parts[i].toLower();
+        parts[i].replace(0,1, parts[i][0].toUpper());
+      }
 
       if(starts_with_parenthesis)
       {
@@ -153,4 +159,20 @@ QString Utils::formatString(const QString filename, const Utils::FormatConfigura
   formattedName += ".mp3";
 
   return formattedName;
+}
+
+
+//-----------------------------------------------------------------
+bool Utils::isRomanNumerals(const QString string_part)
+{
+  QString numerals("IVXLCDM");
+  for(unsigned int i = 0; i < string_part.length(); ++i)
+  {
+    if(numerals.contains(string_part.at(i)))
+      continue;
+
+    return false;
+  }
+
+  return true;
 }

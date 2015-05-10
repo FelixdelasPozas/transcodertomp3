@@ -22,9 +22,8 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
 # LAME library
-set(LAME_DIR "D:/Desarrollo/Bibliotecas/lame-3.99.5")
-set(LAME_INCLUDE_DIR ${LAME_DIR}/include)
-set(LAME_LIBRARY     ${LAME_DIR}/libmp3lame/.libs/libmp3lame.a)
+set(LAME_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/lame-3.99.5/include")
+set(LAME_LIBRARY     "D:/Desarrollo/Bibliotecas/lame-3.99.5/libmp3lame/.libs/libmp3lame.a")
 
 # libav library
 set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/libav-11.3")
@@ -35,19 +34,17 @@ set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a
                       ${LIBAV_DIR}/libavresample/libavresample.a)
 
 # libcue library
-set(LIBCUE_DIR "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src")
-set(LIBCUE_INCLUDE_DIR ${LIBCUE_DIR})
-set(LIBCUE_LIBRARY     ${LIBCUE_DIR}/libcue/.libs/libcue.a)
+set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src")
+set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src/libcue/.libs/libcue.a")
 
 # libmikmod library
-set(LIBMIKMOD_DIR "D:/Desarrollo/Bibliotecas/libmikmod-3.3.7")
-set(LIBMIKMOD_INCLUDE_DIR ${LIBMIKMOD_DIR}/include)
-set(LIBMIKMOD_LIBRARY     ${LIBMIKMOD_DIR}/../libmikmod-build/libmikmod.a)
+set(LIBMIKMOD_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libmikmod-3.3.7/include")
+set(LIBMIKMOD_LIBRARY     "D:/Desarrollo/Bibliotecas/libmikmod-build/libmikmod.a")
 
-# taglib library
-set(TAGLIB_DIR "D:/Desarrollo/Bibliotecas/taglib-1.9.1")
-set(TAGLIB_INCLUDE_DIR ${TAGLIB_DIR})
-set(TAGLIB_LIBRARY     ${TAGLIB_DIR}/../taglib-build/taglib/taglib.a)
+# id3lib library
+set(ID3LIB_DIR         "D:/Desarrollo/Bibliotecas/id3lib-3.8.3")
+set(ID3LIB_INCLUDE_DIR ${ID3LIB_DIR}/include)
+set(ID3LIB_LIBRARIES   ${ID3LIB_DIR}/src/.libs/libid3.a ${ID3LIB_DIR}/zlib/src/.libs/libz.a)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -59,7 +56,7 @@ include_directories(
   ${LIBAV_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
   ${LIBMIKMOD_INCLUDE_DIR}
-  ${TAGLIB_INCLUDE_DIR}
+  ${ID3LIB_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive -mwindows")
@@ -94,7 +91,8 @@ set (CORE_SOURCES
   Utils.cpp
   ConverterThread.cpp
   AudioConverter.cpp
-)
+  MP3Converter.cpp
+  )
 
 set(CORE_EXTERNAL_LIBS
   ${QT_LIBRARIES}
@@ -102,8 +100,8 @@ set(CORE_EXTERNAL_LIBS
   ${LIBAV_LIBRARIES}
   ${LIBCUE_LIBRARY}
   ${LIBMIKMOD_LIBRARY}
-  ${TAGLIB_LIBRARY}
-)
-
+  ${ID3LIB_LIBRARIES}
+  )
+  
 add_executable(MusicConverter ${CORE_SOURCES})
 target_link_libraries (MusicConverter ${CORE_EXTERNAL_LIBS})

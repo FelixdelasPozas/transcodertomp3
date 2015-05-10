@@ -20,15 +20,13 @@
 // Application
 #include <ProcessDialog.h>
 #include "AudioConverter.h"
+#include "MP3Converter.h"
 
 // Qt
 #include <QLayout>
 #include <QFileInfo>
 #include <QProgressBar>
 #include <QMutexLocker>
-#include <QDebug>
-#include <string>
-#include <pthread.h>
 
 // libav
 extern "C"
@@ -174,7 +172,17 @@ void ProcessDialog::create_threads()
     auto music_file = m_music_files.first();
     m_music_files.removeFirst();
 
-    auto converter = new AudioConverter(music_file);
+    ConverterThread *converter;
+
+    if(music_file.absoluteFilePath().endsWith(".mp3"))
+    {
+      converter = new MP3Converter(music_file);
+    }
+    else
+    {
+      converter = new AudioConverter(music_file);
+    }
+
     connect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
     connect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
     connect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));
@@ -185,7 +193,7 @@ void ProcessDialog::create_threads()
       {
         m_progress_bars[bar] = converter;
         bar->setEnabled(true);
-        bar->setFormat(QString("%1").arg(music_file.baseName()));
+        bar->setFormat(QString("%1").arg(music_file.absoluteFilePath().split('/').last()));
         connect(converter, SIGNAL(progress(int)), bar, SLOT(setValue(int)));
 
         break;

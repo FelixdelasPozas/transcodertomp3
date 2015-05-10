@@ -36,7 +36,7 @@ const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
 const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
 
 const QStringList MusicConverter::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt"};
-const QStringList MusicConverter::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv"};
+const QStringList MusicConverter::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
 
 //-----------------------------------------------------------------
 MusicConverter::MusicConverter()

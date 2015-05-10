@@ -64,6 +64,11 @@ namespace Utils
    *
    */
   QString formatString(const QString filename, const FormatConfiguration conf);
+
+  /** \brief Returns true if the string represents a roman numeral.
+   *
+   */
+  bool isRomanNumerals(const QString string_part);
 }
 
 

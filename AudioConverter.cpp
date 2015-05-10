@@ -25,7 +25,6 @@
 
 // Qt
 #include <QStringList>
-#include <QDebug>
 
 // libav
 extern "C"
@@ -46,6 +45,7 @@ QMutex AudioConverter::s_mutex;
 AudioConverter::AudioConverter(const QFileInfo origin_info)
 : ConverterThread{origin_info}
 , m_libav_context        {nullptr}
+, m_cover_stream_id      {-1}
 , m_audio_decoder        {nullptr}
 , m_audio_decoder_context{nullptr}
 , m_cover_encoder        {nullptr}
@@ -55,7 +55,6 @@ AudioConverter::AudioConverter(const QFileInfo origin_info)
 , m_frame                {nullptr}
 , m_cover_frame          {nullptr}
 , m_audio_stream_id      {-1}
-, m_cover_stream_id      {-1}
 {
 }
 
