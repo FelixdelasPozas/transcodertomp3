@@ -23,9 +23,6 @@
 // Project
 #include <ConverterThread.h>
 
-// libmikmod
-#include <mikmod.h>
-
 class ModuleConverter
 : public ConverterThread
 {
@@ -45,15 +42,24 @@ class ModuleConverter
     virtual void run() override final;
 
   private:
-    static const int BUFFER_SIZE = 32768;
+    /** \brief Gets the information about the module.
+     *
+     */
+    bool init();
 
-    bool init_mikmodlib();
-    bool process_module();
-    void deinit_mikmodlib();
+    /** \brief Converts the module to mp3.
+     *
+     */
+    void process_module();
 
-    char         *m_filename;
-    unsigned char m_buffer[BUFFER_SIZE];
-    MODULE       *m_module;
+    virtual Destinations compute_destinations() override final;
+
+    static const int BUFFER_SIZE = 16000;
+    static const int SAMPLE_RATE = 44100;
+
+    short int m_left_buffer[BUFFER_SIZE];
+    short int m_right_buffer[BUFFER_SIZE];
+    QString m_module_file_name;
 };
 
 #endif // MODULECONVERTER_H_

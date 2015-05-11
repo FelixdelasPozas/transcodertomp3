@@ -19,9 +19,10 @@
 
 // Application
 #include <ProcessDialog.h>
+#include "MusicConverter.h"
 #include "AudioConverter.h"
 #include "MP3Converter.h"
-#include "MusicConverter.h"
+#include "ModuleConverter.h"
 
 // Qt
 #include <QLayout>
@@ -169,19 +170,29 @@ void ProcessDialog::create_threads()
 
   while(m_num_workers < m_max_workers && m_music_files.size() > 0)
   {
-    ++m_num_workers;
     auto music_file = m_music_files.first();
     m_music_files.removeFirst();
 
+    if(!music_file.isFile()) continue;
+
+    ++m_num_workers;
+
     ConverterThread *converter;
 
-    if(isAudioFile(music_file) && music_file.absoluteFilePath().endsWith(".mp3"))
+    if(isModuleFile(music_file))
     {
-      converter = new MP3Converter(music_file);
+      converter = new ModuleConverter(music_file);
     }
     else
     {
-      converter = new AudioConverter(music_file);
+      if(isAudioFile(music_file) && music_file.absoluteFilePath().endsWith(".mp3"))
+      {
+        converter = new MP3Converter(music_file);
+      }
+      else
+      {
+        converter = new AudioConverter(music_file);
+      }
     }
 
     connect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));

@@ -35,7 +35,7 @@
 const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
 const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
 
-const QStringList MusicConverter::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt"};
+const QStringList MusicConverter::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
 const QStringList MusicConverter::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
 const QStringList MusicConverter::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
 
@@ -87,12 +87,12 @@ void MusicConverter::onDirectoryChanged()
 //-----------------------------------------------------------------
 void MusicConverter::onConversionStarted()
 {
-  m_files = Utils::findFiles(m_directoryText->text(), WAVE_FILE_EXTENSIONS + MOVIE_FILE_EXTENSIONS);
+  m_files = Utils::findFiles(m_directoryText->text(), WAVE_FILE_EXTENSIONS + MOVIE_FILE_EXTENSIONS + MODULE_FILE_EXTENSIONS);
 
   if(m_files.empty())
   {
     QMessageBox msgBox;
-    msgBox.setText("Can't find any music file in the specified folder.");
+    msgBox.setText("Can't find any file in the specified folder that can be processed.");
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setWindowIcon(QIcon(":/MusicConverter/application.ico"));

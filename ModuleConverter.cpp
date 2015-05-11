@@ -20,11 +20,12 @@
 // Project
 #include <ModuleConverter.h>
 
+// libopenmpt
+#include <libopenmpt/libopenmpt.hpp>
+
 //-----------------------------------------------------------------
 ModuleConverter::ModuleConverter(const QFileInfo source_info)
 : ConverterThread{source_info}
-, m_filename     {nullptr}
-, m_module       {nullptr}
 {
 }
 
@@ -36,72 +37,120 @@ ModuleConverter::~ModuleConverter()
 //-----------------------------------------------------------------
 void ModuleConverter::run()
 {
-  open_next_destination_file();
-
-  init_mikmodlib();
+  if(!init())
+  {
+    return;
+  }
 
   process_module();
-
-  deinit_mikmodlib();
-
-  close_destination_file();
 }
 
 //-----------------------------------------------------------------
-bool ModuleConverter::init_mikmodlib()
+bool ModuleConverter::init()
 {
-//  if (!MikMod_InitThreads())
-//  {
-//    emit error_message(QString("Could not initialize mikmod library for %1. Error: Multiple threads not supported.").arg(m_source_info.absoluteFilePath()));
-//    return false;
-//  }
-//
-//  MikMod_RegisterDriver(&drv_nos);
-//  MikMod_RegisterAllLoaders();
-//
-//  md_mode |= DMODE_SOFT_MUSIC;
-//  if (MikMod_Init(""))
-//  {
-//    emit error_message(QString("Could not initialize mikmod library for %1. Error: %2.").arg(m_source_info.absoluteFilePath()).arg(QString(MikMod_strerror(MikMod_errno))));
-//    return false;
-//  }
-//
-//  auto module_name = m_source_info.absoluteFilePath().split('/').last();
-//  m_module = Player_Load(module_name.toStdString().c_str(), 256, 1);
-//  if (!m_module)
-//  {
-//    emit error_message(QString("Could not load module %1. Error: %2").arg(m_source_info.absoluteFilePath()).arg(QString(MikMod_strerror(MikMod_errno))));
-//    return false;
-//  }
+  m_information.init         = true;
+  m_information.format       = Sample_format::SIGNED_16_PLANAR;
+  m_information.mode         = MPEG_mode_e::STEREO;
+  m_information.num_channels = 2;
+  m_information.samplerate   = 44100;
+
+  auto file_name = m_source_info.absoluteFilePath().replace('/','\\');
+  std::ifstream file(file_name.toStdString().c_str(), std::ios::binary );
+
+  if(!file.is_open())
+  {
+    emit error_message(QString("Couldn't open source file: %1").arg(file_name));
+    return false;
+  }
+
+  openmpt::module mod(file);
+  file.close();
+
+  auto title = mod.get_metadata("title");
+  auto artist = mod.get_metadata("artist");
+
+  if(!artist.empty())
+  {
+    m_module_file_name = tr(artist.c_str());
+
+    if(!title.empty())
+    {
+      m_module_file_name += tr(" - ");
+    }
+  }
+
+  if(!title.empty())
+  {
+    // mod files usually have unallowed characters in the title.
+    auto qTitle = tr(title.c_str());
+    m_module_file_name += qTitle.replace('/','-');
+  }
+
+  if(m_module_file_name.isEmpty())
+  {
+    m_module_file_name = file_name;
+  }
 
   return true;
 }
 
 //-----------------------------------------------------------------
-bool ModuleConverter::process_module()
+void ModuleConverter::process_module()
 {
-  /* start module */
-//  Player_Start(m_module);
-//
-//  while (Player_Active())
-//  {
-//    /* we're playing */
-//    auto output_bytes = VC_WriteBytes(reinterpret_cast<SBYTE *>(&m_buffer), BUFFER_SIZE);
-//
-//    lame_encode_internal_buffer(0, output_bytes, reinterpret_cast<unsigned char *>(&m_buffer), reinterpret_cast<unsigned char *>(&m_buffer));
-//
-//    MikMod_Update();
-//  }
-//
-//  Player_Stop();
+  if(!open_next_destination_file())
+  {
+    return;
+  }
 
-  return true;
+  auto file_name = m_source_info.absoluteFilePath().replace('/','\\');
+  std::ifstream file(file_name.toStdString().c_str(), std::ios::binary );
+
+  if(!file.is_open())
+  {
+    emit error_message(QString("Couldn't open source file: %1").arg(file_name));
+    return;
+  }
+
+  openmpt::module mod(file);
+  file.close();
+
+  mod.select_subsong(-1);  // play all songs
+  mod.set_repeat_count(0); // do not loop
+
+  auto duration = mod.get_duration_seconds();
+
+  while (!has_been_cancelled())
+  {
+    std::size_t count = mod.read(SAMPLE_RATE, BUFFER_SIZE, reinterpret_cast<short *>(&m_left_buffer[0]), reinterpret_cast<short *>(&m_right_buffer[0]));
+
+    if (count == 0)
+    {
+      break;
+    }
+
+    auto position = mod.get_position_seconds();
+
+    if(duration != 0)
+    {
+      emit progress((position * 100) / duration);
+    }
+
+    lame_encode_internal_buffer(0, count, reinterpret_cast<unsigned char *>(&m_left_buffer), reinterpret_cast<unsigned char *>(&m_right_buffer));
+  }
+
+  if(!has_been_cancelled())
+  {
+    lame_encoder_flush();
+    close_destination_file();
+  }
 }
 
-
 //-----------------------------------------------------------------
-void ModuleConverter::deinit_mikmodlib()
+ConverterThread::Destinations ModuleConverter::compute_destinations()
 {
-//  Player_Free(m_module);
-//  MikMod_Exit();
+  Destinations destinations;
+
+  destinations << Destination(Utils::formatString(m_module_file_name, m_format_configuration), 0);
+
+  return destinations;
 }

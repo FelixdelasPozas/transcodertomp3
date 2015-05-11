@@ -99,36 +99,36 @@ void ConverterThread::lame_encoder_flush()
 }
 
 //-----------------------------------------------------------------
-bool ConverterThread::lame_encode_internal_buffer(unsigned int buffer_start, unsigned int buffer_length, unsigned char *buffer1, unsigned char *buffer2)
+bool ConverterThread::lame_encode_internal_buffer(unsigned int buffer_start, unsigned int buffer_length, unsigned char *buffer_L, unsigned char *buffer_R)
 {
   buffer_start *= bytes_per_sample();
 
   int output_bytes = 0;
-  auto buffer_pointer1 = buffer1 + (buffer_start);
-  auto buffer_pointer2 = buffer2 + (buffer_start);
+  auto buffer_pointer_L = buffer_L + (buffer_start);
+  auto buffer_pointer_R = buffer_R + (buffer_start);
 
   switch(m_information.format)
   {
     case Sample_format::SIGNED_16:
-      output_bytes = lame_encode_buffer_interleaved(m_gfp, reinterpret_cast<short int *>(buffer_pointer1), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      output_bytes = lame_encode_buffer_interleaved(m_gfp, reinterpret_cast<short int *>(buffer_pointer_L), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
     case Sample_format::FLOAT:
-      output_bytes = lame_encode_buffer_interleaved_ieee_float(m_gfp, reinterpret_cast<const float *>(buffer_pointer1), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      output_bytes = lame_encode_buffer_interleaved_ieee_float(m_gfp, reinterpret_cast<const float *>(buffer_pointer_L), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
     case Sample_format::DOUBLE:
-      output_bytes = lame_encode_buffer_interleaved_ieee_double(m_gfp, reinterpret_cast<const double *>(buffer_pointer1), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      output_bytes = lame_encode_buffer_interleaved_ieee_double(m_gfp, reinterpret_cast<const double *>(buffer_pointer_L), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
     case Sample_format::SIGNED_16_PLANAR:
-      output_bytes = lame_encode_buffer(m_gfp, reinterpret_cast<const short int *>(buffer_pointer1), reinterpret_cast<const short int *>(buffer_pointer2), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      output_bytes = lame_encode_buffer(m_gfp, reinterpret_cast<const short int *>(buffer_pointer_L), reinterpret_cast<const short int *>(buffer_pointer_R), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
     case Sample_format::SIGNED_32_PLANAR:
-      output_bytes = lame_encode_buffer_long2(m_gfp, reinterpret_cast<const long int *>(buffer_pointer1), reinterpret_cast<const long int *>(buffer_pointer2), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      output_bytes = lame_encode_buffer_long2(m_gfp, reinterpret_cast<const long int *>(buffer_pointer_L), reinterpret_cast<const long int *>(buffer_pointer_R), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
     case Sample_format::FLOAT_PLANAR:
-      output_bytes = lame_encode_buffer_ieee_float(m_gfp, reinterpret_cast<const float *>(buffer_pointer1), reinterpret_cast<const float *>(buffer_pointer2), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      output_bytes = lame_encode_buffer_ieee_float(m_gfp, reinterpret_cast<const float *>(buffer_pointer_L), reinterpret_cast<const float *>(buffer_pointer_R), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
     case Sample_format::DOUBLE_PLANAR:
-      output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(buffer_pointer1), reinterpret_cast<const double *>(buffer_pointer2), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(buffer_pointer_L), reinterpret_cast<const double *>(buffer_pointer_R), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
       // Unsupported formats
     case Sample_format::UNSIGNED_8:
@@ -207,7 +207,7 @@ bool ConverterThread::open_next_destination_file()
 
   if(!m_mp3_file_stream.is_open())
   {
-    emit error_message(QString("Couldn't open destination file: %1") + mp3_file);
+    emit error_message(QString("Couldn't open destination file: %1").arg(mp3_file));
     return false;
   }
 
@@ -228,14 +228,10 @@ bool ConverterThread::open_next_destination_file()
 //-----------------------------------------------------------------
 void ConverterThread::close_destination_file()
 {
-  auto destination = m_destinations.first();
-  auto mp3_file = m_source_path + destination.name;
-
   m_destinations.removeFirst();
 
   deinit_lame();
   m_mp3_file_stream.close();
-  return;
 }
 
 //-----------------------------------------------------------------

@@ -37,14 +37,14 @@ set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a
 set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src")
 set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src/libcue/.libs/libcue.a")
 
-# libmikmod library
-set(LIBMIKMOD_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libmikmod-3.3.7/include")
-set(LIBMIKMOD_LIBRARY     "D:/Desarrollo/Bibliotecas/libmikmod-build/libmikmod.a")
-
 # id3lib library
 set(ID3LIB_DIR         "D:/Desarrollo/Bibliotecas/id3lib-3.8.3")
 set(ID3LIB_INCLUDE_DIR ${ID3LIB_DIR}/include)
 set(ID3LIB_LIBRARIES   ${ID3LIB_DIR}/src/.libs/libid3.a ${ID3LIB_DIR}/zlib/src/.libs/libz.a)
+
+# libopenmpt library
+set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.4954-beta12-windows")
+set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.4954-beta12-windows/bin/libopenmpt.a")
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -55,7 +55,7 @@ include_directories(
   ${LAME_INCLUDE_DIR}
   ${LIBAV_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
-  ${LIBMIKMOD_INCLUDE_DIR}
+  ${LIBOPENMPT_INCLUDE_DIR}
   ${ID3LIB_INCLUDE_DIR}
   )
 
@@ -100,8 +100,8 @@ set(CORE_EXTERNAL_LIBS
   ${LAME_LIBRARY}
   ${LIBAV_LIBRARIES}
   ${LIBCUE_LIBRARY}
-  ${LIBMIKMOD_LIBRARY}
   ${ID3LIB_LIBRARIES}
+  ${LIBOPENMPT_LIBRARY}
 )
   
 add_executable(MusicConverter ${CORE_SOURCES})
