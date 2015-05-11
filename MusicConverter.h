@@ -44,6 +44,10 @@ class MusicConverter
 		 */
 		~MusicConverter();
 
+    static const QStringList MODULE_FILE_EXTENSIONS;
+    static const QStringList WAVE_FILE_EXTENSIONS;
+    static const QStringList MOVIE_FILE_EXTENSIONS;
+
 	private slots:
 	  /** \brief Displays the directory selection dialog.
 	   *
@@ -59,9 +63,6 @@ class MusicConverter
 	  static const QString ROOT_DIRECTORY;
 	  static const QString NUMBER_OF_THREADS;
 
-	  static const QStringList MODULE_FILE_EXTENSIONS;
-	  static const QStringList WAVE_FILE_EXTENSIONS;
-
 	  /** \brief Loads the program settings.
 	   *
 	   */
@@ -74,5 +75,20 @@ class MusicConverter
 
 	  QList<QFileInfo> m_files;
 };
+
+/** \brief Returns true if the file given as parameter has a audio extension.
+ * \param[in] file file QFileInfo struct.
+ */
+bool isAudioFile(const QFileInfo &file);
+
+/** \brief Returns true if the file given as parameter has a video extension.
+ * \param[in] file file QFileInfo struct.
+ */
+bool isVideoFile(const QFileInfo &file);
+
+/** \brief Returns true if the file given as parameter has a module extension.
+ * \param[in] file file QFileInfo struct.
+ */
+bool isModuleFile(const QFileInfo &file);
 
 #endif // MUSIC_CONVERTER_H_

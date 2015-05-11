@@ -19,6 +19,7 @@
 
 // Project
 #include "AudioConverter.h"
+#include "MusicConverter.h"
 
 // C++
 #include <iostream>
@@ -127,7 +128,7 @@ bool AudioConverter::init_libav()
   m_audio_decoder_context = m_libav_context->streams[m_audio_stream_id]->codec;
   m_audio_decoder_context->codec = m_audio_decoder;
 
-  if(m_libav_context->nb_streams != 1)
+  if(m_libav_context->nb_streams != 1 && !isVideoFile(m_source_info))
   {
     init_libav_cover_transcoding();
   }

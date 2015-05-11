@@ -166,9 +166,9 @@ QString Utils::formatString(const QString filename, const Utils::FormatConfigura
 bool Utils::isRomanNumerals(const QString string_part)
 {
   QString numerals("IVXLCDM");
-  for(unsigned int i = 0; i < string_part.length(); ++i)
+  for(int i = 0; i < string_part.length(); ++i)
   {
-    if(numerals.contains(string_part.at(i)))
+    if(numerals.contains(string_part.at(i).toUpper()))
       continue;
 
     return false;

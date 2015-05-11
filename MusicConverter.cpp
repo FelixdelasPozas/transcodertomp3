@@ -37,6 +37,7 @@ const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
 
 const QStringList MusicConverter::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt"};
 const QStringList MusicConverter::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
+const QStringList MusicConverter::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
 
 //-----------------------------------------------------------------
 MusicConverter::MusicConverter()
@@ -86,7 +87,7 @@ void MusicConverter::onDirectoryChanged()
 //-----------------------------------------------------------------
 void MusicConverter::onConversionStarted()
 {
-  m_files = Utils::findFiles(m_directoryText->text(), WAVE_FILE_EXTENSIONS);
+  m_files = Utils::findFiles(m_directoryText->text(), WAVE_FILE_EXTENSIONS + MOVIE_FILE_EXTENSIONS);
 
   if(m_files.empty())
   {
@@ -128,4 +129,28 @@ void MusicConverter::saveSettings() const
   settings.setValue(NUMBER_OF_THREADS, m_threads->value());
 
   settings.sync();
+}
+
+//-----------------------------------------------------------------
+bool isAudioFile(const QFileInfo& file)
+{
+  auto extension = file.absoluteFilePath().split('.').last().toLower();
+
+  return MusicConverter::WAVE_FILE_EXTENSIONS.contains("*." + extension);
+}
+
+//-----------------------------------------------------------------
+bool isVideoFile(const QFileInfo& file)
+{
+  auto extension = file.absoluteFilePath().split('.').last().toLower();
+
+  return MusicConverter::MOVIE_FILE_EXTENSIONS.contains("*." + extension);
+}
+
+//-----------------------------------------------------------------
+bool isModuleFile(const QFileInfo& file)
+{
+  auto extension = file.absoluteFilePath().split('.').last().toLower();
+
+  return MusicConverter::MODULE_FILE_EXTENSIONS.contains("*." + extension);
 }

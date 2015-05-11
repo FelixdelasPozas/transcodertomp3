@@ -191,7 +191,7 @@ class ConverterThread
      */
     virtual Destinations compute_destinations();
 
-    static const int   MP3_BUFFER_SIZE = 33920;
+    static const int MP3_BUFFER_SIZE = 33920;
 
     Destinations    m_destinations;
     int             m_num_tracks;

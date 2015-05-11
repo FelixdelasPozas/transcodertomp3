@@ -21,6 +21,7 @@
 #include <ProcessDialog.h>
 #include "AudioConverter.h"
 #include "MP3Converter.h"
+#include "MusicConverter.h"
 
 // Qt
 #include <QLayout>
@@ -174,7 +175,7 @@ void ProcessDialog::create_threads()
 
     ConverterThread *converter;
 
-    if(music_file.absoluteFilePath().endsWith(".mp3"))
+    if(isAudioFile(music_file) && music_file.absoluteFilePath().endsWith(".mp3"))
     {
       converter = new MP3Converter(music_file);
     }

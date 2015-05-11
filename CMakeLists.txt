@@ -63,21 +63,21 @@ set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive -mwindows")
 
 # Add Qt Resource files
 qt4_add_resources(RESOURCES
-	rsc/resources.qrc
-	)
+  rsc/resources.qrc
+)
 
 qt4_wrap_ui(CORE_UI
   # .ui for Qt
   MusicConverter.ui
   ProcessDialog.ui
-  )
+)
 	
 qt4_wrap_cpp(CORE_MOC
   # .h for Qt
   MusicConverter.h
   ProcessDialog.h
   ConverterThread.h
-  )
+)
 
 set (CORE_SOURCES
   # project files
@@ -92,7 +92,8 @@ set (CORE_SOURCES
   ConverterThread.cpp
   AudioConverter.cpp
   MP3Converter.cpp
-  )
+  ModuleConverter.cpp
+)
 
 set(CORE_EXTERNAL_LIBS
   ${QT_LIBRARIES}
@@ -101,7 +102,7 @@ set(CORE_EXTERNAL_LIBS
   ${LIBCUE_LIBRARY}
   ${LIBMIKMOD_LIBRARY}
   ${ID3LIB_LIBRARIES}
-  )
+)
   
 add_executable(MusicConverter ${CORE_SOURCES})
 target_link_libraries (MusicConverter ${CORE_EXTERNAL_LIBS})
