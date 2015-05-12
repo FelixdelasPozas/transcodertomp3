@@ -59,6 +59,16 @@ class MusicConverter
 	   */
 	  void onConversionStarted();
 
+	  /** \brief Shows the About dialog
+	   *
+	   */
+	  void onAboutButtonPressed();
+
+	  /** \brief Shows the configuration dialog.
+	   *
+	   */
+	  void onConfigurationButtonPressed();
+
 	private:
 	  static const QString ROOT_DIRECTORY;
 	  static const QString NUMBER_OF_THREADS;

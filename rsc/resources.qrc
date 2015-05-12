@@ -3,5 +3,8 @@
     <file>application.ico</file>
     <file>process.ico</file>
     <file>folder.ico</file>
+	<file>lame.ico</file>
+	<file>libav.ico</file>
+	<file>id3v2.ico</file>
   </qresource>
 </RCC>

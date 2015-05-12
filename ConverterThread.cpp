@@ -194,7 +194,6 @@ bool ConverterThread::open_next_destination_file()
 
   std::memset(m_mp3_buffer, 0, MP3_BUFFER_SIZE);
 
-  auto destination = m_destinations.first();
   auto music_file = m_source_info.absoluteFilePath().replace('/','\\');
   if(0 != init_lame())
   {
@@ -202,6 +201,7 @@ bool ConverterThread::open_next_destination_file()
     return false;
   }
 
+  auto destination = m_destinations.first();
   auto mp3_file = m_source_path + destination.name;
   m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
 
@@ -229,9 +229,9 @@ bool ConverterThread::open_next_destination_file()
 void ConverterThread::close_destination_file()
 {
   m_destinations.removeFirst();
+  m_mp3_file_stream.close();
 
   deinit_lame();
-  m_mp3_file_stream.close();
 }
 
 //-----------------------------------------------------------------
@@ -245,7 +245,6 @@ const int ConverterThread::number_of_tracks() const
 {
   return m_num_tracks;
 }
-
 
 //-----------------------------------------------------------------
 int ConverterThread::bytes_per_sample() const
@@ -269,6 +268,7 @@ int ConverterThread::bytes_per_sample() const
 
   return -1;
 }
+
 //-----------------------------------------------------------------
 QString ConverterThread::sample_format_string() const
 {

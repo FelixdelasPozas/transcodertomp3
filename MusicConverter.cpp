@@ -57,6 +57,12 @@ MusicConverter::MusicConverter()
 
 	connect(m_startButton, SIGNAL(clicked()),
 	        this,          SLOT(onConversionStarted()));
+
+  connect(m_aboutButton, SIGNAL(clicked()),
+          this,          SLOT(onAboutButtonPressed()));
+
+  connect(m_configButton, SIGNAL(clicked()),
+          this,           SLOT(onConfigurationButtonPressed()));
 }
 
 //-----------------------------------------------------------------
@@ -108,6 +114,18 @@ void MusicConverter::onConversionStarted()
   pd.exec();
 
   this->show();
+}
+
+//-----------------------------------------------------------------
+void MusicConverter::onAboutButtonPressed()
+{
+  // TODO
+}
+
+//-----------------------------------------------------------------
+void MusicConverter::onConfigurationButtonPressed()
+{
+  // TODO
 }
 
 

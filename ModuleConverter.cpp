@@ -119,30 +119,36 @@ void ModuleConverter::process_module()
 
   auto duration = mod.get_duration_seconds();
 
-  while (!has_been_cancelled())
+  bool finished = false;
+  while (!has_been_cancelled() && !finished)
   {
     std::size_t count = mod.read(SAMPLE_RATE, BUFFER_SIZE, reinterpret_cast<short *>(&m_left_buffer[0]), reinterpret_cast<short *>(&m_right_buffer[0]));
 
     if (count == 0)
     {
-      break;
+      finished = true;
     }
-
-    auto position = mod.get_position_seconds();
-
-    if(duration != 0)
+    else
     {
-      emit progress((position * 100) / duration);
+      auto position = mod.get_position_seconds();
+
+      if(duration != 0)
+      {
+        emit progress((position * 100) / duration);
+      }
+
+      lame_encode_internal_buffer(0, count, reinterpret_cast<unsigned char *>(&m_left_buffer), reinterpret_cast<unsigned char *>(&m_right_buffer));
     }
-
-    lame_encode_internal_buffer(0, count, reinterpret_cast<unsigned char *>(&m_left_buffer), reinterpret_cast<unsigned char *>(&m_right_buffer));
   }
 
-  if(!has_been_cancelled())
+  if(has_been_cancelled())
   {
-    lame_encoder_flush();
-    close_destination_file();
+    return;
   }
+
+  lame_encoder_flush();
+
+  close_destination_file();
 }
 
 //-----------------------------------------------------------------
