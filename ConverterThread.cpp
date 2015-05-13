@@ -38,6 +38,11 @@ ConverterThread::~ConverterThread()
 {
   if(has_been_cancelled())
   {
+    if(m_mp3_file_stream.is_open())
+    {
+      m_mp3_file_stream.close();
+    }
+
     auto mp3_file = m_source_path + m_destinations.first().name;
     QFile::remove(mp3_file);
   }

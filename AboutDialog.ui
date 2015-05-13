@@ -586,7 +586,7 @@ OpenMPT based module player library</string>
                </font>
               </property>
               <property name="text">
-               <string>libqt
+               <string>libqt opensource
 Qt Framework</string>
               </property>
               <property name="alignment">

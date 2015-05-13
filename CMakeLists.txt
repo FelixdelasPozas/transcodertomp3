@@ -71,6 +71,7 @@ qt4_wrap_ui(CORE_UI
   MusicConverter.ui
   ProcessDialog.ui
   AboutDialog.ui
+  ConfigurationDialog.ui
 )
 	
 qt4_wrap_cpp(CORE_MOC
@@ -79,6 +80,7 @@ qt4_wrap_cpp(CORE_MOC
   ProcessDialog.h
   ConverterThread.h
   AboutDialog.h
+  ConfigurationDialog.h
 )
 
 set (CORE_SOURCES
@@ -96,6 +98,7 @@ set (CORE_SOURCES
   MP3Converter.cpp
   ModuleConverter.cpp
   AboutDialog.cpp
+  ConfigurationDialog.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

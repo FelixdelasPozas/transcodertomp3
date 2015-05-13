@@ -21,6 +21,7 @@
 #include "MusicConverter.h"
 #include "ProcessDialog.h"
 #include "AboutDialog.h"
+#include "ConfigurationDialog.h"
 #include "Utils.h"
 
 // Qt
@@ -128,7 +129,12 @@ void MusicConverter::onAboutButtonPressed()
 //-----------------------------------------------------------------
 void MusicConverter::onConfigurationButtonPressed()
 {
-  // TODO
+  ConfigurationDialog dialog;
+  dialog.setModal(true);
+  if(dialog.exec() == QDialog::Accepted)
+  {
+    // TODO
+  }
 }
 
 

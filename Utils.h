@@ -69,6 +69,15 @@ namespace Utils
    *
    */
   bool isRomanNumerals(const QString string_part);
+
+  class Configuration
+  {
+    private:
+      static const QString ROOT_DIRECTORY;
+      static const QString NUMBER_OF_THREADS;
+
+      FormatConfiguration m_format_conf;
+  };
 }
 
 
