@@ -26,7 +26,7 @@
 //-----------------------------------------------------------------
 QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList extensions)
 {
-  QList<QFileInfo> filesFound;
+  QList<QFileInfo> otherFilesFound, mp3FilesFound;
 
   auto startingDir = initialDir;
   startingDir.setFilter(QDir::Files|QDir::Dirs|QDir::NoDot|QDir::NoDotDot);
@@ -37,10 +37,21 @@ QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList exten
   {
     it.next();
 
-    filesFound << it.fileInfo();
+    auto info = it.fileInfo();
+    auto extension = info.absoluteFilePath().split('.').last().toLower();
+
+    if(extension == "mp3")
+    {
+      mp3FilesFound << info;
+    }
+    else
+    {
+      otherFilesFound << info;
+    }
   }
 
-  return filesFound;
+  // I want mp3 files to be processed first
+  return mp3FilesFound + otherFilesFound;
 }
 
 //-----------------------------------------------------------------

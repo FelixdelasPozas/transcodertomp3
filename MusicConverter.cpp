@@ -20,6 +20,7 @@
 // Project
 #include "MusicConverter.h"
 #include "ProcessDialog.h"
+#include "AboutDialog.h"
 #include "Utils.h"
 
 // Qt
@@ -119,7 +120,9 @@ void MusicConverter::onConversionStarted()
 //-----------------------------------------------------------------
 void MusicConverter::onAboutButtonPressed()
 {
-  // TODO
+  AboutDialog dialog;
+  dialog.setModal(true);
+  dialog.exec();
 }
 
 //-----------------------------------------------------------------

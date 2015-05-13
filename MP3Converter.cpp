@@ -45,42 +45,46 @@ MP3Converter::~MP3Converter()
 void MP3Converter::run()
 {
   auto file_name = m_source_info.absoluteFilePath().replace('/','\\');
+  QString track_title;
 
   ID3_Tag file_id3_tag(file_name.toStdString().c_str());
 
-  if(!file_id3_tag.HasV1Tag() && !file_id3_tag.HasV2Tag())
+  if(file_id3_tag.HasV1Tag() || !file_id3_tag.HasV2Tag())
   {
-    return;
-  }
-
-  QString track_title;
-
-  auto num_frame = file_id3_tag.Find(ID3FID_TRACKNUM);
-  if (num_frame)
-  {
-    auto field = num_frame->GetField(ID3FN_TEXT);
-    auto text = QString(field->GetRawText());
-    auto number = text.split('/').first();
-
-    if(!number.isEmpty())
+    auto num_frame = file_id3_tag.Find(ID3FID_TRACKNUM);
+    if (num_frame)
     {
-      track_title += number + QString(" - ");
+      auto field = num_frame->GetField(ID3FN_TEXT);
+      auto text = QString(field->GetRawText());
+      auto number = text.split('/').first();
+
+      if(!number.isEmpty())
+      {
+        track_title += number + QString(" - ");
+      }
     }
-  }
 
-  auto title_frame = file_id3_tag.Find(ID3FID_TITLE);
-  if(title_frame)
-  {
-    auto charString = ID3_GetString(title_frame, ID3FN_TEXT);
-    auto title = QString(charString);
-
-    delete [] charString;
-
-    if(!title.isEmpty())
+    auto title_frame = file_id3_tag.Find(ID3FID_TITLE);
+    if(title_frame)
     {
-      track_title += title;
+      auto charString = ID3_GetString(title_frame, ID3FN_TEXT);
+      auto title = QString(charString);
+
+      delete [] charString;
+
+      if(!title.isEmpty())
+      {
+        track_title += title;
+      }
     }
+
+    extract_cover(file_id3_tag);
+
+    file_id3_tag.Strip(ID3TT_ALL);
+    file_id3_tag.Clear();
   }
+
+  emit progress(50);
 
   if(track_title.isEmpty())
   {
@@ -90,14 +94,11 @@ void MP3Converter::run()
   track_title = Utils::formatString(track_title, m_format_configuration);
 
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
-  emit information_message(QString("%1: extracting %2").arg(source_name).arg(track_title + QString(".mp3")));
-
-  extract_cover(file_id3_tag);
-
-  file_id3_tag.Strip(ID3TT_ALL);
-  file_id3_tag.Clear();
+  emit information_message(QString("%1: processing to %2").arg(source_name).arg(track_title));
 
   QFile::rename(m_source_info.absoluteFilePath(), m_source_path + Utils::formatString(track_title, m_format_configuration));
+
+  emit progress(100);
 }
 
 //-----------------------------------------------------------------
