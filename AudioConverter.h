@@ -21,7 +21,7 @@
 #define AUDIO_CONVERTER_THREAD_H_
 
 // Project
-#include <ConverterThread.h>
+#include "ConverterThread.h"
 
 // Qt
 #include <QMutex>
@@ -38,9 +38,10 @@ class AudioConverter
   public:
     /** \brief ConverterThread class constructor.
      * \param[in] source_info QFileInfo struct of the source file.
+     * \param[in] configuration configuration struct reference.
      *
      */
-    explicit AudioConverter(const QFileInfo source_info);
+    explicit AudioConverter(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief ConverterThread class virtual destructor.
      *

@@ -20,6 +20,9 @@
 #ifndef CONFIGURATIONDIALOG_H_
 #define CONFIGURATIONDIALOG_H_
 
+// Project
+#include "Utils.h"
+
 // Qt
 #include <QDialog>
 #include "ui_ConfigurationDialog.h"
@@ -40,6 +43,11 @@ class ConfigurationDialog
      */
     virtual ~ConfigurationDialog();
 
+    /** \brief Returns the configuration struct with the values of the dialog.
+     *
+     */
+    const Utils::TranscoderConfiguration getConfiguration() const;
+
   private slots:
     void onTranscodeCheckStateChanged(int state);
     void onReformatCheckStateChanged(int state);
@@ -58,8 +66,6 @@ class ConfigurationDialog
     static const QList<int>  QUALITY_VALUES;
     static const QStringList BITRATE_NAMES;
     static const QList<int>  BITRATE_VALUES;
-
-
 };
 
 #endif // CONFIGURATIONDIALOG_H_

@@ -29,9 +29,10 @@ class ModuleConverter
   public:
     /** \brief ModuleConverter class constructor.
      * \param[in] source_info QFileInfo struct of the source file.
+     * \param[in] configuration configuration struct reference.
      *
      */
-    explicit ModuleConverter(const QFileInfo source_info);
+    explicit ModuleConverter(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief ModuleConverter class virtual destructor.
      *

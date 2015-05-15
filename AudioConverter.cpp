@@ -19,7 +19,6 @@
 
 // Project
 #include "AudioConverter.h"
-#include "MusicTranscoder.h"
 
 // C++
 #include <iostream>
@@ -43,8 +42,8 @@ extern "C"
 QMutex AudioConverter::s_mutex;
 
 //-----------------------------------------------------------------
-AudioConverter::AudioConverter(const QFileInfo origin_info)
-: ConverterThread{origin_info}
+AudioConverter::AudioConverter(const QFileInfo origin_info, const Utils::TranscoderConfiguration &configuration)
+: ConverterThread{origin_info, configuration}
 , m_libav_context        {nullptr}
 , m_cover_stream_id      {-1}
 , m_audio_decoder        {nullptr}
@@ -128,7 +127,7 @@ bool AudioConverter::init_libav()
   m_audio_decoder_context = m_libav_context->streams[m_audio_stream_id]->codec;
   m_audio_decoder_context->codec = m_audio_decoder;
 
-  if(m_libav_context->nb_streams != 1 && !isVideoFile(m_source_info))
+  if(m_libav_context->nb_streams != 1 && !Utils::isVideoFile(m_source_info) && m_configuration.extractMetadataCoverPicture())
   {
     init_libav_cover_transcoding();
   }
@@ -526,7 +525,7 @@ QList<AudioConverter::Destination> AudioConverter::compute_destinations()
   auto source_basename = source_name.remove(source_name.split('.').last());
   auto source_cue_name2 = m_source_path + source_basename + QString("cue");
 
-  if(!files.empty() && (QFile::exists(source_cue_name1) || QFile::exists(source_cue_name2)))
+  if(m_configuration.useCueToSplit() && !files.empty() && (QFile::exists(source_cue_name1) || QFile::exists(source_cue_name2)))
   {
     auto name = source_cue_name1;
     if(!QFile::exists(source_cue_name1))
@@ -562,18 +561,18 @@ QList<AudioConverter::Destination> AudioConverter::compute_destinations()
 
           auto cdtext = track_get_cdtext(track);
           auto track_name = QString(cdtext_get(PTI_TITLE, cdtext));
-          auto track_clean_name = Utils::formatString(track_name, m_format_configuration);
+          auto track_clean_name = Utils::formatString(track_name, m_configuration.formatConfiguration());
           auto track_length = track_get_length(track);
           // convert to number of samples.
           track_length = m_information.samplerate * (track_length / CD_FRAMES_PER_SECOND);
           auto number_prefix = QString().number(i);
 
-          while(number_prefix.length() < m_format_configuration.number_of_digits)
+          while(number_prefix.length() < m_configuration.formatConfiguration().number_of_digits)
           {
             number_prefix = "0" + number_prefix;
           }
 
-          auto final_name = number_prefix + QString(" ") + QString(m_format_configuration.number_and_name_separator) + QString(" ") + track_clean_name;
+          auto final_name = number_prefix + QString(" ") + QString(m_configuration.formatConfiguration().number_and_name_separator) + QString(" ") + track_clean_name;
 
           destinations << Destination(final_name, track_length);
         }
@@ -582,7 +581,7 @@ QList<AudioConverter::Destination> AudioConverter::compute_destinations()
   }
   else
   {
-    destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_format_configuration), 0);
+    destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration()), 0);
   }
 
   return destinations;

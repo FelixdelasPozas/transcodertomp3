@@ -37,9 +37,9 @@ extern "C"
 }
 
 //-----------------------------------------------------------------
-ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const int threads_num)
-: m_music_files{files}
-, m_max_workers{threads_num}
+ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const Utils::TranscoderConfiguration &configuration)
+: m_music_files  {files}
+, m_configuration(configuration)
 {
   setupUi(this);
 
@@ -179,19 +179,19 @@ void ProcessDialog::create_threads()
 
     ConverterThread *converter;
 
-    if(isModuleFile(music_file))
+    if(Utils::isModuleFile(music_file))
     {
-      converter = new ModuleConverter(music_file);
+      converter = new ModuleConverter(music_file, m_configuration);
     }
     else
     {
-      if(isAudioFile(music_file) && music_file.absoluteFilePath().endsWith(".mp3"))
+      if(Utils::isAudioFile(music_file) && music_file.absoluteFilePath().endsWith(".mp3"))
       {
-        converter = new MP3Converter(music_file);
+        converter = new MP3Converter(music_file, m_configuration);
       }
       else
       {
-        converter = new AudioConverter(music_file);
+        converter = new AudioConverter(music_file, m_configuration);
       }
     }
 

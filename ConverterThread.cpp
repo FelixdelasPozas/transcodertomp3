@@ -24,19 +24,20 @@
 #include <cstring>
 
 //-----------------------------------------------------------------
-ConverterThread::ConverterThread(const QFileInfo source_info)
-: m_source_info{source_info}
-, m_source_path{m_source_info.absoluteFilePath().remove(m_source_info.absoluteFilePath().split('/').last())}
-, m_num_tracks {0}
-, m_stop       {false}
-, m_gfp        {nullptr}
+ConverterThread::ConverterThread(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
+: m_source_info  {source_info}
+, m_source_path  {m_source_info.absoluteFilePath().remove(m_source_info.absoluteFilePath().split('/').last())}
+, m_configuration(configuration)
+, m_num_tracks   {0}
+, m_stop         {false}
+, m_gfp          {nullptr}
 {
 }
 
 //-----------------------------------------------------------------
 ConverterThread::~ConverterThread()
 {
-  if(has_been_cancelled())
+  if(has_been_cancelled() && m_configuration.deleteOutputOnCancellation())
   {
     if(m_mp3_file_stream.is_open())
     {
@@ -62,27 +63,20 @@ bool ConverterThread::has_been_cancelled()
 }
 
 //-----------------------------------------------------------------
-void ConverterThread::set_format_configuration(const Utils::FormatConfiguration format)
-{
-  m_format_configuration = format;
-}
-
-//-----------------------------------------------------------------
 int ConverterThread::init_lame()
 {
   Q_ASSERT(m_information.init);
 
   m_gfp = lame_init();
 
-  lame_set_num_channels(m_gfp, m_information.num_channels);
+  lame_set_num_channels (m_gfp, m_information.num_channels);
   lame_set_in_samplerate(m_gfp, m_information.samplerate);
-  lame_set_brate(m_gfp, 320);
-  lame_set_quality(m_gfp, 0);
-  lame_set_mode(m_gfp, m_information.num_channels == 2 ? MPEG_mode_e::STEREO : MPEG_mode_e::MONO);
-  lame_set_bWriteVbrTag(m_gfp, 0);
-  lame_set_copyright(m_gfp, 0);
-  lame_set_original(m_gfp, 0);
-  lame_set_preset(m_gfp, preset_mode_e::INSANE);
+  lame_set_brate        (m_gfp, m_configuration.bitrate());
+  lame_set_quality      (m_gfp, m_configuration.quality());
+  lame_set_mode         (m_gfp, m_information.num_channels == 2 ? MPEG_mode_e::STEREO : MPEG_mode_e::MONO);
+  lame_set_bWriteVbrTag (m_gfp, 0);
+  lame_set_copyright    (m_gfp, 0);
+  lame_set_original     (m_gfp, 0);
 
   return lame_init_params(m_gfp);
 }
@@ -301,7 +295,9 @@ ConverterThread::Destinations ConverterThread::compute_destinations()
 {
   Destinations destinations;
 
-  destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_format_configuration), 0);
+  QString file_name;
+
+  destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration()), 0);
 
   return destinations;
 }

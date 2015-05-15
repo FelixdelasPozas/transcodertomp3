@@ -35,9 +35,10 @@ class MP3Converter
   public:
     /** \brief MP3Converter class constructor.
      * \param[in] source_info QFileInfo struct of the source file.
+     * \param[in] configuration configuration struct reference.
      *
      */
-    explicit MP3Converter(const QFileInfo source_info);
+    explicit MP3Converter(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief MP3Converter class virtual destructor.
      *

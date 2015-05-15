@@ -21,6 +21,7 @@
 #define PROCESSDIALOG_H_
 
 // Application
+#include "Utils.h"
 #include "ui_ProcessDialog.h"
 
 // Qt
@@ -52,7 +53,7 @@ class ProcessDialog
      * \param[in] threadNum number of threads to use in the conversion process.
      *
      */
-    explicit ProcessDialog(const QList<QFileInfo> &files, const int threadsNum);
+    explicit ProcessDialog(const QList<QFileInfo> &files, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief Process dialog class constructor.
      *
@@ -115,9 +116,10 @@ class ProcessDialog
      */
     static int lock_manager(void **mutex, enum AVLockOp op);
 
-    QList<QFileInfo>          m_music_files;
-    int                       m_max_workers;
-    int                       m_num_workers;
+    QList<QFileInfo>                      m_music_files;
+    int                                   m_max_workers;
+    int                                   m_num_workers;
+    const Utils::TranscoderConfiguration &m_configuration;
 
     QMutex m_mutex;
     QMap<QProgressBar *, ConverterThread *> m_progress_bars;

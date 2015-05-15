@@ -34,19 +34,15 @@
 // C++
 #include <thread>
 
-const QString MusicTranscoder::ROOT_DIRECTORY = QString("Root Directory");
-const QString MusicTranscoder::NUMBER_OF_THREADS = QString("Number Of Threads");
-
-const QStringList MusicTranscoder::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
-const QStringList MusicTranscoder::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
-const QStringList MusicTranscoder::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
-
 //-----------------------------------------------------------------
 MusicTranscoder::MusicTranscoder()
 {
 	setupUi(this);
 
-	loadSettings();
+	m_configuration.load();
+
+  m_directoryText->setText(m_configuration.rootDirectory());
+  m_threads->setValue(m_configuration.numberOfThreads());
 
 	m_threads->setMinimum(1);
 	m_threads->setMaximum(std::thread::hardware_concurrency());
@@ -67,7 +63,7 @@ MusicTranscoder::MusicTranscoder()
 //-----------------------------------------------------------------
 MusicTranscoder::~MusicTranscoder()
 {
-  saveSettings();
+  m_configuration.save();
 }
 
 //-----------------------------------------------------------------
@@ -92,7 +88,7 @@ void MusicTranscoder::onDirectoryChanged()
 //-----------------------------------------------------------------
 void MusicTranscoder::onConversionStarted()
 {
-  m_files = Utils::findFiles(m_directoryText->text(), WAVE_FILE_EXTENSIONS + MOVIE_FILE_EXTENSIONS + MODULE_FILE_EXTENSIONS);
+  m_files = Utils::findFiles(m_directoryText->text(), Utils::WAVE_FILE_EXTENSIONS + Utils::MOVIE_FILE_EXTENSIONS + Utils::MODULE_FILE_EXTENSIONS);
 
   if(m_files.empty())
   {
@@ -109,7 +105,10 @@ void MusicTranscoder::onConversionStarted()
 
   this->hide();
 
-  ProcessDialog pd(m_files, m_threads->value());
+  m_configuration.setRootDirectory(m_directoryText->text());
+  m_configuration.setNumberOfThreads(m_threads->value());
+
+  ProcessDialog pd(m_files, m_configuration);
   pd.exec();
 
   this->show();
@@ -130,51 +129,6 @@ void MusicTranscoder::onConfigurationButtonPressed()
   dialog.setModal(true);
   if(dialog.exec() == QDialog::Accepted)
   {
-    // TODO
+    m_configuration = dialog.getConfiguration();
   }
-}
-
-
-//-----------------------------------------------------------------
-void MusicTranscoder::loadSettings()
-{
-  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
-
-  m_directoryText->setText(settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString());
-  m_threads->setValue(settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency()/2).toInt());
-}
-
-//-----------------------------------------------------------------
-void MusicTranscoder::saveSettings() const
-{
-  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
-
-  settings.setValue(ROOT_DIRECTORY, m_directoryText->text());
-  settings.setValue(NUMBER_OF_THREADS, m_threads->value());
-
-  settings.sync();
-}
-
-//-----------------------------------------------------------------
-bool isAudioFile(const QFileInfo& file)
-{
-  auto extension = file.absoluteFilePath().split('.').last().toLower();
-
-  return MusicTranscoder::WAVE_FILE_EXTENSIONS.contains("*." + extension);
-}
-
-//-----------------------------------------------------------------
-bool isVideoFile(const QFileInfo& file)
-{
-  auto extension = file.absoluteFilePath().split('.').last().toLower();
-
-  return MusicTranscoder::MOVIE_FILE_EXTENSIONS.contains("*." + extension);
-}
-
-//-----------------------------------------------------------------
-bool isModuleFile(const QFileInfo& file)
-{
-  auto extension = file.absoluteFilePath().split('.').last().toLower();
-
-  return MusicTranscoder::MODULE_FILE_EXTENSIONS.contains("*." + extension);
 }

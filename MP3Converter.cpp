@@ -31,8 +31,8 @@ QString MP3Converter::MP3_EXTENSION = ".mp3";
 QString MP3Converter::COVER_MIME_TYPE = "image/jpeg";
 
 //-----------------------------------------------------------------
-MP3Converter::MP3Converter(const QFileInfo source_info)
-: AudioConverter(source_info)
+MP3Converter::MP3Converter(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
+: AudioConverter(source_info, configuration)
 {
 }
 
@@ -49,39 +49,48 @@ void MP3Converter::run()
 
   ID3_Tag file_id3_tag(file_name.toStdString().c_str());
 
-  if(file_id3_tag.HasV1Tag() || !file_id3_tag.HasV2Tag())
+  if(file_id3_tag.HasV1Tag() || file_id3_tag.HasV2Tag())
   {
-    auto num_frame = file_id3_tag.Find(ID3FID_TRACKNUM);
-    if (num_frame)
+    if(m_configuration.useMetadataToRenameOutput())
     {
-      auto field = num_frame->GetField(ID3FN_TEXT);
-      auto text = QString(field->GetRawText());
-      auto number = text.split('/').first();
-
-      if(!number.isEmpty())
+      auto num_frame = file_id3_tag.Find(ID3FID_TRACKNUM);
+      if (num_frame)
       {
-        track_title += number + QString(" - ");
+        auto field = num_frame->GetField(ID3FN_TEXT);
+        auto text = QString(field->GetRawText());
+        auto number = text.split('/').first();
+
+        if (!number.isEmpty())
+        {
+          track_title += number + QString(" - ");
+        }
+      }
+
+      auto title_frame = file_id3_tag.Find(ID3FID_TITLE);
+      if (title_frame)
+      {
+        auto charString = ID3_GetString(title_frame, ID3FN_TEXT);
+        auto title = QString(charString);
+
+        delete[] charString;
+
+        if (!title.isEmpty())
+        {
+          track_title += title;
+        }
       }
     }
 
-    auto title_frame = file_id3_tag.Find(ID3FID_TITLE);
-    if(title_frame)
+    if(m_configuration.extractMetadataCoverPicture())
     {
-      auto charString = ID3_GetString(title_frame, ID3FN_TEXT);
-      auto title = QString(charString);
-
-      delete [] charString;
-
-      if(!title.isEmpty())
-      {
-        track_title += title;
-      }
+      extract_cover(file_id3_tag);
     }
 
-    extract_cover(file_id3_tag);
-
-    file_id3_tag.Strip(ID3TT_ALL);
-    file_id3_tag.Clear();
+    if(m_configuration.stripTagsFromMp3())
+    {
+      file_id3_tag.Strip(ID3TT_ALL);
+      file_id3_tag.Clear();
+    }
   }
 
   emit progress(50);
@@ -91,12 +100,12 @@ void MP3Converter::run()
     track_title = file_name.split('\\').last().remove(MP3_EXTENSION);
   }
 
-  track_title = Utils::formatString(track_title, m_format_configuration);
+  track_title = Utils::formatString(track_title, m_configuration.formatConfiguration());
 
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
   emit information_message(QString("%1: processing to %2").arg(source_name).arg(track_title));
 
-  QFile::rename(m_source_info.absoluteFilePath(), m_source_path + Utils::formatString(track_title, m_format_configuration));
+  QFile::rename(m_source_info.absoluteFilePath(), m_source_path + track_title);
 
   emit progress(100);
 }

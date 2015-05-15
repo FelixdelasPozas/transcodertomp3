@@ -155,3 +155,13 @@ void ConfigurationDialog::connectSignals()
   connect(m_extractInputCover, SIGNAL(stateChanged(int)),
           this,                SLOT(onCoverExtractCheckStateChanged(int)));
 }
+
+//-----------------------------------------------------------------
+const Utils::TranscoderConfiguration ConfigurationDialog::getConfiguration() const
+{
+  Utils::TranscoderConfiguration configuration;
+
+  // TODO
+
+  return configuration;
+}

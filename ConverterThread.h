@@ -40,9 +40,10 @@ class ConverterThread
   public:
     /** \brief ConverterThread class constructor.
      * \param[in] source_info QFileInfo struct of the source file.
+     * \param[in] configuration configuration struct reference.
      *
      */
-    explicit ConverterThread(const QFileInfo source_info);
+    explicit ConverterThread(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief ConverterThread class virtual destructor.
      *
@@ -58,11 +59,6 @@ class ConverterThread
      *
      */
     bool has_been_cancelled();
-
-    /** \brief Sets the format configuration for this thread.
-     *
-     */
-    void set_format_configuration(const Utils::FormatConfiguration format);
 
   signals:
     /** \brief Emits a error message signal.
@@ -168,11 +164,10 @@ class ConverterThread
     const int number_of_tracks() const;
 
 
-    const QFileInfo m_source_info;
-    const QString   m_source_path;
-    Source_Info     m_information;
-
-    Utils::FormatConfiguration m_format_configuration;
+    const QFileInfo                m_source_info;
+    const QString                  m_source_path;
+    Utils::TranscoderConfiguration m_configuration;
+    Source_Info                    m_information;
 
   private:
 
@@ -193,10 +188,9 @@ class ConverterThread
 
     static const int MP3_BUFFER_SIZE = 33920;
 
-    Destinations    m_destinations;
-    int             m_num_tracks;
-    bool            m_stop;
-
+    Destinations       m_destinations;
+    int                m_num_tracks;
+    bool               m_stop;
     lame_global_flags *m_gfp;
     unsigned char      m_mp3_buffer[MP3_BUFFER_SIZE];
     std::ofstream      m_mp3_file_stream;

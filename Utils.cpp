@@ -21,7 +21,36 @@
 #include "Utils.h"
 
 // Qt
+#include <QSettings>
 #include <QDirIterator>
+
+const QStringList Utils::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
+const QStringList Utils::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
+const QStringList Utils::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
+
+//-----------------------------------------------------------------
+bool Utils::isAudioFile(const QFileInfo& file)
+{
+  auto extension = file.absoluteFilePath().split('.').last().toLower();
+
+  return WAVE_FILE_EXTENSIONS.contains("*." + extension);
+}
+
+//-----------------------------------------------------------------
+bool Utils::isVideoFile(const QFileInfo& file)
+{
+  auto extension = file.absoluteFilePath().split('.').last().toLower();
+
+  return MOVIE_FILE_EXTENSIONS.contains("*." + extension);
+}
+
+//-----------------------------------------------------------------
+bool Utils::isModuleFile(const QFileInfo& file)
+{
+  auto extension = file.absoluteFilePath().split('.').last().toLower();
+
+  return MODULE_FILE_EXTENSIONS.contains("*." + extension);
+}
 
 //-----------------------------------------------------------------
 QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList extensions)
@@ -184,4 +213,218 @@ bool Utils::isRomanNumeral(const QString string_part)
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------
+Utils::TranscoderConfiguration::TranscoderConfiguration()
+: m_number_of_threads             {0}
+, m_transcode_audio               {true}
+, m_transcode_video               {true}
+, m_transcode_module              {true}
+, m_strip_tags_from_MP3           {true}
+, m_use_CUE_to_split              {true}
+, m_use_metadata_to_rename_output {true}
+, m_delete_output_on_cancellation {true}
+, m_extract_metadata_cover_picture{true}
+, m_bitrate                       {320}
+, m_quality                       {0}
+{
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::load()
+{
+  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
+
+  // TODO
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::save() const
+{
+  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
+
+  // TODO
+
+  settings.sync();
+}
+
+//-----------------------------------------------------------------
+const QString& Utils::TranscoderConfiguration::rootDirectory() const
+{
+  return m_root_directory;
+}
+
+//-----------------------------------------------------------------
+int Utils::TranscoderConfiguration::numberOfThreads() const
+{
+  return m_number_of_threads;
+}
+
+//-----------------------------------------------------------------
+int Utils::TranscoderConfiguration::bitrate() const
+{
+  return m_bitrate;
+}
+
+//-----------------------------------------------------------------
+const QString &Utils::TranscoderConfiguration::coverPictureName() const
+{
+  return m_cover_picture_name;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::deleteOutputOnCancellation() const
+{
+  return m_delete_output_on_cancellation;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::extractMetadataCoverPicture() const
+{
+  return m_extract_metadata_cover_picture;
+}
+
+//-----------------------------------------------------------------
+const Utils::FormatConfiguration &Utils::TranscoderConfiguration::formatConfiguration() const
+{
+  return m_format_configuration;
+}
+
+//-----------------------------------------------------------------
+int Utils::TranscoderConfiguration::quality() const
+{
+  return m_quality;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::reformatOutputFilename() const
+{
+  return m_format_configuration.apply;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::stripTagsFromMp3() const
+{
+  return m_strip_tags_from_MP3;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::transcodeAudio() const
+{
+  return m_transcode_audio;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::transcodeModule() const
+{
+  return m_transcode_module;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::transcodeVideo() const
+{
+  return m_transcode_video;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::useCueToSplit() const
+{
+  return m_use_CUE_to_split;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::useMetadataToRenameOutput() const
+{
+  return m_use_metadata_to_rename_output;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setRootDirectory(const QString& path)
+{
+  m_root_directory = path;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setNumberOfThreads(int value)
+{
+  m_number_of_threads = value;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setBitrate(int bitrate)
+{
+  m_bitrate = bitrate;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setCoverPictureName(const QString& coverPictureName)
+{
+  m_cover_picture_name = coverPictureName;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setDeleteOutputOnCancellation(bool enabled)
+{
+  m_delete_output_on_cancellation = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setExtractMetadataCoverPicture(bool enabled)
+{
+  m_extract_metadata_cover_picture = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setFormatConfiguration(const FormatConfiguration& conf)
+{
+  m_format_configuration = conf;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setQuality(int value)
+{
+  m_quality = value;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setReformatOutputFilename(bool enabled)
+{
+  m_format_configuration.apply = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setStripTagsFromMp3(bool enabled)
+{
+  m_strip_tags_from_MP3 = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setTranscodeAudio(bool enabled)
+{
+  m_transcode_audio = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setTranscodeModule(bool enabled)
+{
+  m_transcode_module = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setTranscodeVideo(bool enabled)
+{
+  m_transcode_video = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setUseCueToSplit(bool enabled)
+{
+  m_use_CUE_to_split = enabled;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setUseMetadataToRenameOutput(bool enabled)
+{
+  m_use_metadata_to_rename_output = enabled;
 }

@@ -24,8 +24,8 @@
 #include <libopenmpt/libopenmpt.hpp>
 
 //-----------------------------------------------------------------
-ModuleConverter::ModuleConverter(const QFileInfo source_info)
-: ConverterThread{source_info}
+ModuleConverter::ModuleConverter(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
+: ConverterThread{source_info, configuration}
 {
 }
 
@@ -66,24 +66,27 @@ bool ModuleConverter::init()
   openmpt::module mod(file);
   file.close();
 
-  auto title = mod.get_metadata("title");
-  auto artist = mod.get_metadata("artist");
-
-  if(!artist.empty())
+  if(m_configuration.useMetadataToRenameOutput())
   {
-    m_module_file_name = tr(artist.c_str());
+    auto title = mod.get_metadata("title");
+    auto artist = mod.get_metadata("artist");
+
+    if(!artist.empty())
+    {
+      m_module_file_name = tr(artist.c_str());
+
+      if(!title.empty())
+      {
+        m_module_file_name += tr(" - ");
+      }
+    }
 
     if(!title.empty())
     {
-      m_module_file_name += tr(" - ");
+      // mod files usually have unallowed characters in the title.
+      auto qTitle = tr(title.c_str());
+      m_module_file_name += qTitle.replace('/','-');
     }
-  }
-
-  if(!title.empty())
-  {
-    // mod files usually have unallowed characters in the title.
-    auto qTitle = tr(title.c_str());
-    m_module_file_name += qTitle.replace('/','-');
   }
 
   if(m_module_file_name.isEmpty())
@@ -156,7 +159,7 @@ ConverterThread::Destinations ModuleConverter::compute_destinations()
 {
   Destinations destinations;
 
-  destinations << Destination(Utils::formatString(m_module_file_name, m_format_configuration), 0);
+  destinations << Destination(Utils::formatString(m_module_file_name, m_configuration.formatConfiguration()), 0);
 
   return destinations;
 }
