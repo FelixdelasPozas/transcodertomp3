@@ -18,7 +18,7 @@
  */
 
 // Project
-#include "MusicConverter.h"
+#include "MusicTranscoder.h"
 #include "ProcessDialog.h"
 #include "AboutDialog.h"
 #include "ConfigurationDialog.h"
@@ -34,20 +34,17 @@
 // C++
 #include <thread>
 
-const QString MusicConverter::ROOT_DIRECTORY = QString("Root Directory");
-const QString MusicConverter::NUMBER_OF_THREADS = QString("Number Of Threads");
+const QString MusicTranscoder::ROOT_DIRECTORY = QString("Root Directory");
+const QString MusicTranscoder::NUMBER_OF_THREADS = QString("Number Of Threads");
 
-const QStringList MusicConverter::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
-const QStringList MusicConverter::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
-const QStringList MusicConverter::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
+const QStringList MusicTranscoder::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
+const QStringList MusicTranscoder::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
+const QStringList MusicTranscoder::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
 
 //-----------------------------------------------------------------
-MusicConverter::MusicConverter()
+MusicTranscoder::MusicTranscoder()
 {
 	setupUi(this);
-
-	setWindowTitle(QObject::tr("Music Converter To MP3"));
-	setWindowIcon(QIcon(":/MusicConverter/application.ico"));
 
 	loadSettings();
 
@@ -68,13 +65,13 @@ MusicConverter::MusicConverter()
 }
 
 //-----------------------------------------------------------------
-MusicConverter::~MusicConverter()
+MusicTranscoder::~MusicTranscoder()
 {
   saveSettings();
 }
 
 //-----------------------------------------------------------------
-void MusicConverter::onDirectoryChanged()
+void MusicTranscoder::onDirectoryChanged()
 {
   QFileDialog fileBrowser;
 
@@ -93,7 +90,7 @@ void MusicConverter::onDirectoryChanged()
 }
 
 //-----------------------------------------------------------------
-void MusicConverter::onConversionStarted()
+void MusicTranscoder::onConversionStarted()
 {
   m_files = Utils::findFiles(m_directoryText->text(), WAVE_FILE_EXTENSIONS + MOVIE_FILE_EXTENSIONS + MODULE_FILE_EXTENSIONS);
 
@@ -119,7 +116,7 @@ void MusicConverter::onConversionStarted()
 }
 
 //-----------------------------------------------------------------
-void MusicConverter::onAboutButtonPressed()
+void MusicTranscoder::onAboutButtonPressed()
 {
   AboutDialog dialog;
   dialog.setModal(true);
@@ -127,7 +124,7 @@ void MusicConverter::onAboutButtonPressed()
 }
 
 //-----------------------------------------------------------------
-void MusicConverter::onConfigurationButtonPressed()
+void MusicTranscoder::onConfigurationButtonPressed()
 {
   ConfigurationDialog dialog;
   dialog.setModal(true);
@@ -139,7 +136,7 @@ void MusicConverter::onConfigurationButtonPressed()
 
 
 //-----------------------------------------------------------------
-void MusicConverter::loadSettings()
+void MusicTranscoder::loadSettings()
 {
   QSettings settings("MusicConverter.ini", QSettings::IniFormat);
 
@@ -148,7 +145,7 @@ void MusicConverter::loadSettings()
 }
 
 //-----------------------------------------------------------------
-void MusicConverter::saveSettings() const
+void MusicTranscoder::saveSettings() const
 {
   QSettings settings("MusicConverter.ini", QSettings::IniFormat);
 
@@ -163,7 +160,7 @@ bool isAudioFile(const QFileInfo& file)
 {
   auto extension = file.absoluteFilePath().split('.').last().toLower();
 
-  return MusicConverter::WAVE_FILE_EXTENSIONS.contains("*." + extension);
+  return MusicTranscoder::WAVE_FILE_EXTENSIONS.contains("*." + extension);
 }
 
 //-----------------------------------------------------------------
@@ -171,7 +168,7 @@ bool isVideoFile(const QFileInfo& file)
 {
   auto extension = file.absoluteFilePath().split('.').last().toLower();
 
-  return MusicConverter::MOVIE_FILE_EXTENSIONS.contains("*." + extension);
+  return MusicTranscoder::MOVIE_FILE_EXTENSIONS.contains("*." + extension);
 }
 
 //-----------------------------------------------------------------
@@ -179,5 +176,5 @@ bool isModuleFile(const QFileInfo& file)
 {
   auto extension = file.absoluteFilePath().split('.').last().toLower();
 
-  return MusicConverter::MODULE_FILE_EXTENSIONS.contains("*." + extension);
+  return MusicTranscoder::MODULE_FILE_EXTENSIONS.contains("*." + extension);
 }

@@ -8,5 +8,7 @@
 	<file>libav.ico</file>
 	<file>id3v2.ico</file>
 	<file>qt.ico</file>
+	<file>add.ico</file>
+	<file>delete.ico</file>
   </qresource>
 </RCC>

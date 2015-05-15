@@ -25,6 +25,9 @@ const QString AboutDialog::VERSION = QString("version 1.0.0");
 AboutDialog::AboutDialog()
 {
   setupUi(this);
+
+  setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & ~(Qt::WindowMaximizeButtonHint) & ~(Qt::WindowMinimizeButtonHint));
+
   auto compilation_date = QString(__DATE__);
 
   m_compilationDate->setText(tr("Compiled on ") + compilation_date);

@@ -19,7 +19,7 @@
 
 // Application
 #include <ProcessDialog.h>
-#include "MusicConverter.h"
+#include "MusicTranscoder.h"
 #include "AudioConverter.h"
 #include "MP3Converter.h"
 #include "ModuleConverter.h"

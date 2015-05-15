@@ -40,6 +40,26 @@ class ConfigurationDialog
      */
     virtual ~ConfigurationDialog();
 
+  private slots:
+    void onTranscodeCheckStateChanged(int state);
+    void onReformatCheckStateChanged(int state);
+    void onAddButtonPressed();
+    void onRemoveButtonPressed();
+    void onCoverExtractCheckStateChanged(int state);
+
+  private:
+    /** \brief Helper method to connects all the signals.
+     *
+     */
+    void connectSignals();
+
+    // can't do this with QMap in Qt 4.8.6
+    static const QStringList QUALITY_NAMES;
+    static const QList<int>  QUALITY_VALUES;
+    static const QStringList BITRATE_NAMES;
+    static const QList<int>  BITRATE_VALUES;
+
+
 };
 
 #endif // CONFIGURATIONDIALOG_H_

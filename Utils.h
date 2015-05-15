@@ -68,7 +68,7 @@ namespace Utils
   /** \brief Returns true if the string represents a roman numeral.
    *
    */
-  bool isRomanNumerals(const QString string_part);
+  bool isRomanNumeral(const QString string_part);
 
   class Configuration
   {

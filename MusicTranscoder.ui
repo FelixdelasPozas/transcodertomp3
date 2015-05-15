@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MusicConverter</class>
- <widget class="QMainWindow" name="MusicConverter">
+ <class>MusicTranscoder</class>
+ <widget class="QMainWindow" name="MusicTranscoder">
   <property name="windowModality">
    <enum>Qt::WindowModal</enum>
   </property>
@@ -26,7 +26,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Music Converter To MP3</string>
+   <string>Music Transcoder To MP3</string>
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">

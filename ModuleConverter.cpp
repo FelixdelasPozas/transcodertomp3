@@ -52,7 +52,7 @@ bool ModuleConverter::init()
   m_information.format       = Sample_format::SIGNED_16_PLANAR;
   m_information.mode         = MPEG_mode_e::STEREO;
   m_information.num_channels = 2;
-  m_information.samplerate   = 44100;
+  m_information.samplerate   = 48000;
 
   auto file_name = m_source_info.absoluteFilePath().replace('/','\\');
   std::ifstream file(file_name.toStdString().c_str(), std::ios::binary );
@@ -122,7 +122,7 @@ void ModuleConverter::process_module()
   bool finished = false;
   while (!has_been_cancelled() && !finished)
   {
-    std::size_t count = mod.read(SAMPLE_RATE, BUFFER_SIZE, reinterpret_cast<short *>(&m_left_buffer[0]), reinterpret_cast<short *>(&m_right_buffer[0]));
+    std::size_t count = mod.read(m_information.samplerate, BUFFER_SIZE, reinterpret_cast<short *>(&m_left_buffer[0]), reinterpret_cast<short *>(&m_right_buffer[0]));
 
     if (count == 0)
     {

@@ -1,4 +1,4 @@
-project(MusicConverter)
+project(MusicTranscoder)
 
 cmake_minimum_required (VERSION 2.8.6)
 
@@ -59,7 +59,7 @@ include_directories(
   ${ID3LIB_INCLUDE_DIR}
   )
 
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive -mwindows")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows")
 
 # Add Qt Resource files
 qt4_add_resources(RESOURCES
@@ -68,7 +68,7 @@ qt4_add_resources(RESOURCES
 
 qt4_wrap_ui(CORE_UI
   # .ui for Qt
-  MusicConverter.ui
+  MusicTranscoder.ui
   ProcessDialog.ui
   AboutDialog.ui
   ConfigurationDialog.ui
@@ -76,7 +76,7 @@ qt4_wrap_ui(CORE_UI
 	
 qt4_wrap_cpp(CORE_MOC
   # .h for Qt
-  MusicConverter.h
+  MusicTranscoder.h
   ProcessDialog.h
   ConverterThread.h
   AboutDialog.h
@@ -90,7 +90,7 @@ set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   Main.cpp
-  MusicConverter.cpp
+  MusicTranscoder.cpp
   ProcessDialog.cpp
   Utils.cpp
   ConverterThread.cpp
@@ -110,5 +110,5 @@ set(CORE_EXTERNAL_LIBS
   ${LIBOPENMPT_LIBRARY}
 )
   
-add_executable(MusicConverter ${CORE_SOURCES})
-target_link_libraries (MusicConverter ${CORE_EXTERNAL_LIBS})
+add_executable(MusicTranscoder ${CORE_SOURCES})
+target_link_libraries (MusicTranscoder ${CORE_EXTERNAL_LIBS})

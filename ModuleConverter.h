@@ -55,7 +55,6 @@ class ModuleConverter
     virtual Destinations compute_destinations() override final;
 
     static const int BUFFER_SIZE = 16000;
-    static const int SAMPLE_RATE = 44100;
 
     short int m_left_buffer[BUFFER_SIZE];
     short int m_right_buffer[BUFFER_SIZE];

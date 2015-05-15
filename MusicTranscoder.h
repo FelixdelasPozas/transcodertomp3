@@ -21,15 +21,15 @@
 #define MUSIC_CONVERTER_H_
 
 // Application
-#include "ui_MusicConverter.h"
+#include "ui_MusicTranscoder.h"
 
 // Qt
 #include <QMainWindow>
 #include <QFileInfo>
 
-class MusicConverter
+class MusicTranscoder
 : public QMainWindow
-, public Ui_MusicConverter
+, public Ui_MusicTranscoder
 {
 	Q_OBJECT
 
@@ -37,12 +37,12 @@ class MusicConverter
 	  /** \brief MusicConverter class constructor.
 	   *
 	   */
-		explicit MusicConverter();
+		explicit MusicTranscoder();
 
 		/** \brief MusicConverter class destructor.
 		 *
 		 */
-		~MusicConverter();
+		~MusicTranscoder();
 
     static const QStringList MODULE_FILE_EXTENSIONS;
     static const QStringList WAVE_FILE_EXTENSIONS;
