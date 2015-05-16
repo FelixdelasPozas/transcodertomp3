@@ -27,7 +27,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MusicConverter/application.ico</normaloff>:/MusicConverter/application.ico</iconset>
+    <normaloff>:/MusicTranscoder/application.ico</normaloff>:/MusicTranscoder/application.ico</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -59,7 +59,7 @@
           <string/>
          </property>
          <property name="pixmap">
-          <pixmap resource="rsc/resources.qrc">:/MusicConverter/application.ico</pixmap>
+          <pixmap resource="rsc/resources.qrc">:/MusicTranscoder/application.ico</pixmap>
          </property>
          <property name="scaledContents">
           <bool>true</bool>
@@ -100,7 +100,7 @@
          <item>
           <widget class="QLabel" name="label_4">
            <property name="text">
-            <string>(c) 2015 Félix de las Pozas Álvarez</string>
+            <string>Copyright (c) 2015 Félix de las Pozas Álvarez</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -186,7 +186,7 @@ QGroupBox::title {
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="rsc/resources.qrc">:/MusicConverter/lame.ico</pixmap>
+             <pixmap resource="rsc/resources.qrc">:/MusicTranscoder/lame.ico</pixmap>
             </property>
             <property name="scaledContents">
              <bool>true</bool>
@@ -272,7 +272,7 @@ LAME Ain't an Mp3 Encoder</string>
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="rsc/resources.qrc">:/MusicConverter/libav.ico</pixmap>
+             <pixmap resource="rsc/resources.qrc">:/MusicTranscoder/libav.ico</pixmap>
             </property>
             <property name="scaledContents">
              <bool>true</bool>
@@ -420,7 +420,7 @@ CUE Sheet parser library</string>
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="rsc/resources.qrc">:/MusicConverter/id3v2.ico</pixmap>
+             <pixmap resource="rsc/resources.qrc">:/MusicTranscoder/id3v2.ico</pixmap>
             </property>
             <property name="scaledContents">
              <bool>true</bool>
@@ -568,7 +568,7 @@ OpenMPT based module player library</string>
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="rsc/resources.qrc">:/MusicConverter/qt.ico</pixmap>
+             <pixmap resource="rsc/resources.qrc">:/MusicTranscoder/qt.ico</pixmap>
             </property>
             <property name="scaledContents">
              <bool>true</bool>

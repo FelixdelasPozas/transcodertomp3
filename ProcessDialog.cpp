@@ -18,7 +18,7 @@
  */
 
 // Application
-#include <ProcessDialog.h>
+#include "ProcessDialog.h"
 #include "MusicTranscoder.h"
 #include "AudioConverter.h"
 #include "MP3Converter.h"
@@ -47,8 +47,11 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const Utils::Transco
   av_register_all();
   register_av_lock_manager();
 
-  connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
-  connect(m_clipboard, SIGNAL(pressed()), this, SLOT(onClipboardPressed()));
+  connect(m_cancelButton, SIGNAL(clicked()),
+          this,           SLOT(stop()));
+
+  connect(m_clipboard,    SIGNAL(pressed()),
+          this,           SLOT(onClipboardPressed()));
 
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
 
@@ -84,6 +87,7 @@ ProcessDialog::~ProcessDialog()
   unregister_av_lock_manager();
 }
 
+//-----------------------------------------------------------------
 void ProcessDialog::closeEvent(QCloseEvent *e)
 {
   stop();
@@ -132,9 +136,14 @@ void ProcessDialog::increment_global_progress()
   m_mutex.lock();
 
   auto converter = qobject_cast<ConverterThread *>(sender());
-  disconnect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
-  disconnect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
-  disconnect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));
+  disconnect(converter, SIGNAL(error_message(const QString &)),
+             this,      SLOT(log_error(const QString &)));
+
+  disconnect(converter, SIGNAL(information_message(const QString &)),
+             this,      SLOT(log_information(const QString &)));
+
+  disconnect(converter, SIGNAL(finished()),
+             this,      SLOT(increment_global_progress()));
 
   if(!converter->has_been_cancelled())
   {
@@ -147,7 +156,8 @@ void ProcessDialog::increment_global_progress()
   auto bar = m_progress_bars.key(converter);
   Q_ASSERT(bar);
 
-  disconnect(converter, SIGNAL(progress(int)), bar, SLOT(setValue(int)));
+  disconnect(converter, SIGNAL(progress(int)),
+             bar,       SLOT(setValue(int)));
 
   m_progress_bars[bar] = nullptr;
   bar->setEnabled(false);
@@ -158,8 +168,12 @@ void ProcessDialog::increment_global_progress()
 
   if((m_globalProgress->maximum() == m_globalProgress->value()) || cancelled)
   {
-    disconnect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
-    connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(exit_dialog()));
+    disconnect(m_cancelButton, SIGNAL(clicked()),
+               this,           SLOT(stop()));
+
+    connect(m_cancelButton,    SIGNAL(clicked()),
+            this,              SLOT(exit_dialog()));
+
     m_cancelButton->setText("Exit");
     m_clipboard->setEnabled(true);
   }
@@ -170,6 +184,7 @@ void ProcessDialog::increment_global_progress()
   {
     create_threads();
   }
+  repaint();
 }
 
 //-----------------------------------------------------------------
@@ -204,18 +219,26 @@ void ProcessDialog::create_threads()
       }
     }
 
-    connect(converter, SIGNAL(error_message(const QString &)), this, SLOT(log_error(const QString &)));
-    connect(converter, SIGNAL(information_message(const QString &)), this, SLOT(log_information(const QString &)));
-    connect(converter, SIGNAL(finished()), this, SLOT(increment_global_progress()));
+    connect(converter, SIGNAL(error_message(const QString &)),
+            this,      SLOT(log_error(const QString &)));
+
+    connect(converter, SIGNAL(information_message(const QString &)),
+            this,      SLOT(log_information(const QString &)));
+
+    connect(converter, SIGNAL(finished()),
+            this,      SLOT(increment_global_progress()));
 
     for(auto bar: m_progress_bars.keys())
     {
       if(m_progress_bars[bar] == nullptr)
       {
         m_progress_bars[bar] = converter;
+        bar->setValue(0);
         bar->setEnabled(true);
         bar->setFormat(QString("%1").arg(music_file.absoluteFilePath().split('/').last()));
-        connect(converter, SIGNAL(progress(int)), bar, SLOT(setValue(int)));
+
+        connect(converter, SIGNAL(progress(int)),
+                bar,       SLOT(setValue(int)));
 
         break;
       }

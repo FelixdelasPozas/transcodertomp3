@@ -21,7 +21,7 @@
 #define MODULECONVERTER_H_
 
 // Project
-#include <ConverterThread.h>
+#include "ConverterThread.h"
 
 class ModuleConverter
 : public ConverterThread
@@ -40,7 +40,7 @@ class ModuleConverter
     virtual ~ModuleConverter();
 
   protected:
-    virtual void run() override final;
+    virtual void run_implementation() override final;
 
   private:
     /** \brief Gets the information about the module.

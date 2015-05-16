@@ -1,5 +1,5 @@
 /*
- File: MusicConverter.cpp
+ File: MusicTranscoder.cpp
  Created on: 15/4/2015
  Author: Felix de las Pozas Alvarez
 
@@ -27,6 +27,7 @@
 // Qt
 #include <QDir>
 #include <QDirIterator>
+#include <QFileInfo>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
@@ -80,6 +81,7 @@ void MusicTranscoder::onDirectoryChanged()
   fileBrowser.setOption(QFileDialog::DontUseNativeDialog, false);
   fileBrowser.setOption(QFileDialog::ShowDirsOnly);
   fileBrowser.setViewMode(QFileDialog::List);
+  fileBrowser.setWindowIcon(QIcon(":/MusicTranscoder/folder.ico"));
 
   if(fileBrowser.exec() == QDialog::Accepted)
   {
@@ -117,7 +119,7 @@ void MusicTranscoder::onConversionStarted()
     msgBox.setText("Can't find any file in the specified folder that can be processed.");
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIcon(QMessageBox::Information);
-    msgBox.setWindowIcon(QIcon(":/MusicConverter/application.ico"));
+    msgBox.setWindowIcon(QIcon(":/MusicTranscoder/application.ico"));
     msgBox.setWindowTitle(QObject::tr("Unable to start the conversion process"));
     msgBox.exec();
 
@@ -126,8 +128,8 @@ void MusicTranscoder::onConversionStarted()
 
   this->hide();
 
-  ProcessDialog pd(m_files, m_configuration);
-  pd.exec();
+  ProcessDialog processDialog(m_files, m_configuration);
+  processDialog.exec();
 
   this->show();
 }

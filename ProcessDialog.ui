@@ -24,7 +24,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MusicConverter/process.ico</normaloff>:/MusicConverter/process.ico</iconset>
+    <normaloff>:/MusicTranscoder/process.ico</normaloff>:/MusicTranscoder/process.ico</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -94,7 +94,7 @@
           </property>
           <property name="icon">
            <iconset resource="rsc/resources.qrc">
-            <normaloff>:/MusicConverter/clipboard.ico</normaloff>:/MusicConverter/clipboard.ico</iconset>
+            <normaloff>:/MusicTranscoder/clipboard.ico</normaloff>:/MusicTranscoder/clipboard.ico</iconset>
           </property>
          </widget>
         </item>

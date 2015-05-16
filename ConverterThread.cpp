@@ -63,6 +63,17 @@ bool ConverterThread::has_been_cancelled()
 }
 
 //-----------------------------------------------------------------
+void ConverterThread::run()
+{
+  if(check_input_file_permissions() && check_output_file_permissions())
+  {
+    run_implementation();
+  }
+
+  emit progress(100);
+}
+
+//-----------------------------------------------------------------
 int ConverterThread::init_lame()
 {
   Q_ASSERT(m_information.init);
@@ -244,6 +255,36 @@ ConverterThread::Destination &ConverterThread::destination()
 const int ConverterThread::number_of_tracks() const
 {
   return m_num_tracks;
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::check_input_file_permissions() const
+{
+  QFile file(m_source_info.absoluteFilePath());
+  if(file.exists() && !file.open(QFile::ReadOnly))
+  {
+    emit error_message(QString("Can't open file '%1' but it exists, check for permissions.").arg(m_source_info.absoluteFilePath()));
+    return false;
+  }
+
+  file.close();
+  return true;
+}
+
+//-----------------------------------------------------------------
+bool ConverterThread::check_output_file_permissions() const
+{
+  auto temp_file = QString(m_source_info.absoluteFilePath()) + QString(".TranscoderTemporalFile");
+  QFile file(temp_file);
+  if(!file.open(QFile::WriteOnly|QFile::Truncate))
+  {
+    emit error_message(QString("Can't create files in '%1' path, check for permissions.").arg(m_source_info.absolutePath()));
+    return false;
+  }
+
+  file.close();
+  file.remove();
+  return true;
 }
 
 //-----------------------------------------------------------------

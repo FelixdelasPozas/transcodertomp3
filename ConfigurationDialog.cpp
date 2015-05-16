@@ -22,13 +22,11 @@
 
 // Qt
 #include <QMessageBox>
-#include <QDebug>
 
 const QStringList ConfigurationDialog::QUALITY_NAMES = { tr("Very high"), tr("High"), tr("Normal"), tr("Low"), tr("Very low") };
 const QList<int>  ConfigurationDialog::QUALITY_VALUES = { 0,2,5,7,9 };
 const QStringList ConfigurationDialog::BITRATE_NAMES = { tr("320"), tr("256"), tr("224"), tr("192"), tr("160"), tr("128"), tr("112"), tr("96"), tr("80"), tr("64") };
 const QList<int>  ConfigurationDialog::BITRATE_VALUES = { 320, 256, 224, 192, 160, 128, 112, 96, 80, 64 };
-
 
 //-----------------------------------------------------------------
 ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &configuration)
@@ -75,7 +73,7 @@ void ConfigurationDialog::onTranscodeCheckStateChanged(int state)
   if(!atLeastOneChecked)
   {
     QMessageBox msgBox;
-    msgBox.setWindowIcon(QIcon(":/MusicConverter/settings.ico"));
+    msgBox.setWindowIcon(QIcon(":/MusicTranscoder/settings.ico"));
     msgBox.setText("Invalid options.");
     msgBox.setInformativeText("At least one of the transcoding options must be checked for the program to do something.");
     msgBox.setStandardButtons(QMessageBox::Ok);

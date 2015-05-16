@@ -18,7 +18,7 @@
  */
 
 // Project
-#include <ModuleConverter.h>
+#include "ModuleConverter.h"
 
 // libopenmpt
 #include <libopenmpt/libopenmpt.hpp>
@@ -35,7 +35,7 @@ ModuleConverter::~ModuleConverter()
 }
 
 //-----------------------------------------------------------------
-void ModuleConverter::run()
+void ModuleConverter::run_implementation()
 {
   if(!init())
   {

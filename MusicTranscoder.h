@@ -1,5 +1,5 @@
 /*
- File: MusicConverter.h
+ File: MusicTranscoder.h
  Created on: 15/4/2015
  Author: Felix de las Pozas Alvarez
 
@@ -17,8 +17,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_CONVERTER_H_
-#define MUSIC_CONVERTER_H_
+#ifndef MUSIC_TRANSCODER_H_
+#define MUSIC_TRANSCODER_H_
 
 // Application
 #include "Utils.h"
@@ -26,7 +26,8 @@
 
 // Qt
 #include <QMainWindow>
-#include <QFileInfo>
+
+class QFileInfo;
 
 class MusicTranscoder
 : public QMainWindow
@@ -35,12 +36,12 @@ class MusicTranscoder
 	Q_OBJECT
 
 	public:
-	  /** \brief MusicConverter class constructor.
+	  /** \brief MusicTranscoder class constructor.
 	   *
 	   */
 		explicit MusicTranscoder();
 
-		/** \brief MusicConverter class destructor.
+		/** \brief MusicTranscoder class destructor.
 		 *
 		 */
 		~MusicTranscoder();
@@ -76,4 +77,4 @@ class MusicTranscoder
 	  Utils::TranscoderConfiguration m_configuration;
 };
 
-#endif // MUSIC_CONVERTER_H_
+#endif // MUSIC_TRANSCODER_H_

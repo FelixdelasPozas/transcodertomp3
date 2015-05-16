@@ -30,7 +30,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MusicConverter/application.ico</normaloff>:/MusicConverter/application.ico</iconset>
+    <normaloff>:/MusicTranscoder/application.ico</normaloff>:/MusicTranscoder/application.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -63,7 +63,7 @@
         </property>
         <property name="icon">
          <iconset resource="rsc/resources.qrc">
-          <normaloff>:/MusicConverter/folder.ico</normaloff>:/MusicConverter/folder.ico</iconset>
+          <normaloff>:/MusicTranscoder/folder.ico</normaloff>:/MusicTranscoder/folder.ico</iconset>
         </property>
        </widget>
       </item>

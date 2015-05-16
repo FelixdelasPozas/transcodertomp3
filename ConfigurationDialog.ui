@@ -27,7 +27,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MusicConverter/settings.ico</normaloff>:/MusicConverter/settings.ico</iconset>
+    <normaloff>:/MusicTranscoder/settings.ico</normaloff>:/MusicTranscoder/settings.ico</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -336,7 +336,7 @@ QGroupBox::title {
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicConverter/add.ico</normaloff>:/MusicConverter/add.ico</iconset>
+                 <normaloff>:/MusicTranscoder/add.ico</normaloff>:/MusicTranscoder/add.ico</iconset>
                </property>
               </widget>
              </item>
@@ -350,29 +350,35 @@ QGroupBox::title {
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicConverter/delete.ico</normaloff>:/MusicConverter/delete.ico</iconset>
+                 <normaloff>:/MusicTranscoder/delete.ico</normaloff>:/MusicTranscoder/delete.ico</iconset>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QToolButton" name="m_upButton">
+               <property name="toolTip">
+                <string>Move the selecter pair up a position.</string>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicConverter/up.ico</normaloff>:/MusicConverter/up.ico</iconset>
+                 <normaloff>:/MusicTranscoder/up.ico</normaloff>:/MusicTranscoder/up.ico</iconset>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QToolButton" name="m_downButton">
+               <property name="toolTip">
+                <string>Move the selected pair down a position.</string>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicConverter/down.ico</normaloff>:/MusicConverter/down.ico</iconset>
+                 <normaloff>:/MusicTranscoder/down.ico</normaloff>:/MusicTranscoder/down.ico</iconset>
                </property>
               </widget>
              </item>

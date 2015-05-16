@@ -64,9 +64,10 @@ AudioConverter::~AudioConverter()
 }
 
 //-----------------------------------------------------------------
-void AudioConverter::run()
+void AudioConverter::run_implementation()
 {
   auto music_file = m_source_info.absoluteFilePath().replace('/','\\');
+
   if(!init_libav())
   {
     emit error_message(QString("Error in LibAV init stage for '%1'").arg(music_file));
@@ -396,8 +397,6 @@ void AudioConverter::transcode()
 
   lame_encoder_flush();
 
-  emit progress(100);
-
   close_destination_file();
 }
 
@@ -474,7 +473,11 @@ bool AudioConverter::extract_cover_picture() const
   auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".jpg");
 
   QFile file(cover_name);
-  file.open(QIODevice::WriteOnly|QIODevice::Append);
+  if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
+  {
+    emit error_message(QString("Couldn't create cover picture file for '%1', check file permissions.").arg(m_source_info.absoluteFilePath()));
+    return false;
+  }
 
   if(m_cover_encoder)
   {

@@ -65,22 +65,27 @@ class ConverterThread
      * \param[in] message error message.
      *
      */
-    void error_message(const QString message);
+    void error_message(const QString message) const;
 
     /** \brief Emits an information message signal.
      * \param[in] message information message.
      *
      */
-    void information_message(const QString message);
+    void information_message(const QString message) const;
 
     /** \brief Emits a progress signal.
      * \param[in] value progress in [0-100].
      *
      */
-    void progress(int value);
+    void progress(int value) const;
 
   protected:
-    virtual void run() = 0;
+    virtual void run() override final;
+
+    /** \brief Conversion implementation code.
+     *
+     */
+    virtual void run_implementation() = 0;
 
     /** \brief Initializes lame library structures and data to encode the pcm data.
      *
@@ -170,6 +175,15 @@ class ConverterThread
     Source_Info                    m_information;
 
   private:
+    /** \brief Returns true if the input file can be read and false otherwise.
+     *
+     */
+    bool check_input_file_permissions() const;
+
+    /** \brief Returns true if the program can write in the output directory and false otherwise.
+     *
+     */
+    bool check_output_file_permissions() const;
 
     /** \brief Returns the bytes per sample of the source audio.
      *

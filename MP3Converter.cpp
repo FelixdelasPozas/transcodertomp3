@@ -18,7 +18,7 @@
  */
 
 // Project
-#include <MP3Converter.h>
+#include "MP3Converter.h"
 
 // id3lib
 #include <id3/tag.h>
@@ -42,7 +42,7 @@ MP3Converter::~MP3Converter()
 }
 
 //-----------------------------------------------------------------
-void MP3Converter::run()
+void MP3Converter::run_implementation()
 {
   auto file_name = m_source_info.absoluteFilePath().replace('/','\\');
   QString track_title;
@@ -83,7 +83,11 @@ void MP3Converter::run()
 
     if(m_configuration.extractMetadataCoverPicture())
     {
-      extract_cover(file_id3_tag);
+      if (!extract_cover(file_id3_tag))
+      {
+        return;
+      }
+
     }
 
     if(m_configuration.stripTagsFromMp3())
@@ -106,12 +110,10 @@ void MP3Converter::run()
   emit information_message(QString("%1: processing to %2").arg(source_name).arg(track_title));
 
   QFile::rename(m_source_info.absoluteFilePath(), m_source_path + track_title);
-
-  emit progress(100);
 }
 
 //-----------------------------------------------------------------
-void MP3Converter::extract_cover(const ID3_Tag &file_tag)
+bool MP3Converter::extract_cover(const ID3_Tag &file_tag)
 {
   auto cover_frame = file_tag.Find(ID3FID_PICTURE);
   if(cover_frame)
@@ -124,15 +126,21 @@ void MP3Converter::extract_cover(const ID3_Tag &file_tag)
     {
       // if there are several files with the same cover I just need one of the converters to dump the cover, not all of them.
       QFile file(cover_name);
-      file.open(QIODevice::WriteOnly|QIODevice::Append);
-      file.close();
-      adquired = true;
+      if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
+      {
+        emit error_message(QString("Couldn't create cover picture file for '%1', check for file permissions.").arg(m_source_info.absoluteFilePath()));
+      }
+      else
+      {
+        file.close();
+        adquired = true;
+      }
     }
     s_mutex.unlock();
 
     if(!adquired)
     {
-      return;
+      return true;
     }
 
     auto mime_type   = ID3_GetString(cover_frame, ID3FN_MIMETYPE);
@@ -153,8 +161,6 @@ void MP3Converter::extract_cover(const ID3_Tag &file_tag)
       // damn, call the artillery
       init_libav();
 
-      open_next_destination_file();
-
       while(0 == av_read_frame(m_libav_context, &m_packet))
       {
         // dump the cover if the format is jpeg, if not a decoding-encoding phase must be applied.
@@ -163,7 +169,7 @@ void MP3Converter::extract_cover(const ID3_Tag &file_tag)
           if(!extract_cover_picture())
           {
             emit error_message(QString("Error encoding cover picture for file '%1.").arg(m_source_info.absoluteFilePath()));
-            return;
+            return false;
           }
 
           av_free_packet(&m_packet);
@@ -174,14 +180,17 @@ void MP3Converter::extract_cover(const ID3_Tag &file_tag)
         av_free_packet(&m_packet);
 
         // stop and return if user has aborted the conversion.
-        if(has_been_cancelled()) return;
+        if(has_been_cancelled())
+        {
+          return false;
+        }
       }
-
-      close_destination_file();
 
       deinit_libav();
     }
 
     delete [] mime_type;
   }
+
+  return true;
 }

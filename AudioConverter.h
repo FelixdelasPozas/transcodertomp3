@@ -49,7 +49,7 @@ class AudioConverter
     virtual ~AudioConverter();
 
   protected:
-    virtual void run() override;
+    virtual void run_implementation() override;
 
     /** \brief Initializes libav library structures and data to decode the source file to
      *         pcm data.

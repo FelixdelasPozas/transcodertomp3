@@ -21,7 +21,7 @@
 #define MP3CONVERTER_H_
 
 // Project
-#include <AudioConverter.h>
+#include "AudioConverter.h"
 
 // Qt
 #include <QMutex>
@@ -46,13 +46,16 @@ class MP3Converter
     virtual ~MP3Converter();
 
   protected:
-    virtual void run() override final;
+    virtual void run_implementation() override final;
 
   private:
     static QString MP3_EXTENSION;
     static QString COVER_MIME_TYPE;
 
-    void extract_cover(const ID3_Tag &file_tag);
+    /** \brief Helper method to extract the cover.
+     *
+     */
+    bool extract_cover(const ID3_Tag &file_tag);
 
     static QMutex s_mutex;
 };

@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="/MusicConverter">
+  <qresource prefix="/MusicTranscoder">
     <file>application.ico</file>
     <file>process.ico</file>
     <file>folder.ico</file>
