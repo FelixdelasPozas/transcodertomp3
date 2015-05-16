@@ -278,7 +278,7 @@ bool ConverterThread::check_output_file_permissions() const
   QFile file(temp_file);
   if(!file.open(QFile::WriteOnly|QFile::Truncate))
   {
-    emit error_message(QString("Can't create files in '%1' path, check for permissions.").arg(m_source_info.absolutePath()));
+    emit error_message(QString("Can't create files in '%1' path, check for permissions.").arg(m_source_info.absoluteFilePath()));
     return false;
   }
 

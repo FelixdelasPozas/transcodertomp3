@@ -98,9 +98,9 @@ void ProcessDialog::closeEvent(QCloseEvent *e)
 //-----------------------------------------------------------------
 void ProcessDialog::log_error(const QString &message)
 {
-  ++m_errorsCount;
-
   QMutexLocker lock(&m_mutex);
+
+  ++m_errorsCount;
   m_log->setTextColor(Qt::red);
   m_log->append(QString("ERROR: ") + message);
 
