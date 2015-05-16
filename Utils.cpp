@@ -24,29 +24,35 @@
 #include <QSettings>
 #include <QDirIterator>
 
+// C++
+#include <thread>
+
 const QStringList Utils::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
 const QStringList Utils::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
 const QStringList Utils::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
 
-const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY            = QObject::tr("Root directory");
-const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS         = QObject::tr("Number of threads");
-const QString Utils::TranscoderConfiguration::TRANSCODE_AUDIO           = QObject::tr("Transcode audio");
-const QString Utils::TranscoderConfiguration::TRANSCODE_VIDEO           = QObject::tr("Transcode video files");
-const QString Utils::TranscoderConfiguration::TRANSCODE_MODULE          = QObject::tr("Transcode Module files");
-const QString Utils::TranscoderConfiguration::STRIP_MP3                 = QObject::tr("Strip MP3 metadata");
-const QString Utils::TranscoderConfiguration::USE_CUE_SHEET             = QObject::tr("Use CUE sheet");
-const QString Utils::TranscoderConfiguration::USE_METADATA_TO_RENAME    = QObject::tr("Use metadata to rename output");
-const QString Utils::TranscoderConfiguration::DELETE_ON_CANCELLATION    = QObject::tr("Delete output on cancel");
-const QString Utils::TranscoderConfiguration::EXTRACT_COVER_PICTURE     = QObject::tr("Extract cover picture");
-const QString Utils::TranscoderConfiguration::COVER_PICTURE_NAME        = QObject::tr("Cover picture output filename");
-const QString Utils::TranscoderConfiguration::BITRATE                   = QObject::tr("Output bitrate");
-const QString Utils::TranscoderConfiguration::QUALITY                   = QObject::tr("Output quality");
-const QString Utils::TranscoderConfiguration::REFORMAT_APPLY            = QObject::tr("Reformat output filename");
-const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_DELETE  = QObject::tr("Characters to delete");
-const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE = QObject::tr("Characters to replace");
-const QString Utils::TranscoderConfiguration::REFORMAT_SEPARATOR        = QObject::tr("Track and title separator");
-const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS = QObject::tr("Number of digits");
-const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE   = QObject::tr("Use title case");
+const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY                 = QObject::tr("Root directory");
+const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS              = QObject::tr("Number of threads");
+const QString Utils::TranscoderConfiguration::TRANSCODE_AUDIO                = QObject::tr("Transcode audio");
+const QString Utils::TranscoderConfiguration::TRANSCODE_VIDEO                = QObject::tr("Transcode video files");
+const QString Utils::TranscoderConfiguration::TRANSCODE_MODULE               = QObject::tr("Transcode Module files");
+const QString Utils::TranscoderConfiguration::STRIP_MP3                      = QObject::tr("Strip MP3 metadata");
+const QString Utils::TranscoderConfiguration::USE_CUE_SHEET                  = QObject::tr("Use CUE sheet");
+const QString Utils::TranscoderConfiguration::USE_METADATA_TO_RENAME         = QObject::tr("Use metadata to rename output");
+const QString Utils::TranscoderConfiguration::DELETE_ON_CANCELLATION         = QObject::tr("Delete output on cancel");
+const QString Utils::TranscoderConfiguration::EXTRACT_COVER_PICTURE          = QObject::tr("Extract cover picture");
+const QString Utils::TranscoderConfiguration::COVER_PICTURE_NAME             = QObject::tr("Cover picture output filename");
+const QString Utils::TranscoderConfiguration::BITRATE                        = QObject::tr("Output bitrate");
+const QString Utils::TranscoderConfiguration::QUALITY                        = QObject::tr("Output quality");
+const QString Utils::TranscoderConfiguration::REFORMAT_APPLY                 = QObject::tr("Reformat output filename");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_DELETE       = QObject::tr("Characters to delete");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_FROM = QObject::tr("List of characters to replace from");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_TO   = QObject::tr("List of characters to replace to");
+const QString Utils::TranscoderConfiguration::REFORMAT_SEPARATOR             = QObject::tr("Track and title separator");
+const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS      = QObject::tr("Number of digits");
+const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE        = QObject::tr("Use title case");
+
+const QString Utils::TranscoderConfiguration::SETTINGS_FILENAME = QString("MusicTranscoder.ini");
 
 //-----------------------------------------------------------------
 bool Utils::isAudioFile(const QFileInfo& file)
@@ -139,30 +145,27 @@ QString Utils::formatString(const QString filename, const Utils::FormatConfigura
     int index = 0;
 
     // adjust the number prefix and insert the default separator.
-    if (conf.check_number_prefix)
+    QRegExp re("\\d*");
+
+    // only check number format if it exists
+    if (re.exactMatch(parts[index]))
     {
-      QRegExp re("\\d*");
-
-      // only check number format if it exists
-      if (re.exactMatch(parts[index]))
+      while (conf.number_of_digits > parts[index].length())
       {
-        while (conf.number_of_digits > parts[index].length())
-        {
-          parts[index] = "0" + parts[index];
-        }
-
-        if ((parts.size() > index) && (parts[index + 1] != QString(conf.number_and_name_separator)))
-        {
-          parts[index] += QString(' ' + conf.number_and_name_separator + ' ');
-        }
-        else
-        {
-          parts[index + 1] = QString(' ' + conf.number_and_name_separator);
-        }
-
-        formattedName = parts[index];
-        ++index;
+        parts[index] = "0" + parts[index];
       }
+
+      if ((parts.size() > index) && (parts[index + 1] != QString(conf.number_and_name_separator)))
+      {
+        parts[index] += QString(' ' + conf.number_and_name_separator + ' ');
+      }
+      else
+      {
+        parts[index + 1] = QString(' ' + conf.number_and_name_separator);
+      }
+
+      formattedName = parts[index];
+      ++index;
     }
 
     // capitalize the first letter of every word
@@ -254,17 +257,74 @@ Utils::TranscoderConfiguration::TranscoderConfiguration()
 //-----------------------------------------------------------------
 void Utils::TranscoderConfiguration::load()
 {
-  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
+  QSettings settings(SETTINGS_FILENAME, QSettings::IniFormat);
 
-  // TODO
+  m_root_directory                                 = settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString().replace('/','\\');
+  m_number_of_threads                              = settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency() /2).toInt();
+  m_transcode_audio                                = settings.value(TRANSCODE_AUDIO, true).toBool();
+  m_transcode_video                                = settings.value(TRANSCODE_VIDEO, true).toBool();
+  m_transcode_module                               = settings.value(TRANSCODE_MODULE, true).toBool();
+  m_strip_tags_from_MP3                            = settings.value(STRIP_MP3, true).toBool();
+  m_use_CUE_to_split                               = settings.value(USE_CUE_SHEET, true).toBool();
+  m_use_metadata_to_rename_output                  = settings.value(USE_METADATA_TO_RENAME, true).toBool();
+  m_delete_output_on_cancellation                  = settings.value(DELETE_ON_CANCELLATION, true).toBool();
+  m_extract_metadata_cover_picture                 = settings.value(EXTRACT_COVER_PICTURE, true).toBool();
+  m_cover_picture_name                             = settings.value(COVER_PICTURE_NAME, QObject::tr("Frontal")).toString();
+  m_bitrate                                        = settings.value(BITRATE, 320).toInt();
+  m_quality                                        = settings.value(QUALITY, 0).toInt();
+  m_format_configuration.apply                     = settings.value(REFORMAT_APPLY, true).toBool();
+  m_format_configuration.chars_to_delete           = settings.value(REFORMAT_CHARS_TO_DELETE, QString()).toString();
+  m_format_configuration.number_of_digits          = settings.value(REFORMAT_NUMBER_OF_DIGITS, 2).toInt();
+  m_format_configuration.number_and_name_separator = settings.value(REFORMAT_SEPARATOR, QChar('-')).toChar();
+  m_format_configuration.to_title_case             = settings.value(REFORMAT_USE_TITLE_CASE, true).toBool();
+
+  auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, QStringList()).toStringList();
+  auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, QStringList()).toStringList();
+
+  if(!from.isEmpty())
+  {
+    m_format_configuration.chars_to_replace.clear();
+    for(int i = 0; i < from.size(); ++i)
+    {
+      auto pair = QPair<QString, QString>(from[i], to[i]);
+      m_format_configuration.chars_to_replace << pair;
+    }
+  }
 }
 
 //-----------------------------------------------------------------
 void Utils::TranscoderConfiguration::save() const
 {
-  QSettings settings("MusicConverter.ini", QSettings::IniFormat);
+  QSettings settings(SETTINGS_FILENAME, QSettings::IniFormat);
 
-  // TODO
+  settings.setValue(ROOT_DIRECTORY, m_root_directory);
+  settings.setValue(NUMBER_OF_THREADS, m_number_of_threads);
+  settings.setValue(TRANSCODE_AUDIO, m_transcode_audio);
+  settings.setValue(TRANSCODE_VIDEO, m_transcode_video);
+  settings.setValue(TRANSCODE_MODULE, m_transcode_module);
+  settings.setValue(STRIP_MP3, m_strip_tags_from_MP3);
+  settings.setValue(USE_CUE_SHEET, m_use_CUE_to_split);
+  settings.setValue(USE_METADATA_TO_RENAME, m_use_metadata_to_rename_output);
+  settings.setValue(DELETE_ON_CANCELLATION, m_delete_output_on_cancellation);
+  settings.setValue(EXTRACT_COVER_PICTURE, m_extract_metadata_cover_picture);
+  settings.setValue(COVER_PICTURE_NAME, m_cover_picture_name);
+  settings.setValue(BITRATE, m_bitrate);
+  settings.setValue(QUALITY, m_quality);
+  settings.setValue(REFORMAT_APPLY, m_format_configuration.apply);
+  settings.setValue(REFORMAT_CHARS_TO_DELETE, m_format_configuration.chars_to_delete);
+  settings.setValue(REFORMAT_NUMBER_OF_DIGITS, m_format_configuration.number_of_digits);
+  settings.setValue(REFORMAT_SEPARATOR, m_format_configuration.number_and_name_separator);
+  settings.setValue(REFORMAT_USE_TITLE_CASE, m_format_configuration.to_title_case);
+
+  QStringList from, to;
+  for(auto pair: m_format_configuration.chars_to_replace)
+  {
+    from << pair.first;
+    to   << pair.second;
+  }
+
+  settings.setValue(REFORMAT_CHARS_TO_REPLACE_FROM, from);
+  settings.setValue(REFORMAT_CHARS_TO_REPLACE_TO, to);
 
   settings.sync();
 }
@@ -378,9 +438,9 @@ void Utils::TranscoderConfiguration::setBitrate(int bitrate)
 }
 
 //-----------------------------------------------------------------
-void Utils::TranscoderConfiguration::setCoverPictureName(const QString& coverPictureName)
+void Utils::TranscoderConfiguration::setCoverPictureName(const QString& filename)
 {
-  m_cover_picture_name = coverPictureName;
+  m_cover_picture_name = filename;
 }
 
 //-----------------------------------------------------------------
@@ -396,9 +456,9 @@ void Utils::TranscoderConfiguration::setExtractMetadataCoverPicture(bool enabled
 }
 
 //-----------------------------------------------------------------
-void Utils::TranscoderConfiguration::setFormatConfiguration(const FormatConfiguration& conf)
+void Utils::TranscoderConfiguration::setFormatConfiguration(const FormatConfiguration& configuration)
 {
-  m_format_configuration = conf;
+  m_format_configuration = configuration;
 }
 
 //-----------------------------------------------------------------

@@ -52,8 +52,11 @@ class ConfigurationDialog
   private slots:
     void onTranscodeCheckStateChanged(int state);
     void onReformatCheckStateChanged(int state);
+    void onTableItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
     void onAddButtonPressed();
     void onRemoveButtonPressed();
+    void onUpButtonPressed();
+    void onDownButtonPressed();
     void onCoverExtractCheckStateChanged(int state);
 
   private:

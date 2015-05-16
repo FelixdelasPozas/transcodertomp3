@@ -92,6 +92,11 @@ class ProcessDialog
      */
     void exit_dialog();
 
+    /** \brief Copies the contents of the log to the clipboard.
+     *
+     */
+    void onClipboardPressed() const;
+
   private:
     /** \brief Creates and launches the converter threads.
      *
@@ -120,6 +125,7 @@ class ProcessDialog
     int                                   m_max_workers;
     int                                   m_num_workers;
     const Utils::TranscoderConfiguration &m_configuration;
+    int                                   m_errorsCount;
 
     QMutex m_mutex;
     QMap<QProgressBar *, ConverterThread *> m_progress_bars;

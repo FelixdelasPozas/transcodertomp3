@@ -228,6 +228,7 @@ bool ConverterThread::open_next_destination_file()
 void ConverterThread::close_destination_file()
 {
   m_destinations.removeFirst();
+
   m_mp3_file_stream.close();
 
   deinit_lame();

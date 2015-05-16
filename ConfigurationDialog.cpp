@@ -43,15 +43,19 @@ ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &c
   m_bitrate->addItems(BITRATE_NAMES);
   m_bitrate->setCurrentIndex(0);
 
+  applyConfiguration(configuration);
+
   QStringList labels = { tr("from"), tr("to") };
   m_replaceChars->setHorizontalHeaderLabels(labels);
   m_replaceChars->setSelectionBehavior(QTableWidget::SelectionBehavior::SelectRows);
   m_replaceChars->setColumnWidth(0, 110);
   m_replaceChars->setColumnWidth(1, 110);
   m_replaceChars->horizontalHeader()->setResizeMode(QHeaderView::Fixed);
+  m_replaceChars->selectRow(0);
 
-  applyConfiguration(configuration);
   connectSignals();
+
+  onTableItemChanged(m_replaceChars->currentItem(), nullptr);
 }
 
 //-----------------------------------------------------------------
@@ -94,26 +98,38 @@ void ConfigurationDialog::onReformatCheckStateChanged(int state)
 //-----------------------------------------------------------------
 void ConfigurationDialog::onAddButtonPressed()
 {
-  m_replaceChars->insertRow(m_replaceChars->rowCount());
-  m_replaceChars->selectRow(m_replaceChars->rowCount()-1);
+  auto row = m_replaceChars->currentRow() == -1 ? 0 : m_replaceChars->currentRow();
+  m_replaceChars->insertRow(row);
 
+  auto newItem = new QTableWidgetItem();
+  newItem->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+  m_replaceChars->setItem(row, 0, newItem);
+
+  newItem = new QTableWidgetItem();
+  newItem->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+  m_replaceChars->setItem(row, 1, newItem);
+
+  m_replaceChars->selectRow(row);
   m_removeButton->setEnabled(true);
+
+  onTableItemChanged(m_replaceChars->currentItem(), nullptr);
 }
 
 //-----------------------------------------------------------------
 void ConfigurationDialog::onRemoveButtonPressed()
 {
-  auto currentRow = m_replaceChars->currentRow();
-  m_replaceChars->removeRow(currentRow);
+  m_replaceChars->removeRow(m_replaceChars->currentRow());
 
   if(m_replaceChars->rowCount() > 0)
   {
-    m_replaceChars->selectRow(currentRow-1);
+    m_replaceChars->selectRow(m_replaceChars->currentRow());
   }
   else
   {
     m_removeButton->setEnabled(false);
   }
+
+  onTableItemChanged(m_replaceChars->currentItem(), nullptr);
 }
 
 //-----------------------------------------------------------------
@@ -136,6 +152,7 @@ void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguratio
 
   m_renameOutput->setChecked(configuration.useMetadataToRenameOutput());
   m_reformat->setChecked(configuration.reformatOutputFilename());
+  m_reformatGroup->setEnabled(m_reformat->isChecked());
   m_deleteOnCancel->setChecked(configuration.deleteOutputOnCancellation());
   m_extractInputCover->setChecked(configuration.extractMetadataCoverPicture());
   m_coverName->setText(configuration.coverPictureName());
@@ -150,11 +167,11 @@ void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguratio
     auto pair = configuration.formatConfiguration().chars_to_replace[i];
 
     auto newItem = new QTableWidgetItem(pair.first);
-    newItem->setTextAlignment(Qt::AlignHCenter);
+    newItem->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
     m_replaceChars->setItem(i, 0, newItem);
 
     newItem = new QTableWidgetItem(pair.second);
-    newItem->setTextAlignment(Qt::AlignHCenter);
+    newItem->setTextAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
     m_replaceChars->setItem(i, 1, newItem);
   }
   m_replaceChars->selectRow(0);
@@ -162,6 +179,49 @@ void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguratio
   m_prefixNumDigits->setValue(configuration.formatConfiguration().number_of_digits);
   m_separator->setText(configuration.formatConfiguration().number_and_name_separator);
   m_titleCase->setChecked(configuration.formatConfiguration().to_title_case);
+}
+
+//-----------------------------------------------------------------
+void ConfigurationDialog::onUpButtonPressed()
+{
+  auto row = m_replaceChars->currentRow();
+  Q_ASSERT(row > 0);
+
+  QPair<QString,QString> previousItems{m_replaceChars->item(row-1,0)->text(), m_replaceChars->item(row-1,1)->text()};
+  QPair<QString,QString> currentItems {m_replaceChars->item(row,0)->text(), m_replaceChars->item(row,1)->text()};
+
+  m_replaceChars->item(row-1, 0)->setText(currentItems.first);
+  m_replaceChars->item(row-1, 1)->setText(currentItems.second);
+
+  m_replaceChars->item(row, 0)->setText(previousItems.first);
+  m_replaceChars->item(row, 1)->setText(previousItems.second);
+
+  m_replaceChars->selectRow(row-1);
+}
+
+//-----------------------------------------------------------------
+void ConfigurationDialog::onDownButtonPressed()
+{
+  auto row = m_replaceChars->currentRow();
+  Q_ASSERT(row < m_replaceChars->rowCount()-1);
+
+  QPair<QString,QString> currentItems{m_replaceChars->item(row,0)->text(), m_replaceChars->item(row,1)->text()};
+  QPair<QString,QString> previousItems{m_replaceChars->item(row+1,0)->text(), m_replaceChars->item(row+1,1)->text()};
+
+  m_replaceChars->item(row+1, 0)->setText(currentItems.first);
+  m_replaceChars->item(row+1, 1)->setText(currentItems.second);
+
+  m_replaceChars->item(row, 0)->setText(previousItems.first);
+  m_replaceChars->item(row, 1)->setText(previousItems.second);
+
+  m_replaceChars->selectRow(row+1);
+}
+
+//-----------------------------------------------------------------
+void ConfigurationDialog::onTableItemChanged(QTableWidgetItem* current, QTableWidgetItem* previous)
+{
+  m_upButton->setEnabled(current && current->row() > 0);
+  m_downButton->setEnabled(current && current->row() < m_replaceChars->rowCount()-1);
 }
 
 //-----------------------------------------------------------------
@@ -179,11 +239,20 @@ void ConfigurationDialog::connectSignals()
   connect(m_reformat,          SIGNAL(stateChanged(int)),
           this,                SLOT(onReformatCheckStateChanged(int)));
 
+  connect(m_replaceChars,      SIGNAL(currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+          this,                SLOT(onTableItemChanged(QTableWidgetItem *, QTableWidgetItem *)));
+
   connect(m_addButton,         SIGNAL(pressed()),
           this,                SLOT(onAddButtonPressed()));
 
   connect(m_removeButton,      SIGNAL(pressed()),
           this,                SLOT(onRemoveButtonPressed()));
+
+  connect(m_upButton,          SIGNAL(pressed()),
+          this,                SLOT(onUpButtonPressed()));
+
+  connect(m_downButton,        SIGNAL(pressed()),
+          this,                SLOT(onDownButtonPressed()));
 
   connect(m_extractInputCover, SIGNAL(stateChanged(int)),
           this,                SLOT(onCoverExtractCheckStateChanged(int)));

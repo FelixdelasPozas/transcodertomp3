@@ -40,6 +40,7 @@ extern "C"
 ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const Utils::TranscoderConfiguration &configuration)
 : m_music_files  {files}
 , m_configuration(configuration)
+, m_errorsCount  {0}
 {
   setupUi(this);
 
@@ -47,6 +48,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const Utils::Transco
   register_av_lock_manager();
 
   connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
+  connect(m_clipboard, SIGNAL(pressed()), this, SLOT(onClipboardPressed()));
 
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
 
@@ -92,9 +94,15 @@ void ProcessDialog::closeEvent(QCloseEvent *e)
 //-----------------------------------------------------------------
 void ProcessDialog::log_error(const QString &message)
 {
+  ++m_errorsCount;
+
   QMutexLocker lock(&m_mutex);
   m_log->setTextColor(Qt::red);
-  m_log->append(QString("ERROR:") + message);
+  m_log->append(QString("ERROR: ") + message);
+
+  m_errorsLabel->setStyleSheet("QLabel { color: rgb(255, 0, 0); };");
+  m_errorsCountLabel->setStyleSheet("QLabel { color: rgb(255, 0, 0); };");
+  m_errorsCountLabel->setText(QString().number(m_errorsCount));
 }
 
 //-----------------------------------------------------------------
@@ -153,6 +161,7 @@ void ProcessDialog::increment_global_progress()
     disconnect(m_cancelButton, SIGNAL(clicked()), this, SLOT(stop()));
     connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(exit_dialog()));
     m_cancelButton->setText("Exit");
+    m_clipboard->setEnabled(true);
   }
 
   m_mutex.unlock();
@@ -214,6 +223,13 @@ void ProcessDialog::create_threads()
 
     converter->start();
   }
+}
+
+//-----------------------------------------------------------------
+void ProcessDialog::onClipboardPressed() const
+{
+  m_log->selectAll();
+  m_log->copy();
 }
 
 //-----------------------------------------------------------------

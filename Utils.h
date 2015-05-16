@@ -61,7 +61,6 @@ namespace Utils
     bool                          apply;                     // true to apply the formatting process.
     QString                       chars_to_delete;           // characters to delete.
     QList<QPair<QString,QString>> chars_to_replace;          // strings to replace (pair <to replace, with>).
-    bool                          check_number_prefix;       // check if the name starts with a number and format it.
     int                           number_of_digits;          // number of digits the number should have.
     QChar                         number_and_name_separator; // separator character between the number and the rest of the name.
     bool                          to_title_case;             // capitalize the first letter of every word in the name.
@@ -69,11 +68,10 @@ namespace Utils
     FormatConfiguration()
     {
       apply                     = true;
-      check_number_prefix       = true;
-      chars_to_replace          << QPair<QString, QString>("_", " ")
+      chars_to_replace          << QPair<QString, QString>("[", "(")
+                                << QPair<QString, QString>("]", ")")
                                 << QPair<QString, QString>(".", " ")
-                                << QPair<QString, QString>("[", "(")
-                                << QPair<QString, QString>("]", ")");
+                                << QPair<QString, QString>("_", " ");
       number_and_name_separator = '-';
       number_of_digits          = 2;
       to_title_case             = true;
@@ -198,16 +196,16 @@ namespace Utils
       void setNumberOfThreads(int value);
 
       /** \brief Sets the bitrate.
-       * \param[in] bitrate encoding process bitrate.
+       * \param[in] value encoding process bitrate.
        *
        */
-      void setBitrate(int bitrate);
+      void setBitrate(int value);
 
       /** \brief Sets the file name for the cover picture file.
-       * \param[in] coverPictureName cover file name without extension.
+       * \param[in] filename cover file name without extension.
        *
        */
-      void setCoverPictureName(const QString& coverPictureName);
+      void setCoverPictureName(const QString& filename);
 
       /** \brief Sets if the output must be deleted if the process couldn't finish.
        * \param[in] enabled boolean value.
@@ -222,10 +220,10 @@ namespace Utils
       void setExtractMetadataCoverPicture(bool enabled);
 
       /** \brief Sets the reformatting configuration.
-       * \param[in] conf FormatConfiguration struct.
+       * \param[in] configuration FormatConfiguration struct.
        *
        */
-      void setFormatConfiguration(const FormatConfiguration& conf);
+      void setFormatConfiguration(const FormatConfiguration& configuration);
 
       /** \brief Sets the quality of the encoding process.
        * \param[in] value quality value according to lame encoder.
@@ -307,14 +305,15 @@ namespace Utils
       static const QString QUALITY;
       static const QString REFORMAT_APPLY;
       static const QString REFORMAT_CHARS_TO_DELETE;
-      static const QString REFORMAT_CHARS_TO_REPLACE;
+      static const QString REFORMAT_CHARS_TO_REPLACE_FROM;
+      static const QString REFORMAT_CHARS_TO_REPLACE_TO;
       static const QString REFORMAT_SEPARATOR;
       static const QString REFORMAT_NUMBER_OF_DIGITS;
       static const QString REFORMAT_USE_TITLE_CASE;
+
+      static const QString SETTINGS_FILENAME;
   };
 
 }
-
-
 
 #endif // UTILS_H_

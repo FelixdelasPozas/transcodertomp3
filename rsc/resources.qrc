@@ -10,5 +10,8 @@
 	<file>qt.ico</file>
 	<file>add.ico</file>
 	<file>delete.ico</file>
+	<file>up.ico</file>
+	<file>down.ico</file>
+	<file>clipboard.ico</file>
   </qresource>
 </RCC>
