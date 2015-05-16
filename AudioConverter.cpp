@@ -197,7 +197,7 @@ void AudioConverter::init_libav_cover_transcoding()
   m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
   if(m_cover_stream_id > 0)
   {
-    auto cover_name = m_source_path + QString("Frontal.jpg");
+    auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".jpg");
 
     s_mutex.lock();
     if(!QFile::exists(cover_name))
@@ -471,7 +471,7 @@ bool AudioConverter::process_audio_packet()
 //-----------------------------------------------------------------
 bool AudioConverter::extract_cover_picture() const
 {
-  auto cover_name = m_source_path + QString("Frontal.jpg");
+  auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".jpg");
 
   QFile file(cover_name);
   file.open(QIODevice::WriteOnly|QIODevice::Append);

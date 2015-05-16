@@ -58,6 +58,9 @@ MusicTranscoder::MusicTranscoder()
 
   connect(m_configButton, SIGNAL(clicked()),
           this,           SLOT(onConfigurationButtonPressed()));
+
+  connect(m_threads, SIGNAL(valueChanged(int)),
+          this,      SLOT(onThreadsNumberChanged(int)));
 }
 
 //-----------------------------------------------------------------
@@ -81,6 +84,7 @@ void MusicTranscoder::onDirectoryChanged()
   if(fileBrowser.exec() == QDialog::Accepted)
   {
     auto newDirectory = fileBrowser.selectedFiles().first();
+    m_configuration.setRootDirectory(newDirectory);
     m_directoryText->setText(newDirectory.replace('/','\\'));
   }
 }
@@ -88,7 +92,24 @@ void MusicTranscoder::onDirectoryChanged()
 //-----------------------------------------------------------------
 void MusicTranscoder::onConversionStarted()
 {
-  m_files = Utils::findFiles(m_directoryText->text(), Utils::WAVE_FILE_EXTENSIONS + Utils::MOVIE_FILE_EXTENSIONS + Utils::MODULE_FILE_EXTENSIONS);
+  QStringList extensions;
+  if(m_configuration.transcodeAudio())
+  {
+    extensions << Utils::WAVE_FILE_EXTENSIONS;
+  }
+
+  if(m_configuration.transcodeVideo())
+  {
+    extensions << Utils::MOVIE_FILE_EXTENSIONS;
+  }
+
+  if(m_configuration.transcodeModule())
+  {
+    extensions << Utils::MODULE_FILE_EXTENSIONS;
+  }
+  Q_ASSERT(extensions.size() > 0);
+
+  m_files = Utils::findFiles(m_directoryText->text(), extensions);
 
   if(m_files.empty())
   {
@@ -104,9 +125,6 @@ void MusicTranscoder::onConversionStarted()
   }
 
   this->hide();
-
-  m_configuration.setRootDirectory(m_directoryText->text());
-  m_configuration.setNumberOfThreads(m_threads->value());
 
   ProcessDialog pd(m_files, m_configuration);
   pd.exec();
@@ -125,10 +143,20 @@ void MusicTranscoder::onAboutButtonPressed()
 //-----------------------------------------------------------------
 void MusicTranscoder::onConfigurationButtonPressed()
 {
-  ConfigurationDialog dialog;
+  ConfigurationDialog dialog(m_configuration);
   dialog.setModal(true);
   if(dialog.exec() == QDialog::Accepted)
   {
     m_configuration = dialog.getConfiguration();
+
+    // this configuration doesn't contain these values.
+    m_configuration.setRootDirectory(m_directoryText->text());
+    m_configuration.setNumberOfThreads(m_threads->value());
   }
+}
+
+//-----------------------------------------------------------------
+void MusicTranscoder::onThreadsNumberChanged(int value)
+{
+  m_configuration.setNumberOfThreads(value);
 }

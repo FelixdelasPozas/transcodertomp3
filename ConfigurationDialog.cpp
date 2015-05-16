@@ -31,7 +31,7 @@ const QList<int>  ConfigurationDialog::BITRATE_VALUES = { 320, 256, 224, 192, 16
 
 
 //-----------------------------------------------------------------
-ConfigurationDialog::ConfigurationDialog()
+ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &configuration)
 {
   setupUi(this);
 
@@ -43,13 +43,6 @@ ConfigurationDialog::ConfigurationDialog()
   m_bitrate->addItems(BITRATE_NAMES);
   m_bitrate->setCurrentIndex(0);
 
-  m_replaceChars->setRowCount(10);
-  auto newItem = new QTableWidgetItem(tr("["));
-  newItem->setTextAlignment(Qt::AlignHCenter);
-  m_replaceChars->setItem(0, 0, newItem);
-  newItem = new QTableWidgetItem(tr("("));
-  newItem->setTextAlignment(Qt::AlignHCenter);
-  m_replaceChars->setItem(0, 1, newItem);
   QStringList labels = { tr("from"), tr("to") };
   m_replaceChars->setHorizontalHeaderLabels(labels);
   m_replaceChars->setSelectionBehavior(QTableWidget::SelectionBehavior::SelectRows);
@@ -57,6 +50,7 @@ ConfigurationDialog::ConfigurationDialog()
   m_replaceChars->setColumnWidth(1, 110);
   m_replaceChars->horizontalHeader()->setResizeMode(QHeaderView::Fixed);
 
+  applyConfiguration(configuration);
   connectSignals();
 }
 
@@ -132,6 +126,45 @@ void ConfigurationDialog::onCoverExtractCheckStateChanged(int state)
 }
 
 //-----------------------------------------------------------------
+void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguration& configuration)
+{
+  m_transcodeAudio->setChecked(configuration.transcodeAudio());
+  m_transcodeVideo->setChecked(configuration.transcodeVideo());
+  m_transcodeModule->setChecked(configuration.transcodeModule());
+  m_stripMP3->setChecked(configuration.stripTagsFromMp3());
+  m_cueSplit->setChecked(configuration.useCueToSplit());
+
+  m_renameOutput->setChecked(configuration.useMetadataToRenameOutput());
+  m_reformat->setChecked(configuration.reformatOutputFilename());
+  m_deleteOnCancel->setChecked(configuration.deleteOutputOnCancellation());
+  m_extractInputCover->setChecked(configuration.extractMetadataCoverPicture());
+  m_coverName->setText(configuration.coverPictureName());
+  m_bitrate->setCurrentIndex(BITRATE_VALUES.indexOf(configuration.bitrate()));
+  m_quality->setCurrentIndex(QUALITY_VALUES.indexOf(configuration.quality()));
+
+  m_deleteChars->setText(configuration.formatConfiguration().chars_to_delete);
+
+  m_replaceChars->setRowCount(configuration.formatConfiguration().chars_to_replace.size());
+  for(auto i = 0; i < configuration.formatConfiguration().chars_to_replace.size(); ++i)
+  {
+    auto pair = configuration.formatConfiguration().chars_to_replace[i];
+
+    auto newItem = new QTableWidgetItem(pair.first);
+    newItem->setTextAlignment(Qt::AlignHCenter);
+    m_replaceChars->setItem(i, 0, newItem);
+
+    newItem = new QTableWidgetItem(pair.second);
+    newItem->setTextAlignment(Qt::AlignHCenter);
+    m_replaceChars->setItem(i, 1, newItem);
+  }
+  m_replaceChars->selectRow(0);
+
+  m_prefixNumDigits->setValue(configuration.formatConfiguration().number_of_digits);
+  m_separator->setText(configuration.formatConfiguration().number_and_name_separator);
+  m_titleCase->setChecked(configuration.formatConfiguration().to_title_case);
+}
+
+//-----------------------------------------------------------------
 void ConfigurationDialog::connectSignals()
 {
   connect(m_transcodeAudio,    SIGNAL(stateChanged(int)),
@@ -161,7 +194,18 @@ const Utils::TranscoderConfiguration ConfigurationDialog::getConfiguration() con
 {
   Utils::TranscoderConfiguration configuration;
 
-  // TODO
+  configuration.setBitrate(BITRATE_VALUES[m_bitrate->currentIndex()]);
+  configuration.setCoverPictureName(m_coverName->text());
+  configuration.setDeleteOutputOnCancellation(m_deleteOnCancel->isChecked());
+  configuration.setExtractMetadataCoverPicture(m_extractInputCover->isChecked());
+  configuration.setQuality(QUALITY_VALUES[m_quality->currentIndex()]);
+  configuration.setReformatOutputFilename(m_reformat->isChecked());
+  configuration.setStripTagsFromMp3(m_stripMP3->isChecked());
+  configuration.setTranscodeAudio(m_transcodeAudio->isChecked());
+  configuration.setTranscodeModule(m_transcodeModule->isChecked());
+  configuration.setTranscodeVideo(m_transcodeVideo->isChecked());
+  configuration.setUseCueToSplit(m_cueSplit->isChecked());
+  configuration.setUseMetadataToRenameOutput(m_renameOutput->isChecked());
 
   return configuration;
 }

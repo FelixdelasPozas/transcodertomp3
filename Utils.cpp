@@ -28,6 +28,26 @@ const QStringList Utils::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "
 const QStringList Utils::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
 const QStringList Utils::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
 
+const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY            = QObject::tr("Root directory");
+const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS         = QObject::tr("Number of threads");
+const QString Utils::TranscoderConfiguration::TRANSCODE_AUDIO           = QObject::tr("Transcode audio");
+const QString Utils::TranscoderConfiguration::TRANSCODE_VIDEO           = QObject::tr("Transcode video files");
+const QString Utils::TranscoderConfiguration::TRANSCODE_MODULE          = QObject::tr("Transcode Module files");
+const QString Utils::TranscoderConfiguration::STRIP_MP3                 = QObject::tr("Strip MP3 metadata");
+const QString Utils::TranscoderConfiguration::USE_CUE_SHEET             = QObject::tr("Use CUE sheet");
+const QString Utils::TranscoderConfiguration::USE_METADATA_TO_RENAME    = QObject::tr("Use metadata to rename output");
+const QString Utils::TranscoderConfiguration::DELETE_ON_CANCELLATION    = QObject::tr("Delete output on cancel");
+const QString Utils::TranscoderConfiguration::EXTRACT_COVER_PICTURE     = QObject::tr("Extract cover picture");
+const QString Utils::TranscoderConfiguration::COVER_PICTURE_NAME        = QObject::tr("Cover picture output filename");
+const QString Utils::TranscoderConfiguration::BITRATE                   = QObject::tr("Output bitrate");
+const QString Utils::TranscoderConfiguration::QUALITY                   = QObject::tr("Output quality");
+const QString Utils::TranscoderConfiguration::REFORMAT_APPLY            = QObject::tr("Reformat output filename");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_DELETE  = QObject::tr("Characters to delete");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE = QObject::tr("Characters to replace");
+const QString Utils::TranscoderConfiguration::REFORMAT_SEPARATOR        = QObject::tr("Track and title separator");
+const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS = QObject::tr("Number of digits");
+const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE   = QObject::tr("Use title case");
+
 //-----------------------------------------------------------------
 bool Utils::isAudioFile(const QFileInfo& file)
 {

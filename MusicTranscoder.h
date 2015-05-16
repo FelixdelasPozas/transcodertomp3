@@ -66,6 +66,11 @@ class MusicTranscoder
 	   */
 	  void onConfigurationButtonPressed();
 
+	  /** \brief Updates the configuration threads number value.
+	   *
+	   */
+	  void onThreadsNumberChanged(int value);
+
 	private:
 	  QList<QFileInfo>               m_files;
 	  Utils::TranscoderConfiguration m_configuration;

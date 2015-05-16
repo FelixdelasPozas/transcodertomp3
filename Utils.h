@@ -290,12 +290,27 @@ namespace Utils
       int     m_bitrate;
       int     m_quality;
 
+      FormatConfiguration m_format_configuration;
+
       static const QString ROOT_DIRECTORY;
       static const QString NUMBER_OF_THREADS;
-
-
-
-      FormatConfiguration m_format_configuration;
+      static const QString TRANSCODE_AUDIO;
+      static const QString TRANSCODE_VIDEO;
+      static const QString TRANSCODE_MODULE;
+      static const QString STRIP_MP3;
+      static const QString USE_CUE_SHEET;
+      static const QString USE_METADATA_TO_RENAME;
+      static const QString DELETE_ON_CANCELLATION;
+      static const QString EXTRACT_COVER_PICTURE;
+      static const QString COVER_PICTURE_NAME;
+      static const QString BITRATE;
+      static const QString QUALITY;
+      static const QString REFORMAT_APPLY;
+      static const QString REFORMAT_CHARS_TO_DELETE;
+      static const QString REFORMAT_CHARS_TO_REPLACE;
+      static const QString REFORMAT_SEPARATOR;
+      static const QString REFORMAT_NUMBER_OF_DIGITS;
+      static const QString REFORMAT_USE_TITLE_CASE;
   };
 
 }

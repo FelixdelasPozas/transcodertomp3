@@ -34,9 +34,10 @@ class ConfigurationDialog
     Q_OBJECT
   public:
     /** \brief ConfigurationDialog class constructor.
+     * \param[in] configuration configuration struct.
      *
      */
-    ConfigurationDialog();
+    ConfigurationDialog(const Utils::TranscoderConfiguration &configuration);
 
     /** \brief ConfigurationDialog class virtual destructor.
      *
@@ -56,6 +57,12 @@ class ConfigurationDialog
     void onCoverExtractCheckStateChanged(int state);
 
   private:
+    /** \brief Helper method to update the UI state with the configuration values.
+     * \param[in] configuratio configuration struct.
+     *
+     */
+    void applyConfiguration(const Utils::TranscoderConfiguration &configuration);
+
     /** \brief Helper method to connects all the signals.
      *
      */

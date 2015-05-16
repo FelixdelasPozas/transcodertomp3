@@ -117,7 +117,7 @@ void MP3Converter::extract_cover(const ID3_Tag &file_tag)
   if(cover_frame)
   {
     bool adquired = false;
-    auto cover_name = m_source_path + QString("Frontal.jpg");
+    auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".jpg");
 
     s_mutex.lock();
     if(!QFile::exists(cover_name))
