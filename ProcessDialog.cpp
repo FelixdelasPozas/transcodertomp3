@@ -23,6 +23,7 @@
 #include "AudioConverter.h"
 #include "MP3Converter.h"
 #include "ModuleConverter.h"
+#include "PlaylistGenerator.h"
 
 // Qt
 #include <QLayout>
@@ -184,7 +185,6 @@ void ProcessDialog::increment_global_progress()
   {
     create_threads();
   }
-  repaint();
 }
 
 //-----------------------------------------------------------------
@@ -194,28 +194,42 @@ void ProcessDialog::create_threads()
 
   while(m_num_workers < m_max_workers && m_music_files.size() > 0)
   {
-    auto music_file = m_music_files.first();
+    auto fs_handle = m_music_files.first();
     m_music_files.removeFirst();
 
-    if(!music_file.isFile()) continue;
+    if(!fs_handle.isFile() && !fs_handle.isDir())
+    {
+      m_globalProgress->setValue(m_globalProgress->value() + 1);
+      continue;
+    }
+
+    if(fs_handle.isDir())
+    {
+      // save the folder for the end.
+      if(m_configuration.createM3Ufiles())
+      {
+        m_music_folders << fs_handle;
+      }
+      continue;
+    }
 
     ++m_num_workers;
 
     ConverterThread *converter;
 
-    if(Utils::isModuleFile(music_file))
+    if(Utils::isModuleFile(fs_handle))
     {
-      converter = new ModuleConverter(music_file, m_configuration);
+      converter = new ModuleConverter(fs_handle, m_configuration);
     }
     else
     {
-      if(Utils::isAudioFile(music_file) && music_file.absoluteFilePath().endsWith(".mp3"))
+      if(Utils::isAudioFile(fs_handle) && fs_handle.absoluteFilePath().endsWith(".mp3"))
       {
-        converter = new MP3Converter(music_file, m_configuration);
+        converter = new MP3Converter(fs_handle, m_configuration);
       }
       else
       {
-        converter = new AudioConverter(music_file, m_configuration);
+        converter = new AudioConverter(fs_handle, m_configuration);
       }
     }
 
@@ -235,7 +249,7 @@ void ProcessDialog::create_threads()
         m_progress_bars[bar] = converter;
         bar->setValue(0);
         bar->setEnabled(true);
-        bar->setFormat(QString("%1").arg(music_file.absoluteFilePath().split('/').last()));
+        bar->setFormat(QString("%1").arg(fs_handle.absoluteFilePath().split('/').last()));
 
         connect(converter, SIGNAL(progress(int)),
                 bar,       SLOT(setValue(int)));
@@ -246,6 +260,45 @@ void ProcessDialog::create_threads()
 
     converter->start();
   }
+
+// TODO: make playlists after all the transcoders have finished, not while still there are some executing.
+//
+//  while(m_music_files.isEmpty() && !m_music_folders.isEmpty() && m_num_workers < m_max_workers)
+//  {
+//    ++m_num_workers;
+//
+//    auto fs_handle = m_music_folders.first();
+//    m_music_folders.removeFirst();
+//
+//    auto playlist_generator = new PlaylistGenerator(fs_handle, m_configuration);
+//
+//    connect(playlist_generator, SIGNAL(error_message(const QString &)),
+//            this,               SLOT(log_error(const QString &)));
+//
+//    connect(playlist_generator, SIGNAL(information_message(const QString &)),
+//            this,               SLOT(log_information(const QString &)));
+//
+//    connect(playlist_generator, SIGNAL(finished()),
+//            this,               SLOT(increment_global_progress()));
+//
+//    for(auto bar: m_progress_bars.keys())
+//    {
+//      if(m_progress_bars[bar] == nullptr)
+//      {
+//        m_progress_bars[bar] = playlist_generator;
+//        bar->setValue(0);
+//        bar->setEnabled(true);
+//        bar->setFormat(QString("Generating playlist for %1").arg(fs_handle.absoluteFilePath().split('/').last()));
+//
+//        connect(playlist_generator, SIGNAL(progress(int)),
+//                bar,                SLOT(setValue(int)));
+//
+//        break;
+//      }
+//    }
+//
+//    playlist_generator->start();
+//  }
 }
 
 //-----------------------------------------------------------------

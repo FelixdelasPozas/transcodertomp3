@@ -58,6 +58,7 @@ class ConfigurationDialog
     void onUpButtonPressed();
     void onDownButtonPressed();
     void onCoverExtractCheckStateChanged(int state);
+    void onRenameInputCheckStateChanged(int state);
 
   private:
     /** \brief Helper method to update the UI state with the configuration values.

@@ -32,6 +32,12 @@ ModuleConverter::ModuleConverter(const QFileInfo source_info, const Utils::Trans
 //-----------------------------------------------------------------
 ModuleConverter::~ModuleConverter()
 {
+  if(!has_been_cancelled() && m_configuration.renameInputOnSuccess())
+  {
+    auto file_name = m_source_info.absoluteFilePath();
+    QFile file(file_name);
+    file.rename(file_name + QString(".") + m_configuration.renamedInputFilesExtension());
+  }
 }
 
 //-----------------------------------------------------------------

@@ -38,12 +38,15 @@ const QString Utils::TranscoderConfiguration::TRANSCODE_VIDEO                = Q
 const QString Utils::TranscoderConfiguration::TRANSCODE_MODULE               = QObject::tr("Transcode Module files");
 const QString Utils::TranscoderConfiguration::STRIP_MP3                      = QObject::tr("Strip MP3 metadata");
 const QString Utils::TranscoderConfiguration::USE_CUE_SHEET                  = QObject::tr("Use CUE sheet");
+const QString Utils::TranscoderConfiguration::RENAME_INPUT_ON_SUCCESS        = QObject::tr("Rename input files on successfull transcoding");
+const QString Utils::TranscoderConfiguration::RENAMED_INPUT_EXTENSION        = QObject::tr("Renamed input files extension");
 const QString Utils::TranscoderConfiguration::USE_METADATA_TO_RENAME         = QObject::tr("Use metadata to rename output");
 const QString Utils::TranscoderConfiguration::DELETE_ON_CANCELLATION         = QObject::tr("Delete output on cancel");
 const QString Utils::TranscoderConfiguration::EXTRACT_COVER_PICTURE          = QObject::tr("Extract cover picture");
 const QString Utils::TranscoderConfiguration::COVER_PICTURE_NAME             = QObject::tr("Cover picture output filename");
 const QString Utils::TranscoderConfiguration::BITRATE                        = QObject::tr("Output bitrate");
 const QString Utils::TranscoderConfiguration::QUALITY                        = QObject::tr("Output quality");
+const QString Utils::TranscoderConfiguration::CREATE_M3U_FILES               = QObject::tr("Create M3U playlists in input directories");
 const QString Utils::TranscoderConfiguration::REFORMAT_APPLY                 = QObject::tr("Reformat output filename");
 const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_DELETE       = QObject::tr("Characters to delete");
 const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_FROM = QObject::tr("List of characters to replace from");
@@ -246,11 +249,13 @@ Utils::TranscoderConfiguration::TranscoderConfiguration()
 , m_transcode_module              {true}
 , m_strip_tags_from_MP3           {true}
 , m_use_CUE_to_split              {true}
+, m_rename_input_on_success       {true}
 , m_use_metadata_to_rename_output {true}
 , m_delete_output_on_cancellation {true}
 , m_extract_metadata_cover_picture{true}
 , m_bitrate                       {320}
 , m_quality                       {0}
+, m_create_M3U_files              {true}
 {
 }
 
@@ -266,12 +271,15 @@ void Utils::TranscoderConfiguration::load()
   m_transcode_module                               = settings.value(TRANSCODE_MODULE, true).toBool();
   m_strip_tags_from_MP3                            = settings.value(STRIP_MP3, true).toBool();
   m_use_CUE_to_split                               = settings.value(USE_CUE_SHEET, true).toBool();
+  m_rename_input_on_success                        = settings.value(RENAME_INPUT_ON_SUCCESS, true).toBool();
+  m_renamed_input_extension                        = settings.value(RENAMED_INPUT_EXTENSION, QObject::tr("done")).toString();
   m_use_metadata_to_rename_output                  = settings.value(USE_METADATA_TO_RENAME, true).toBool();
   m_delete_output_on_cancellation                  = settings.value(DELETE_ON_CANCELLATION, true).toBool();
   m_extract_metadata_cover_picture                 = settings.value(EXTRACT_COVER_PICTURE, true).toBool();
   m_cover_picture_name                             = settings.value(COVER_PICTURE_NAME, QObject::tr("Frontal")).toString();
   m_bitrate                                        = settings.value(BITRATE, 320).toInt();
   m_quality                                        = settings.value(QUALITY, 0).toInt();
+  m_create_M3U_files                               = settings.value(CREATE_M3U_FILES, true).toBool();
   m_format_configuration.apply                     = settings.value(REFORMAT_APPLY, true).toBool();
   m_format_configuration.chars_to_delete           = settings.value(REFORMAT_CHARS_TO_DELETE, QString()).toString();
   m_format_configuration.number_of_digits          = settings.value(REFORMAT_NUMBER_OF_DIGITS, 2).toInt();
@@ -304,12 +312,15 @@ void Utils::TranscoderConfiguration::save() const
   settings.setValue(TRANSCODE_MODULE, m_transcode_module);
   settings.setValue(STRIP_MP3, m_strip_tags_from_MP3);
   settings.setValue(USE_CUE_SHEET, m_use_CUE_to_split);
+  settings.setValue(RENAME_INPUT_ON_SUCCESS, m_rename_input_on_success);
+  settings.setValue(RENAMED_INPUT_EXTENSION, m_renamed_input_extension);
   settings.setValue(USE_METADATA_TO_RENAME, m_use_metadata_to_rename_output);
   settings.setValue(DELETE_ON_CANCELLATION, m_delete_output_on_cancellation);
   settings.setValue(EXTRACT_COVER_PICTURE, m_extract_metadata_cover_picture);
   settings.setValue(COVER_PICTURE_NAME, m_cover_picture_name);
   settings.setValue(BITRATE, m_bitrate);
   settings.setValue(QUALITY, m_quality);
+  settings.setValue(CREATE_M3U_FILES, m_create_M3U_files);
   settings.setValue(REFORMAT_APPLY, m_format_configuration.apply);
   settings.setValue(REFORMAT_CHARS_TO_DELETE, m_format_configuration.chars_to_delete);
   settings.setValue(REFORMAT_NUMBER_OF_DIGITS, m_format_configuration.number_of_digits);
@@ -504,7 +515,43 @@ void Utils::TranscoderConfiguration::setUseCueToSplit(bool enabled)
 }
 
 //-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::renameInputOnSuccess() const
+{
+  return m_rename_input_on_success;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setRenameInputOnSuccess(bool enabled)
+{
+  m_rename_input_on_success = enabled;
+}
+
+//-----------------------------------------------------------------
+const QString Utils::TranscoderConfiguration::renamedInputFilesExtension() const
+{
+  return m_renamed_input_extension;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setRenamedInputFilesExtension(const QString& extension)
+{
+  m_renamed_input_extension = extension;
+}
+
+//-----------------------------------------------------------------
 void Utils::TranscoderConfiguration::setUseMetadataToRenameOutput(bool enabled)
 {
   m_use_metadata_to_rename_output = enabled;
+}
+
+//-----------------------------------------------------------------
+bool Utils::TranscoderConfiguration::createM3Ufiles() const
+{
+  return m_create_M3U_files;
+}
+
+//-----------------------------------------------------------------
+void Utils::TranscoderConfiguration::setCreateM3Ufiles(bool enabled)
+{
+  m_create_M3U_files = enabled;
 }

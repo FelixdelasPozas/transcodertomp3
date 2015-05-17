@@ -61,6 +61,12 @@ AudioConverter::AudioConverter(const QFileInfo origin_info, const Utils::Transco
 //-----------------------------------------------------------------
 AudioConverter::~AudioConverter()
 {
+  if(!has_been_cancelled() && m_configuration.renameInputOnSuccess())
+  {
+    auto file_name = m_source_info.absoluteFilePath();
+    QFile file(file_name);
+    file.rename(file_name + QString(".") + m_configuration.renamedInputFilesExtension());
+  }
 }
 
 //-----------------------------------------------------------------

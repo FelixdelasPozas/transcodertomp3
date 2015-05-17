@@ -122,6 +122,7 @@ class ProcessDialog
     static int lock_manager(void **mutex, enum AVLockOp op);
 
     QList<QFileInfo>                      m_music_files;
+    QList<QFileInfo>                      m_music_folders;
     int                                   m_max_workers;
     int                                   m_num_workers;
     const Utils::TranscoderConfiguration &m_configuration;

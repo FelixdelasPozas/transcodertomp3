@@ -147,6 +147,11 @@ void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguratio
   m_transcodeModule->setChecked(configuration.transcodeModule());
   m_stripMP3->setChecked(configuration.stripTagsFromMp3());
   m_cueSplit->setChecked(configuration.useCueToSplit());
+  m_renameInputFiles->setChecked(configuration.renameInputOnSuccess());
+  m_renamedInputsExtension->setText(configuration.renamedInputFilesExtension());
+
+  m_renamedInputsExtension->setEnabled(m_renameInputFiles->isChecked());
+  m_renamedInputsLabel->setEnabled(m_renameInputFiles->isChecked());
 
   m_renameOutput->setChecked(configuration.useMetadataToRenameOutput());
   m_reformat->setChecked(configuration.reformatOutputFilename());
@@ -156,6 +161,7 @@ void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguratio
   m_coverName->setText(configuration.coverPictureName());
   m_bitrate->setCurrentIndex(BITRATE_VALUES.indexOf(configuration.bitrate()));
   m_quality->setCurrentIndex(QUALITY_VALUES.indexOf(configuration.quality()));
+  m_create_m3u->setChecked(configuration.createM3Ufiles());
 
   m_deleteChars->setText(configuration.formatConfiguration().chars_to_delete);
 
@@ -223,6 +229,14 @@ void ConfigurationDialog::onTableItemChanged(QTableWidgetItem* current, QTableWi
 }
 
 //-----------------------------------------------------------------
+void ConfigurationDialog::onRenameInputCheckStateChanged(int state)
+{
+  auto enabled = (state == Qt::Checked);
+  m_renamedInputsExtension->setEnabled(enabled);
+  m_renamedInputsLabel->setEnabled(enabled);
+}
+
+//-----------------------------------------------------------------
 void ConfigurationDialog::connectSignals()
 {
   connect(m_transcodeAudio,    SIGNAL(stateChanged(int)),
@@ -254,6 +268,9 @@ void ConfigurationDialog::connectSignals()
 
   connect(m_extractInputCover, SIGNAL(stateChanged(int)),
           this,                SLOT(onCoverExtractCheckStateChanged(int)));
+
+  connect(m_renameInputFiles,  SIGNAL(stateChanged(int)),
+          this,                SLOT(onRenameInputCheckStateChanged(int)));
 }
 
 //-----------------------------------------------------------------
@@ -266,12 +283,15 @@ const Utils::TranscoderConfiguration ConfigurationDialog::getConfiguration() con
   configuration.setDeleteOutputOnCancellation(m_deleteOnCancel->isChecked());
   configuration.setExtractMetadataCoverPicture(m_extractInputCover->isChecked());
   configuration.setQuality(QUALITY_VALUES[m_quality->currentIndex()]);
+  configuration.setCreateM3Ufiles(m_create_m3u->isChecked());
   configuration.setReformatOutputFilename(m_reformat->isChecked());
   configuration.setStripTagsFromMp3(m_stripMP3->isChecked());
   configuration.setTranscodeAudio(m_transcodeAudio->isChecked());
   configuration.setTranscodeModule(m_transcodeModule->isChecked());
   configuration.setTranscodeVideo(m_transcodeVideo->isChecked());
   configuration.setUseCueToSplit(m_cueSplit->isChecked());
+  configuration.setRenameInputOnSuccess(m_renameInputFiles->isChecked());
+  configuration.setRenamedInputFilesExtension(m_renamedInputsExtension->text());
   configuration.setUseMetadataToRenameOutput(m_renameOutput->isChecked());
 
   return configuration;

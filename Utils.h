@@ -138,6 +138,16 @@ namespace Utils
        */
       bool extractMetadataCoverPicture() const;
 
+      /** \brief Returns true if the input file is to be renamed after a successfull transcoding.
+       *
+       */
+      bool renameInputOnSuccess() const;
+
+      /** \brief Returns the extension to use to rename input files after a successfull transcoding.
+       *
+       */
+      const QString renamedInputFilesExtension() const;
+
       /** \brief Returns the reformatting configuration.
        *
        */
@@ -147,6 +157,11 @@ namespace Utils
        *
        */
       int quality() const;
+
+      /** \brief Returns true if after transcoding M3U playlists must be created per input directory.
+       *
+       */
+      bool createM3Ufiles() const;
 
       /** \brief Returns true if the output file name must be reformatted.
        *
@@ -219,6 +234,18 @@ namespace Utils
        */
       void setExtractMetadataCoverPicture(bool enabled);
 
+      /** \brief Sets if the input file must be renamed after a successfull transcoding.
+       * \param[in] enabled boolean value.
+       *
+       */
+      void setRenameInputOnSuccess(bool enabled);
+
+      /** \brief Sets the extension to use to rename input files after a successfil transcoding.
+       * \param[in] extension extension string.
+       *
+       */
+      void setRenamedInputFilesExtension(const QString &extension);
+
       /** \brief Sets the reformatting configuration.
        * \param[in] configuration FormatConfiguration struct.
        *
@@ -230,6 +257,11 @@ namespace Utils
        *
        */
       void setQuality(int value);
+
+      /** \brief Sets if after transcoding a M3U playlists must be created per input directory.
+       *
+       */
+      void setCreateM3Ufiles(bool enabled);
 
       /** \brief Sets if the output file name must be reformatted.
        * \param[in] enabled boolean value.
@@ -281,12 +313,15 @@ namespace Utils
       bool    m_transcode_module;
       bool    m_strip_tags_from_MP3;
       bool    m_use_CUE_to_split;
+      bool    m_rename_input_on_success;
+      QString m_renamed_input_extension;
       bool    m_use_metadata_to_rename_output;
       bool    m_delete_output_on_cancellation;
       bool    m_extract_metadata_cover_picture;
       QString m_cover_picture_name;
       int     m_bitrate;
       int     m_quality;
+      bool    m_create_M3U_files;
 
       FormatConfiguration m_format_configuration;
 
@@ -297,12 +332,15 @@ namespace Utils
       static const QString TRANSCODE_MODULE;
       static const QString STRIP_MP3;
       static const QString USE_CUE_SHEET;
+      static const QString RENAME_INPUT_ON_SUCCESS;
+      static const QString RENAMED_INPUT_EXTENSION;
       static const QString USE_METADATA_TO_RENAME;
       static const QString DELETE_ON_CANCELLATION;
       static const QString EXTRACT_COVER_PICTURE;
       static const QString COVER_PICTURE_NAME;
       static const QString BITRATE;
       static const QString QUALITY;
+      static const QString CREATE_M3U_FILES;
       static const QString REFORMAT_APPLY;
       static const QString REFORMAT_CHARS_TO_DELETE;
       static const QString REFORMAT_CHARS_TO_REPLACE_FROM;

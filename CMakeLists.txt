@@ -99,6 +99,7 @@ set (CORE_SOURCES
   ModuleConverter.cpp
   AboutDialog.cpp
   ConfigurationDialog.cpp
+  PlaylistGenerator.cpp
 )
 
 set(CORE_EXTERNAL_LIBS
