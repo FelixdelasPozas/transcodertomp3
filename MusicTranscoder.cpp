@@ -87,33 +87,40 @@ void MusicTranscoder::onDirectoryChanged()
   {
     auto newDirectory = fileBrowser.selectedFiles().first();
     m_configuration.setRootDirectory(newDirectory);
-    m_directoryText->setText(newDirectory.replace('/','\\'));
+    m_directoryText->setText(newDirectory.replace('/',QDir::separator()));
   }
 }
 
 //-----------------------------------------------------------------
 void MusicTranscoder::onConversionStarted()
 {
-  QStringList extensions;
+  QStringList filters;
   if(m_configuration.transcodeAudio())
   {
-    extensions << Utils::WAVE_FILE_EXTENSIONS;
+    filters << Utils::WAVE_FILE_EXTENSIONS;
   }
 
   if(m_configuration.transcodeVideo())
   {
-    extensions << Utils::MOVIE_FILE_EXTENSIONS;
+    filters << Utils::MOVIE_FILE_EXTENSIONS;
   }
 
   if(m_configuration.transcodeModule())
   {
-    extensions << Utils::MODULE_FILE_EXTENSIONS;
+    filters << Utils::MODULE_FILE_EXTENSIONS;
   }
-  Q_ASSERT(extensions.size() > 0);
+  Q_ASSERT(filters.size() > 0);
 
-  m_files = Utils::findFiles(m_directoryText->text(), extensions);
+  auto files = Utils::findFiles(m_directoryText->text(), filters);
 
-  if(m_files.empty())
+  QList<QFileInfo> folders;
+  if(m_configuration.createM3Ufiles())
+  {
+    auto foldersCondition = [](const QFileInfo &info) { return info.isDir(); };
+    folders = Utils::findFiles(m_directoryText->text(), QStringList(), true, foldersCondition);
+  }
+
+  if(files.empty() && folders.empty())
   {
     QMessageBox msgBox;
     msgBox.setText("Can't find any file in the specified folder that can be processed.");
@@ -128,7 +135,7 @@ void MusicTranscoder::onConversionStarted()
 
   this->hide();
 
-  ProcessDialog processDialog(m_files, m_configuration);
+  ProcessDialog processDialog(files, folders, m_configuration);
   processDialog.exec();
 
   this->show();

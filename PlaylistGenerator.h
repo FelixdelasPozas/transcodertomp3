@@ -21,10 +21,10 @@
 #define PLAYLISTGENERATOR_H_
 
 // Project
-#include "ConverterThread.h"
+#include "AudioConverter.h"
 
 class PlaylistGenerator
-: public ConverterThread
+: public AudioConverter
 {
   public:
     /** \brief Playlist Generator class constructor.
@@ -42,7 +42,23 @@ class PlaylistGenerator
   protected:
     virtual void run_implementation() override final;
 
-    // TODO: implement
+  private:
+    /** \brief Returns the list of file names of the MP3 files in the directory,
+     *         sorted in ascending order (case sensitively).
+     */
+    QStringList get_file_names() const;
+
+    /** \brief Creates and saves the playlist file.
+     *
+     */
+    void generate_playlist();
+
+    /** \brief Returns true if the duration of the song passed as a parameter could be obtained.
+     * \param[in] file_name name of a mp3 in the same folder, with extension.
+     * \param[out] duration duration of the song in seconds.
+     *
+     */
+    bool get_song_duration(const QString &file_name, long long &duration);
 };
 
 #endif // PLAYLISTGENERATOR_H_

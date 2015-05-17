@@ -44,7 +44,7 @@ MP3Converter::~MP3Converter()
 //-----------------------------------------------------------------
 void MP3Converter::run_implementation()
 {
-  auto file_name = m_source_info.absoluteFilePath().replace('/','\\');
+  auto file_name = m_source_info.absoluteFilePath().replace('/',QDir::separator());
   QString track_title;
 
   ID3_Tag file_id3_tag(file_name.toStdString().c_str());
@@ -101,7 +101,7 @@ void MP3Converter::run_implementation()
 
   if(track_title.isEmpty())
   {
-    track_title = file_name.split('\\').last().remove(MP3_EXTENSION);
+    track_title = file_name.split(QDir::separator()).last().remove(MP3_EXTENSION);
   }
 
   track_title = Utils::formatString(track_title, m_configuration.formatConfiguration());

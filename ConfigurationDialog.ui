@@ -31,6 +31,55 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
+    <widget class="QCheckBox" name="m_transcodeAudio">
+     <property name="toolTip">
+      <string>Transcode audio files found in the root directory and subdirectories.</string>
+     </property>
+     <property name="text">
+      <string>Transcode audio files</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="m_transcodeVideo">
+     <property name="toolTip">
+      <string>Extract and transcode the audio track of the video files found in the root directory and subdirectories.</string>
+     </property>
+     <property name="text">
+      <string>Extract and transcode the audio track of video files</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="m_transcodeModule">
+     <property name="toolTip">
+      <string>Transcode module files found in the root directory and subdirectories.</string>
+     </property>
+     <property name="text">
+      <string>Transcode module files</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="m_create_m3u">
+     <property name="text">
+      <string>Create M3U playlists of transcoded files in input directories</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QGroupBox" name="groupBox">
@@ -51,51 +100,12 @@ QGroupBox::title {
 }</string>
        </property>
        <property name="title">
-        <string>Input files</string>
+        <string>Input files options</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QCheckBox" name="m_transcodeAudio">
-          <property name="toolTip">
-           <string>Transcode audio files found in the root directory and subdirectories.</string>
-          </property>
-          <property name="text">
-           <string>Transcode audio files</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="m_transcodeVideo">
-          <property name="toolTip">
-           <string>Extract and transcode the audio track of the video files found in the root directory and subdirectories.</string>
-          </property>
-          <property name="text">
-           <string>Extract and transcode the audio track of video files</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="m_transcodeModule">
-          <property name="toolTip">
-           <string>Transcode module files found in the root directory and subdirectories.</string>
-          </property>
-          <property name="text">
-           <string>Transcode module files</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
         <item>
          <widget class="QCheckBox" name="m_stripMP3">
           <property name="toolTip">
@@ -170,7 +180,7 @@ QGroupBox::title {
 }</string>
      </property>
      <property name="title">
-      <string>Output files</string>
+      <string>Output files options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
@@ -245,16 +255,6 @@ QGroupBox::title {
          </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="m_create_m3u">
-        <property name="text">
-         <string>Create M3U playlists of transcoded files in input directories</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">

@@ -58,7 +58,7 @@ const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE        = Q
 const QString Utils::TranscoderConfiguration::SETTINGS_FILENAME = QString("MusicTranscoder.ini");
 
 //-----------------------------------------------------------------
-bool Utils::isAudioFile(const QFileInfo& file)
+bool Utils::isAudioFile(const QFileInfo &file)
 {
   auto extension = file.absoluteFilePath().split('.').last().toLower();
 
@@ -66,7 +66,7 @@ bool Utils::isAudioFile(const QFileInfo& file)
 }
 
 //-----------------------------------------------------------------
-bool Utils::isVideoFile(const QFileInfo& file)
+bool Utils::isVideoFile(const QFileInfo &file)
 {
   auto extension = file.absoluteFilePath().split('.').last().toLower();
 
@@ -74,7 +74,7 @@ bool Utils::isVideoFile(const QFileInfo& file)
 }
 
 //-----------------------------------------------------------------
-bool Utils::isModuleFile(const QFileInfo& file)
+bool Utils::isModuleFile(const QFileInfo &file)
 {
   auto extension = file.absoluteFilePath().split('.').last().toLower();
 
@@ -82,7 +82,18 @@ bool Utils::isModuleFile(const QFileInfo& file)
 }
 
 //-----------------------------------------------------------------
-QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList extensions)
+bool Utils::isMP3File(const QFileInfo &file)
+{
+  auto extension = file.absoluteFilePath().split('.').last().toLower();
+
+  return extension.compare(QString("mp3")) == 0;
+}
+
+//-----------------------------------------------------------------
+QList<QFileInfo> Utils::findFiles(const QDir initialDir,
+                                  const QStringList extensions,
+                                  bool with_subdirectories,
+                                  const std::function<bool (const QFileInfo &)> condition)
 {
   QList<QFileInfo> otherFilesFound, mp3FilesFound;
 
@@ -90,15 +101,20 @@ QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList exten
   startingDir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
   startingDir.setNameFilters(extensions);
 
-  QDirIterator it(startingDir, QDirIterator::Subdirectories);
+  auto flag = (with_subdirectories ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags);
+  QDirIterator it(startingDir, flag);
   while (it.hasNext())
   {
     it.next();
 
+
     auto info = it.fileInfo();
+
+    if(!condition(info)) continue;
+
     auto extension = info.absoluteFilePath().split('.').last().toLower();
 
-    if (extension == "mp3")
+    if (isMP3File(info))
     {
       mp3FilesFound << info;
     }
@@ -108,7 +124,6 @@ QList<QFileInfo> Utils::findFiles(const QDir initialDir, const QStringList exten
     }
   }
 
-  // I want mp3 files to be processed first
   return mp3FilesFound + otherFilesFound;
 }
 
@@ -264,7 +279,7 @@ void Utils::TranscoderConfiguration::load()
 {
   QSettings settings(SETTINGS_FILENAME, QSettings::IniFormat);
 
-  m_root_directory                                 = settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString().replace('/','\\');
+  m_root_directory                                 = settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString().replace('/',QDir::separator());
   m_number_of_threads                              = settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency() /2).toInt();
   m_transcode_audio                                = settings.value(TRANSCODE_AUDIO, true).toBool();
   m_transcode_video                                = settings.value(TRANSCODE_VIDEO, true).toBool();

@@ -50,7 +50,7 @@ class ConfigurationDialog
     const Utils::TranscoderConfiguration getConfiguration() const;
 
   private slots:
-    void onTranscodeCheckStateChanged(int state);
+    void onMainJobsCheckStateChanged(int state);
     void onReformatCheckStateChanged(int state);
     void onTableItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
     void onAddButtonPressed();

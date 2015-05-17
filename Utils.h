@@ -25,6 +25,9 @@
 #include <QString>
 #include <QPair>
 
+// C++
+#include <functional>
+
 namespace Utils
 {
   extern const QStringList MODULE_FILE_EXTENSIONS;
@@ -49,12 +52,28 @@ namespace Utils
    */
   bool isModuleFile(const QFileInfo &file);
 
-  /** \brief Returns the files in the specified directory tree that has the specified extensions.
-   * \param[in] rootDir starting directory.
-   * \param[in] extensions extensions of the files to return.
+  /** \brief Returns true if the file given as parameter has "mp3" as extension.
+   * \param[in] file file QFileInfo struct.
    *
    */
-  QList<QFileInfo> findFiles(const QDir rootDirectory, const QStringList extensions);
+  bool isMP3File(const QFileInfo &file);
+
+  /** \brief Returns the files in the specified directory tree that has the specified extensions.
+   * \param[in] rootDir starting directory.
+   * \param[in] filters extensions of the files to return.
+   * \param[in] with_subdirectories boolean that indicates if all the files in the subdiretories that
+   *            comply the conditions must be returned.
+   * \param[in] condition additional condition that the files must comply with.
+   *
+   * NOTE: while this will return any file info (that complies with the filter and the conditions) mp3
+   *       files will be returned first. That's because i want to process those before anything else.
+   *       Yes, it's arbitrary but doesn't affect the results.
+   *
+   */
+  QList<QFileInfo> findFiles(const QDir rootDirectory,
+                             const QStringList extensions,
+                             bool with_subdirectories = true,
+                             const std::function<bool (const QFileInfo &)> condition = [](const QFileInfo &info) { return true; });
 
   struct FormatConfiguration
   {

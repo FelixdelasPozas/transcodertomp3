@@ -62,10 +62,10 @@ ConfigurationDialog::~ConfigurationDialog()
 }
 
 //-----------------------------------------------------------------
-void ConfigurationDialog::onTranscodeCheckStateChanged(int state)
+void ConfigurationDialog::onMainJobsCheckStateChanged(int state)
 {
   int atLeastOneChecked = false;
-  for (auto checkBox: { m_transcodeAudio, m_transcodeVideo, m_transcodeModule})
+  for (auto checkBox: { m_transcodeAudio, m_transcodeVideo, m_transcodeModule, m_create_m3u })
   {
     atLeastOneChecked |= checkBox->isChecked();
   }
@@ -240,13 +240,16 @@ void ConfigurationDialog::onRenameInputCheckStateChanged(int state)
 void ConfigurationDialog::connectSignals()
 {
   connect(m_transcodeAudio,    SIGNAL(stateChanged(int)),
-          this,                SLOT(onTranscodeCheckStateChanged(int)));
+          this,                SLOT(onMainJobsCheckStateChanged(int)));
 
   connect(m_transcodeVideo,    SIGNAL(stateChanged(int)),
-          this,                SLOT(onTranscodeCheckStateChanged(int)));
+          this,                SLOT(onMainJobsCheckStateChanged(int)));
 
   connect(m_transcodeModule,   SIGNAL(stateChanged(int)),
-          this,                SLOT(onTranscodeCheckStateChanged(int)));
+          this,                SLOT(onMainJobsCheckStateChanged(int)));
+
+  connect(m_create_m3u,        SIGNAL(stateChanged(int)),
+          this,                SLOT(onMainJobsCheckStateChanged(int)));
 
   connect(m_reformat,          SIGNAL(stateChanged(int)),
           this,                SLOT(onReformatCheckStateChanged(int)));

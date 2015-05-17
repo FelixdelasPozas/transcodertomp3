@@ -27,8 +27,6 @@
 // Qt
 #include <QMainWindow>
 
-class QFileInfo;
-
 class MusicTranscoder
 : public QMainWindow
 , public Ui_MusicTranscoder
@@ -73,7 +71,6 @@ class MusicTranscoder
 	  void onThreadsNumberChanged(int value);
 
 	private:
-	  QList<QFileInfo>               m_files;
 	  Utils::TranscoderConfiguration m_configuration;
 };
 

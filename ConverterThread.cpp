@@ -47,6 +47,13 @@ ConverterThread::~ConverterThread()
     auto mp3_file = m_source_path + m_destinations.first().name;
     QFile::remove(mp3_file);
   }
+
+  if(!has_been_cancelled() && m_configuration.renameInputOnSuccess() && !Utils::isMP3File(m_source_info) && !m_source_info.isDir())
+  {
+    auto file_name = m_source_info.absoluteFilePath();
+    QFile file(file_name);
+    file.rename(file_name + QString(".") + m_configuration.renamedInputFilesExtension());
+  }
 }
 
 //-----------------------------------------------------------------
@@ -204,7 +211,7 @@ bool ConverterThread::open_next_destination_file()
 
   std::memset(m_mp3_buffer, 0, MP3_BUFFER_SIZE);
 
-  auto music_file = m_source_info.absoluteFilePath().replace('/','\\');
+  auto music_file = m_source_info.absoluteFilePath().replace('/',QDir::separator());
   if(0 != init_lame())
   {
     emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
@@ -260,6 +267,11 @@ const int ConverterThread::number_of_tracks() const
 //-----------------------------------------------------------------
 bool ConverterThread::check_input_file_permissions() const
 {
+  if(m_source_info.isDir())
+  {
+    return true;
+  }
+
   QFile file(m_source_info.absoluteFilePath());
   if(file.exists() && !file.open(QFile::ReadOnly))
   {

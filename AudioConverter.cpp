@@ -61,18 +61,12 @@ AudioConverter::AudioConverter(const QFileInfo origin_info, const Utils::Transco
 //-----------------------------------------------------------------
 AudioConverter::~AudioConverter()
 {
-  if(!has_been_cancelled() && m_configuration.renameInputOnSuccess())
-  {
-    auto file_name = m_source_info.absoluteFilePath();
-    QFile file(file_name);
-    file.rename(file_name + QString(".") + m_configuration.renamedInputFilesExtension());
-  }
 }
 
 //-----------------------------------------------------------------
 void AudioConverter::run_implementation()
 {
-  auto music_file = m_source_info.absoluteFilePath().replace('/','\\');
+  auto music_file = m_source_info.absoluteFilePath().replace('/',QDir::separator());
 
   if(!init_libav())
   {
@@ -89,7 +83,7 @@ void AudioConverter::run_implementation()
 bool AudioConverter::init_libav()
 {
   auto source_name = m_source_info.absoluteFilePath();
-  auto source_name_string = source_name.replace('/','\\');
+  auto source_name_string = source_name.replace('/',QDir::separator());
 
   int value = 0;
 
@@ -272,8 +266,15 @@ void AudioConverter::init_libav_cover_transcoding()
 //-----------------------------------------------------------------
 void AudioConverter::deinit_libav()
 {
-  avcodec_close(m_audio_decoder_context);
-  av_frame_free(&m_frame);
+  if(m_audio_decoder_context)
+  {
+    avcodec_close(m_audio_decoder_context);
+  }
+
+  if(m_frame)
+  {
+    av_frame_free(&m_frame);
+  }
 
   if(m_cover_decoder_context)
   {
@@ -525,10 +526,10 @@ QList<AudioConverter::Destination> AudioConverter::compute_destinations()
 {
   QList<Destination> destinations;
 
-  QStringList extensions;
-  extensions << "*.cue";
+  QStringList filter;
+  filter << "*.cue";
 
-  auto files = Utils::findFiles(QDir(m_source_path), extensions);
+  auto files = Utils::findFiles(QDir(m_source_path), filter);
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
   auto source_cue_name1 = m_source_path + source_name + QString(".cue");
   auto source_basename = source_name.remove(source_name.split('.').last());

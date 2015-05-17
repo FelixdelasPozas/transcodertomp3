@@ -50,10 +50,11 @@ class ProcessDialog
   public:
     /** \brief ProcessDialog class constructor.
      * \param[in] files files to convert.
+     * \param[in] folders to create playlists.
      * \param[in] threadNum number of threads to use in the conversion process.
      *
      */
-    explicit ProcessDialog(const QList<QFileInfo> &files, const Utils::TranscoderConfiguration &configuration);
+    explicit ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInfo> &folders, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief Process dialog class constructor.
      *
@@ -98,10 +99,27 @@ class ProcessDialog
     void onClipboardPressed() const;
 
   private:
-    /** \brief Creates and launches the converter threads.
+    /** \brief Creates and launches the converters threads.
      *
      */
     void create_threads();
+
+    /** \brief Creates and launches the transcoders threads.
+     *
+     */
+    void create_transcoder();
+
+    /** \brief Assigns a converter thread to the bar that will show it's progress.
+     * \param[in] converter converter pointer to assign.
+     * \param[in] message message to show in the bar.
+     *
+     */
+    void assign_bar_to_converter(ConverterThread *converter, const QString &message);
+
+    /** \brief Creates and launches the playlist generators threads.
+     *
+     */
+    void create_playlistGenerator();
 
     /** \brief Registers the lock manager for the libav library.
      *
@@ -127,6 +145,7 @@ class ProcessDialog
     int                                   m_num_workers;
     const Utils::TranscoderConfiguration &m_configuration;
     int                                   m_errorsCount;
+    bool                                  m_finished_transcoding;
 
     QMutex m_mutex;
     QMap<QProgressBar *, ConverterThread *> m_progress_bars;

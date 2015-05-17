@@ -38,10 +38,11 @@ extern "C"
 }
 
 //-----------------------------------------------------------------
-ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const Utils::TranscoderConfiguration &configuration)
-: m_music_files  {files}
-, m_configuration(configuration)
-, m_errorsCount  {0}
+ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInfo> &folders, const Utils::TranscoderConfiguration &configuration)
+: m_music_files         {files}
+, m_music_folders       {folders}
+, m_configuration       (configuration)
+, m_errorsCount         {0}
 {
   setupUi(this);
 
@@ -56,13 +57,16 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const Utils::Transco
 
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
 
+  m_max_workers = m_configuration.numberOfThreads();
+  auto total_jobs = m_music_files.size() + m_music_folders.size();
+
   m_globalProgress->setMinimum(0);
-  m_globalProgress->setMaximum(m_music_files.size());
+  m_globalProgress->setMaximum(total_jobs);
 
   auto boxLayout = new QVBoxLayout();
   m_converters->setLayout(boxLayout);
 
-  auto bars_num = std::min(m_max_workers, m_music_files.size());
+  auto bars_num = std::min(m_max_workers, total_jobs);
 
   for(int i = 0; i < bars_num; ++i)
   {
@@ -77,6 +81,8 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const Utils::Transco
 
     boxLayout->addWidget(bar);
   }
+
+  m_finished_transcoding = (files.size() == 0);
 
   create_threads();
 }
@@ -137,6 +143,7 @@ void ProcessDialog::increment_global_progress()
   m_mutex.lock();
 
   auto converter = qobject_cast<ConverterThread *>(sender());
+
   disconnect(converter, SIGNAL(error_message(const QString &)),
              this,      SLOT(log_error(const QString &)));
 
@@ -179,6 +186,11 @@ void ProcessDialog::increment_global_progress()
     m_clipboard->setEnabled(true);
   }
 
+  if(m_music_files.empty() && m_num_workers == 0)
+  {
+    m_finished_transcoding = true;
+  }
+
   m_mutex.unlock();
 
   if(!cancelled)
@@ -194,111 +206,93 @@ void ProcessDialog::create_threads()
 
   while(m_num_workers < m_max_workers && m_music_files.size() > 0)
   {
-    auto fs_handle = m_music_files.first();
-    m_music_files.removeFirst();
+    create_transcoder();
+  }
 
-    if(!fs_handle.isFile() && !fs_handle.isDir())
+  if(m_finished_transcoding)
+  {
+    while(m_num_workers < m_max_workers && m_music_folders.size() > 0)
     {
-      m_globalProgress->setValue(m_globalProgress->value() + 1);
-      continue;
+      create_playlistGenerator();
     }
+  }
+}
 
-    if(fs_handle.isDir())
+//-----------------------------------------------------------------
+void ProcessDialog::create_transcoder()
+{
+  auto fs_handle = m_music_files.first();
+  m_music_files.removeFirst();
+
+  ++m_num_workers;
+
+  ConverterThread *converter;
+
+  if(Utils::isModuleFile(fs_handle))
+  {
+    converter = new ModuleConverter(fs_handle, m_configuration);
+  }
+  else
+  {
+    if(Utils::isMP3File(fs_handle))
     {
-      // save the folder for the end.
-      if(m_configuration.createM3Ufiles())
-      {
-        m_music_folders << fs_handle;
-      }
-      continue;
-    }
-
-    ++m_num_workers;
-
-    ConverterThread *converter;
-
-    if(Utils::isModuleFile(fs_handle))
-    {
-      converter = new ModuleConverter(fs_handle, m_configuration);
+      converter = new MP3Converter(fs_handle, m_configuration);
     }
     else
     {
-      if(Utils::isAudioFile(fs_handle) && fs_handle.absoluteFilePath().endsWith(".mp3"))
-      {
-        converter = new MP3Converter(fs_handle, m_configuration);
-      }
-      else
-      {
-        converter = new AudioConverter(fs_handle, m_configuration);
-      }
+      converter = new AudioConverter(fs_handle, m_configuration);
     }
-
-    connect(converter, SIGNAL(error_message(const QString &)),
-            this,      SLOT(log_error(const QString &)));
-
-    connect(converter, SIGNAL(information_message(const QString &)),
-            this,      SLOT(log_information(const QString &)));
-
-    connect(converter, SIGNAL(finished()),
-            this,      SLOT(increment_global_progress()));
-
-    for(auto bar: m_progress_bars.keys())
-    {
-      if(m_progress_bars[bar] == nullptr)
-      {
-        m_progress_bars[bar] = converter;
-        bar->setValue(0);
-        bar->setEnabled(true);
-        bar->setFormat(QString("%1").arg(fs_handle.absoluteFilePath().split('/').last()));
-
-        connect(converter, SIGNAL(progress(int)),
-                bar,       SLOT(setValue(int)));
-
-        break;
-      }
-    }
-
-    converter->start();
   }
 
-// TODO: make playlists after all the transcoders have finished, not while still there are some executing.
-//
-//  while(m_music_files.isEmpty() && !m_music_folders.isEmpty() && m_num_workers < m_max_workers)
-//  {
-//    ++m_num_workers;
-//
-//    auto fs_handle = m_music_folders.first();
-//    m_music_folders.removeFirst();
-//
-//    auto playlist_generator = new PlaylistGenerator(fs_handle, m_configuration);
-//
-//    connect(playlist_generator, SIGNAL(error_message(const QString &)),
-//            this,               SLOT(log_error(const QString &)));
-//
-//    connect(playlist_generator, SIGNAL(information_message(const QString &)),
-//            this,               SLOT(log_information(const QString &)));
-//
-//    connect(playlist_generator, SIGNAL(finished()),
-//            this,               SLOT(increment_global_progress()));
-//
-//    for(auto bar: m_progress_bars.keys())
-//    {
-//      if(m_progress_bars[bar] == nullptr)
-//      {
-//        m_progress_bars[bar] = playlist_generator;
-//        bar->setValue(0);
-//        bar->setEnabled(true);
-//        bar->setFormat(QString("Generating playlist for %1").arg(fs_handle.absoluteFilePath().split('/').last()));
-//
-//        connect(playlist_generator, SIGNAL(progress(int)),
-//                bar,                SLOT(setValue(int)));
-//
-//        break;
-//      }
-//    }
-//
-//    playlist_generator->start();
-//  }
+  auto message = QString("%1").arg(fs_handle.absoluteFilePath().split('/').last());
+  assign_bar_to_converter(converter, message);
+
+  converter->start();
+}
+
+//-----------------------------------------------------------------
+void ProcessDialog::create_playlistGenerator()
+{
+  auto fs_handle = m_music_folders.first();
+  m_music_folders.removeFirst();
+
+  ++m_num_workers;
+
+  auto generator = new PlaylistGenerator(fs_handle, m_configuration);
+
+  auto message = QString("Generating playlist for %1").arg(fs_handle.absoluteFilePath().split('/').last());
+  assign_bar_to_converter(generator, message);
+
+  generator->start();
+}
+
+//-----------------------------------------------------------------
+void ProcessDialog::assign_bar_to_converter(ConverterThread* converter, const QString& message)
+{
+  connect(converter, SIGNAL(error_message(const QString &)),
+          this,      SLOT(log_error(const QString &)));
+
+  connect(converter, SIGNAL(information_message(const QString &)),
+          this,      SLOT(log_information(const QString &)));
+
+  connect(converter, SIGNAL(finished()),
+          this,      SLOT(increment_global_progress()));
+
+  for(auto bar: m_progress_bars.keys())
+  {
+    if(m_progress_bars[bar] == nullptr)
+    {
+      m_progress_bars[bar] = converter;
+      bar->setValue(0);
+      bar->setEnabled(true);
+      bar->setFormat(message);
+
+      connect(converter, SIGNAL(progress(int)),
+              bar,       SLOT(setValue(int)));
+
+      break;
+    }
+  }
 }
 
 //-----------------------------------------------------------------

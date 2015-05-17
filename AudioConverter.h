@@ -75,6 +75,11 @@ class AudioConverter
      */
     bool extract_cover_picture() const;
 
+    /** \brief Helper method to get a user-friendly description of a libav error code.
+     *
+     */
+    QString av_error_string(const int error_number) const;
+
     AVFormatContext   *m_libav_context;
     AVPacket           m_packet;
     int                m_cover_stream_id;
@@ -97,11 +102,6 @@ class AudioConverter
      *
      */
     bool process_audio_packet();
-
-    /** \brief Helper method to get a user-friendly description of a libav error code.
-     *
-     */
-    QString av_error_string(const int error_number) const;
 
     virtual Destinations compute_destinations() override final;
 
