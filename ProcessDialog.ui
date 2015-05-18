@@ -36,7 +36,7 @@
    <item>
     <widget class="QGroupBox" name="m_converters">
      <property name="title">
-      <string>Converter's Progress</string>
+      <string>Transcoders' Progress</string>
      </property>
     </widget>
    </item>

@@ -27,6 +27,8 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
+const QString PlaylistGenerator::PLAYLIST_EXTENSION = QString(".m3u");
+
 //-----------------------------------------------------------------
 PlaylistGenerator::PlaylistGenerator(const QFileInfo source_info, const Utils::TranscoderConfiguration& configuration)
 : AudioConverter(source_info, configuration)
@@ -67,8 +69,8 @@ void PlaylistGenerator::generate_playlist()
 {
   auto files = get_file_names();
 
-  auto baseName = m_source_info.baseName() + QString(".m3u");
-  QFile playlist(m_source_info.absoluteFilePath() + QString("/") + baseName);
+  auto baseName = Utils::formatString(m_source_info.baseName(), m_configuration.formatConfiguration(), false);
+  QFile playlist(m_source_info.absoluteFilePath() + QDir::separator() + baseName + PLAYLIST_EXTENSION);
 
   if(!playlist.open(QFile::WriteOnly|QFile::Truncate))
   {
@@ -76,7 +78,7 @@ void PlaylistGenerator::generate_playlist()
     return;
   }
 
-  emit information_message(QString("%1%2 : creating playlist.").arg(m_source_info.absoluteFilePath().replace('/',QDir::separator())).arg(QDir::separator()));
+  emit information_message(QString("Creating playlist for %1%2 .").arg(m_source_info.absoluteFilePath().replace('/',QDir::separator())).arg(QDir::separator()));
 
   auto newline = QString("\n");
   QByteArray contents;

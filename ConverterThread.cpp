@@ -232,11 +232,11 @@ bool ConverterThread::open_next_destination_file()
 
   if(m_num_tracks != 1)
   {
-    emit information_message(QString("%1: extracting %2").arg(source_name).arg(destination.name));
+    emit information_message(QString("Extracting '%1' from '%2'.").arg(destination.name).arg(source_name));
   }
   else
   {
-    emit information_message(QString("%1: converting to %2").arg(source_name).arg(destination.name));
+    emit information_message(QString("Transcoding '%1' from '%2'.").arg(destination.name).arg(source_name));
   }
 
   return true;

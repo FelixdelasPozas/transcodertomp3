@@ -59,6 +59,8 @@ class PlaylistGenerator
      *
      */
     bool get_song_duration(const QString &file_name, long long &duration);
+
+    static const QString PLAYLIST_EXTENSION;
 };
 
 #endif // PLAYLISTGENERATOR_H_

@@ -118,7 +118,9 @@ void MusicTranscoder::onConversionStarted()
   {
     auto foldersCondition = [](const QFileInfo &info) { return info.isDir(); };
     folders = Utils::findFiles(m_directoryText->text(), QStringList(), true, foldersCondition);
+
   }
+  folders << QFileInfo(m_directoryText->text());
 
   if(files.empty() && folders.empty())
   {

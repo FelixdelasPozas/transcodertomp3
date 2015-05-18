@@ -90,7 +90,8 @@ namespace Utils
       chars_to_replace          << QPair<QString, QString>("[", "(")
                                 << QPair<QString, QString>("]", ")")
                                 << QPair<QString, QString>(".", " ")
-                                << QPair<QString, QString>("_", " ");
+                                << QPair<QString, QString>("_", " ")
+                                << QPair<QString, QString>("Pt ", "Part ");
       number_and_name_separator = '-';
       number_of_digits          = 2;
       to_title_case             = true;
@@ -100,9 +101,12 @@ namespace Utils
   /** \brief Returns a transformed filename according to the specified parameters.
    * \param[in] filename file name with absolute path.
    * \param[in] conf configuration parameters.
+   * \param[in] add_extension true to add the ".mp3" extension to the formatted string.
    *
    */
-  QString formatString(const QString filename, const FormatConfiguration conf);
+  QString formatString(const QString filename,
+                       const FormatConfiguration conf,
+                       bool add_mp3_extension = true);
 
   /** \brief Returns true if the string represents a roman numeral.
    *

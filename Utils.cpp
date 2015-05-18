@@ -128,7 +128,9 @@ QList<QFileInfo> Utils::findFiles(const QDir initialDir,
 }
 
 //-----------------------------------------------------------------
-QString Utils::formatString(const QString filename, const Utils::FormatConfiguration conf)
+QString Utils::formatString(const QString filename,
+                            const Utils::FormatConfiguration conf,
+                            bool add_mp3_extension)
 {
   // works for filenames and plain strings
   auto fileInfo = QFileInfo(QFile(filename));
@@ -237,7 +239,10 @@ QString Utils::formatString(const QString filename, const Utils::FormatConfigura
     }
   }
 
-  formattedName += ".mp3";
+  if(add_mp3_extension)
+  {
+    formattedName += ".mp3";
+  }
 
   return formattedName;
 }
