@@ -81,14 +81,17 @@ void MP3Worker::run_implementation()
       }
     }
 
+    emit progress(25);
+
     if(m_configuration.extractMetadataCoverPicture())
     {
       if (!extract_cover(file_id3_tag))
       {
         return;
       }
-
     }
+
+    emit progress(50);
 
     if(m_configuration.stripTagsFromMp3())
     {
@@ -97,7 +100,7 @@ void MP3Worker::run_implementation()
     }
   }
 
-  emit progress(50);
+  emit progress(75);
 
   if(track_title.isEmpty())
   {
@@ -154,6 +157,7 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
       QFile file(cover_name);
       file.open(QIODevice::WriteOnly | QIODevice::Append);
       file.write(picture, data_size);
+      file.flush();
       file.close();
     }
     else
@@ -163,7 +167,7 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
 
       while(0 == av_read_frame(m_libav_context, &m_packet))
       {
-        // dump the cover if the format is jpeg, if not a decoding-encoding phase must be applied.
+        // dump the cover if the format is jpeg, if not a transcoding phase must be applied.
         if(m_packet.stream_index == m_cover_stream_id)
         {
           if(!extract_cover_picture())

@@ -137,7 +137,10 @@ QString Utils::formatString(const QString filename,
   auto name = fileInfo.absoluteFilePath().split('/').last();
   auto extension = name.split('.').last();
   QString formattedName = name;
-  if (name.contains('.'))
+
+  auto extension_id = QString("*.") + extension;
+  bool identified = WAVE_FILE_EXTENSIONS.contains(extension_id) || MODULE_FILE_EXTENSIONS.contains(extension_id) || MOVIE_FILE_EXTENSIONS.contains(extension_id);
+  if (identified && name.contains('.'))
   {
     formattedName = name.remove(name.lastIndexOf('.'), extension.length() + 1);
   }

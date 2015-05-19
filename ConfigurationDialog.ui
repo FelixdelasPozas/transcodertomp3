@@ -72,7 +72,7 @@
    <item>
     <widget class="QCheckBox" name="m_create_m3u">
      <property name="text">
-      <string>Create M3U playlists of transcoded files in input directories</string>
+      <string>Create M3U playlists of MP3 files in input directories</string>
      </property>
      <property name="checked">
       <bool>true</bool>

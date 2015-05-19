@@ -69,6 +69,11 @@ void PlaylistWorker::generate_playlist()
 {
   auto files = get_file_names();
 
+  if(files.empty())
+  {
+    return;
+  }
+
   auto baseName = Utils::formatString(m_source_info.baseName(), m_configuration.formatConfiguration(), false);
   QFile playlist(m_source_info.absoluteFilePath() + QDir::separator() + baseName + PLAYLIST_EXTENSION);
 
@@ -78,7 +83,7 @@ void PlaylistWorker::generate_playlist()
     return;
   }
 
-  emit information_message(QString("Creating playlist for %1%2 .").arg(m_source_info.absoluteFilePath().replace('/',QDir::separator())).arg(QDir::separator()));
+  emit information_message(QString("Creating playlist for %1%2").arg(m_source_info.absoluteFilePath().replace('/',QDir::separator())).arg(QDir::separator()));
 
   auto newline = QString("\n");
   QByteArray contents;
