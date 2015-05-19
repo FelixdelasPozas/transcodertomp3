@@ -78,9 +78,9 @@ qt4_wrap_cpp(CORE_MOC
   # .h for Qt
   MusicTranscoder.h
   ProcessDialog.h
-  ConverterThread.h
   AboutDialog.h
   ConfigurationDialog.h
+  Worker.h
 )
 
 set (CORE_SOURCES
@@ -93,13 +93,13 @@ set (CORE_SOURCES
   MusicTranscoder.cpp
   ProcessDialog.cpp
   Utils.cpp
-  ConverterThread.cpp
-  AudioConverter.cpp
-  MP3Converter.cpp
-  ModuleConverter.cpp
+  Worker.cpp
+  AudioWorker.cpp
+  MP3Worker.cpp
+  ModuleWorker.cpp
   AboutDialog.cpp
   ConfigurationDialog.cpp
-  PlaylistGenerator.cpp
+  PlaylistWorker.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

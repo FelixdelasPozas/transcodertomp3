@@ -20,10 +20,10 @@
 // Application
 #include "ProcessDialog.h"
 #include "MusicTranscoder.h"
-#include "AudioConverter.h"
-#include "MP3Converter.h"
-#include "ModuleConverter.h"
-#include "PlaylistGenerator.h"
+#include "AudioWorker.h"
+#include "MP3Worker.h"
+#include "ModuleWorker.h"
+#include "PlaylistWorker.h"
 
 // Qt
 #include <QLayout>
@@ -64,7 +64,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInf
   m_globalProgress->setMaximum(total_jobs);
 
   auto boxLayout = new QVBoxLayout();
-  m_converters->setLayout(boxLayout);
+  m_workers->setLayout(boxLayout);
 
   auto bars_num = std::min(m_max_workers, total_jobs);
 
@@ -127,12 +127,12 @@ void ProcessDialog::log_information(const QString &message)
 //-----------------------------------------------------------------
 void ProcessDialog::stop()
 {
-  for(auto converter: m_progress_bars.values())
+  for(auto worker: m_progress_bars.values())
   {
-    if(converter != nullptr)
+    if(worker != nullptr)
     {
-      converter->stop();
-      converter->wait();
+      worker->stop();
+      worker->wait();
     }
   }
 }
@@ -142,18 +142,18 @@ void ProcessDialog::increment_global_progress()
 {
   m_mutex.lock();
 
-  auto converter = qobject_cast<ConverterThread *>(sender());
+  auto worker = qobject_cast<Worker *>(sender());
 
-  disconnect(converter, SIGNAL(error_message(const QString &)),
+  disconnect(worker, SIGNAL(error_message(const QString &)),
              this,      SLOT(log_error(const QString &)));
 
-  disconnect(converter, SIGNAL(information_message(const QString &)),
+  disconnect(worker, SIGNAL(information_message(const QString &)),
              this,      SLOT(log_information(const QString &)));
 
-  disconnect(converter, SIGNAL(finished()),
+  disconnect(worker, SIGNAL(finished()),
              this,      SLOT(increment_global_progress()));
 
-  if(!converter->has_been_cancelled())
+  if(!worker->has_been_cancelled())
   {
     auto value = m_globalProgress->value();
     m_globalProgress->setValue(++value);
@@ -161,18 +161,18 @@ void ProcessDialog::increment_global_progress()
 
   --m_num_workers;
 
-  auto bar = m_progress_bars.key(converter);
+  auto bar = m_progress_bars.key(worker);
   Q_ASSERT(bar);
 
-  disconnect(converter, SIGNAL(progress(int)),
+  disconnect(worker, SIGNAL(progress(int)),
              bar,       SLOT(setValue(int)));
 
   m_progress_bars[bar] = nullptr;
   bar->setEnabled(false);
   bar->setFormat("Idle");
 
-  auto cancelled = converter->has_been_cancelled();
-  delete converter;
+  auto cancelled = worker->has_been_cancelled();
+  delete worker;
 
   if((m_globalProgress->maximum() == m_globalProgress->value()) || cancelled)
   {
@@ -213,7 +213,7 @@ void ProcessDialog::create_threads()
   {
     while(m_num_workers < m_max_workers && m_music_folders.size() > 0)
     {
-      create_playlistGenerator();
+      create_playlistWorker();
     }
   }
 }
@@ -226,68 +226,68 @@ void ProcessDialog::create_transcoder()
 
   ++m_num_workers;
 
-  ConverterThread *converter;
+  Worker *worker;
 
   if(Utils::isModuleFile(fs_handle))
   {
-    converter = new ModuleConverter(fs_handle, m_configuration);
+    worker = new ModuleWorker(fs_handle, m_configuration);
   }
   else
   {
     if(Utils::isMP3File(fs_handle))
     {
-      converter = new MP3Converter(fs_handle, m_configuration);
+      worker = new MP3Worker(fs_handle, m_configuration);
     }
     else
     {
-      converter = new AudioConverter(fs_handle, m_configuration);
+      worker = new AudioWorker(fs_handle, m_configuration);
     }
   }
 
   auto message = QString("%1").arg(fs_handle.absoluteFilePath().split('/').last());
-  assign_bar_to_converter(converter, message);
+  assign_bar_to_worker(worker, message);
 
-  converter->start();
+  worker->start();
 }
 
 //-----------------------------------------------------------------
-void ProcessDialog::create_playlistGenerator()
+void ProcessDialog::create_playlistWorker()
 {
   auto fs_handle = m_music_folders.first();
   m_music_folders.removeFirst();
 
   ++m_num_workers;
 
-  auto generator = new PlaylistGenerator(fs_handle, m_configuration);
+  auto generator = new PlaylistWorker(fs_handle, m_configuration);
 
   auto message = QString("Generating playlist for %1").arg(fs_handle.absoluteFilePath().split('/').last());
-  assign_bar_to_converter(generator, message);
+  assign_bar_to_worker(generator, message);
 
   generator->start();
 }
 
 //-----------------------------------------------------------------
-void ProcessDialog::assign_bar_to_converter(ConverterThread* converter, const QString& message)
+void ProcessDialog::assign_bar_to_worker(Worker* worker, const QString& message)
 {
-  connect(converter, SIGNAL(error_message(const QString &)),
+  connect(worker, SIGNAL(error_message(const QString &)),
           this,      SLOT(log_error(const QString &)));
 
-  connect(converter, SIGNAL(information_message(const QString &)),
+  connect(worker, SIGNAL(information_message(const QString &)),
           this,      SLOT(log_information(const QString &)));
 
-  connect(converter, SIGNAL(finished()),
+  connect(worker, SIGNAL(finished()),
           this,      SLOT(increment_global_progress()));
 
   for(auto bar: m_progress_bars.keys())
   {
     if(m_progress_bars[bar] == nullptr)
     {
-      m_progress_bars[bar] = converter;
+      m_progress_bars[bar] = worker;
       bar->setValue(0);
       bar->setEnabled(true);
       bar->setFormat(message);
 
-      connect(converter, SIGNAL(progress(int)),
+      connect(worker, SIGNAL(progress(int)),
               bar,       SLOT(setValue(int)));
 
       break;

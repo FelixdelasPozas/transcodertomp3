@@ -37,7 +37,7 @@ extern "C"
 
 class QProgressBar;
 class QFileInfo;
-class ConverterThread;
+class Worker;
 
 // C++
 #include <memory>
@@ -49,9 +49,9 @@ class ProcessDialog
     Q_OBJECT
   public:
     /** \brief ProcessDialog class constructor.
-     * \param[in] files files to convert.
+     * \param[in] files files to transcode.
      * \param[in] folders to create playlists.
-     * \param[in] threadNum number of threads to use in the conversion process.
+     * \param[in] threadNum number of threads to use in the transcoding process.
      *
      */
     explicit ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInfo> &folders, const Utils::TranscoderConfiguration &configuration);
@@ -65,7 +65,7 @@ class ProcessDialog
     virtual void closeEvent(QCloseEvent *e) override final;
 
   private slots:
-    /** \brief Stops the conversion process.
+    /** \brief Stops the process.
      *
      */
     void stop();
@@ -82,8 +82,8 @@ class ProcessDialog
      */
     void log_information(const QString &message);
 
-    /** \brief When completed a conversion increments the counter of completely processed files,
-     *         updates the GUI and launches the next converter thread.
+    /** \brief When completed a worker increments the counter of completely processed files,
+     *         updates the GUI and launches the next worker thread.
      *
      */
     void increment_global_progress();
@@ -99,7 +99,7 @@ class ProcessDialog
     void onClipboardPressed() const;
 
   private:
-    /** \brief Creates and launches the converters threads.
+    /** \brief Creates and launches the workers' threads.
      *
      */
     void create_threads();
@@ -109,17 +109,17 @@ class ProcessDialog
      */
     void create_transcoder();
 
-    /** \brief Assigns a converter thread to the bar that will show it's progress.
-     * \param[in] converter converter pointer to assign.
+    /** \brief Assigns a worker thread to the bar that will show it's progress.
+     * \param[in] worker worker pointer to assign.
      * \param[in] message message to show in the bar.
      *
      */
-    void assign_bar_to_converter(ConverterThread *converter, const QString &message);
+    void assign_bar_to_worker(Worker *worker, const QString &message);
 
     /** \brief Creates and launches the playlist generators threads.
      *
      */
-    void create_playlistGenerator();
+    void create_playlistWorker();
 
     /** \brief Registers the lock manager for the libav library.
      *
@@ -132,7 +132,7 @@ class ProcessDialog
     void unregister_av_lock_manager();
 
     /** \brief Lock manager that complies with the specifications required
-     *         by libav. Needed for concurrent file conversion.
+     *         by libav. Needed for concurrent file transcoding.
      *  \param[inout] mutex custom mutex object (QMutex in this case).
      *  \param[in] op manager operation to perform.
      *
@@ -148,7 +148,7 @@ class ProcessDialog
     bool                                  m_finished_transcoding;
 
     QMutex m_mutex;
-    QMap<QProgressBar *, ConverterThread *> m_progress_bars;
+    QMap<QProgressBar *, Worker *> m_progress_bars;
 };
 
 #endif // PROCESSDIALOG_H_
