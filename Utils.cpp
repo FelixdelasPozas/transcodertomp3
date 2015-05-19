@@ -306,7 +306,7 @@ void Utils::TranscoderConfiguration::load()
   m_format_configuration.apply                     = settings.value(REFORMAT_APPLY, true).toBool();
   m_format_configuration.chars_to_delete           = settings.value(REFORMAT_CHARS_TO_DELETE, QString()).toString();
   m_format_configuration.number_of_digits          = settings.value(REFORMAT_NUMBER_OF_DIGITS, 2).toInt();
-  m_format_configuration.number_and_name_separator = settings.value(REFORMAT_SEPARATOR, QChar('-')).toChar();
+  m_format_configuration.number_and_name_separator = settings.value(REFORMAT_SEPARATOR, QString("-")).toString();
   m_format_configuration.to_title_case             = settings.value(REFORMAT_USE_TITLE_CASE, true).toBool();
 
   auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, QStringList()).toStringList();

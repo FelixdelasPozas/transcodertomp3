@@ -81,7 +81,7 @@ namespace Utils
     QString                       chars_to_delete;           // characters to delete.
     QList<QPair<QString,QString>> chars_to_replace;          // strings to replace (pair <to replace, with>).
     int                           number_of_digits;          // number of digits the number should have.
-    QChar                         number_and_name_separator; // separator character between the number and the rest of the name.
+    QString                       number_and_name_separator; // separator between the number and the rest of the name.
     bool                          to_title_case;             // capitalize the first letter of every word in the name.
 
     FormatConfiguration()
@@ -91,6 +91,7 @@ namespace Utils
                                 << QPair<QString, QString>("]", ")")
                                 << QPair<QString, QString>(".", " ")
                                 << QPair<QString, QString>("_", " ")
+                                << QPair<QString, QString>(":", ",")
                                 << QPair<QString, QString>("Pt ", "Part ");
       number_and_name_separator = '-';
       number_of_digits          = 2;

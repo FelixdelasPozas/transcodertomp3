@@ -30,6 +30,7 @@ Worker::Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration
 , m_configuration(configuration)
 , m_num_tracks   {0}
 , m_stop         {false}
+, m_fail         {false}
 , m_gfp          {nullptr}
 {
 }
@@ -37,7 +38,7 @@ Worker::Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration
 //-----------------------------------------------------------------
 Worker::~Worker()
 {
-  if(has_been_cancelled() && m_configuration.deleteOutputOnCancellation())
+  if((has_been_cancelled() && m_configuration.deleteOutputOnCancellation()) || m_fail)
   {
     if(m_mp3_file_stream.is_open())
     {
@@ -48,7 +49,7 @@ Worker::~Worker()
     QFile::remove(mp3_file);
   }
 
-  if(!has_been_cancelled() && m_configuration.renameInputOnSuccess() && !Utils::isMP3File(m_source_info) && !m_source_info.isDir())
+  if(!has_been_cancelled() && !m_fail && m_configuration.renameInputOnSuccess() && !Utils::isMP3File(m_source_info) && !m_source_info.isDir())
   {
     auto file_name = m_source_info.absoluteFilePath();
     QFile file(file_name);
@@ -148,10 +149,11 @@ bool Worker::lame_encode_internal_buffer(unsigned int buffer_start, unsigned int
       output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(buffer_pointer_L), reinterpret_cast<const double *>(buffer_pointer_R), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
       // Unsupported formats
+    default:
     case Sample_format::UNSIGNED_8:
     case Sample_format::UNSIGNED_8_PLANAR:
     case Sample_format::SIGNED_32:
-    default:
+      m_fail = true;
       return false;
       break;
   }

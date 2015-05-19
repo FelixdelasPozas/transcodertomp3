@@ -205,6 +205,7 @@ class Worker
     Destinations       m_destinations;
     int                m_num_tracks;
     bool               m_stop;
+    bool               m_fail;
     lame_global_flags *m_gfp;
     unsigned char      m_mp3_buffer[MP3_BUFFER_SIZE];
     std::ofstream      m_mp3_file_stream;

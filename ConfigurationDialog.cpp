@@ -297,5 +297,20 @@ const Utils::TranscoderConfiguration ConfigurationDialog::getConfiguration() con
   configuration.setRenamedInputFilesExtension(m_renamedInputsExtension->text());
   configuration.setUseMetadataToRenameOutput(m_renameOutput->isChecked());
 
+  Utils::FormatConfiguration format;
+  format.apply = m_reformat->isChecked();
+  format.chars_to_delete = m_deleteChars->text();
+  format.number_and_name_separator = m_separator->text();
+  format.number_of_digits = m_prefixNumDigits->value();
+  format.to_title_case = m_titleCase->isChecked();
+
+  format.chars_to_replace.clear();
+  for(int i = 0; i < m_replaceChars->rowCount(); ++i)
+  {
+    format.chars_to_replace << QPair<QString,QString>{m_replaceChars->item(i,0)->text(), m_replaceChars->item(i,1)->text()};
+  }
+
+  configuration.setFormatConfiguration(format);
+
   return configuration;
 }
