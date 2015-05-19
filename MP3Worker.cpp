@@ -112,7 +112,10 @@ void MP3Worker::run_implementation()
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
   emit information_message(QString("%1: processing to %2").arg(source_name).arg(track_title));
 
-  QFile::rename(m_source_info.absoluteFilePath(), m_source_path + track_title);
+  // this two step rename is needed beacuse QFile::rename wont rename files with the same name but different upper and lower cases.
+  auto TEMPORAL_FILE_EXTENSION = QString(".temp");
+  QFile::rename(m_source_info.absoluteFilePath(), m_source_info.absoluteFilePath() + TEMPORAL_FILE_EXTENSION);
+  QFile::rename(m_source_info.absoluteFilePath() + TEMPORAL_FILE_EXTENSION, m_source_path + track_title);
 }
 
 //-----------------------------------------------------------------
