@@ -94,6 +94,9 @@ void MusicTranscoder::onDirectoryChanged()
 //-----------------------------------------------------------------
 void MusicTranscoder::onConversionStarted()
 {
+  QList<QFileInfo> files;
+  QList<QFileInfo> folders;
+
   QStringList filters;
   if(m_configuration.transcodeAudio())
   {
@@ -109,11 +112,12 @@ void MusicTranscoder::onConversionStarted()
   {
     filters << Utils::MODULE_FILE_EXTENSIONS;
   }
-  Q_ASSERT(filters.size() > 0);
 
-  auto files = Utils::findFiles(m_directoryText->text(), filters);
+  if(!filters.empty())
+  {
+    files = Utils::findFiles(m_directoryText->text(), filters);
+  }
 
-  QList<QFileInfo> folders;
   if(m_configuration.createM3Ufiles())
   {
     auto foldersCondition = [](const QFileInfo &info) { return info.isDir(); };

@@ -94,7 +94,7 @@ void PlaylistWorker::generate_playlist()
     emit progress(((files.indexOf(file) + 1) * 100) / files.size());
 
     long long duration = 0;
-    if(!get_song_duration(file, duration))
+    if(has_been_cancelled() || !get_song_duration(file, duration))
     {
       playlist.close();
       playlist.remove();

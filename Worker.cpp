@@ -45,8 +45,14 @@ Worker::~Worker()
       m_mp3_file_stream.close();
     }
 
-    auto mp3_file = m_source_path + m_destinations.first().name;
-    QFile::remove(mp3_file);
+    if(!m_destinations.empty())
+    {
+      auto mp3_file = m_source_path + m_destinations.first().name;
+      if(QFile::exists(mp3_file))
+      {
+        QFile::remove(mp3_file);
+      }
+    }
   }
 
   if(!has_been_cancelled() && !m_fail && m_configuration.renameInputOnSuccess() && !Utils::isMP3File(m_source_info) && !m_source_info.isDir())
