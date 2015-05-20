@@ -200,23 +200,69 @@ QString Utils::formatString(const QString filename,
         if (parts[i].isEmpty()) continue;
         bool starts_with_parenthesis = false;
         bool ends_with_parenthesis = false;
+        bool starts_with_quote = false;
+        bool ends_with_quote = false;
+        int begin_quote_num = 0;
+        int end_quote_num = 0;
 
-        while (parts[i].startsWith('(') && parts[i].size() > 1)
+        if(parts[i].startsWith('(') && parts[i].size() > 1)
         {
           starts_with_parenthesis = true;
           parts[i].remove('(');
         }
 
-        while (parts[i].endsWith(')') && parts[i].size() > 1)
+        if(parts[i].endsWith(')') && parts[i].size() > 1)
         {
           ends_with_parenthesis = true;
           parts[i].remove(')');
         }
+        
+        if(parts[i].startsWith('\'') && parts[i].size() > 1)
+        {
+          starts_with_quote = true;
+          while(parts[i].at(begin_quote_num) == QChar('\'') && begin_quote_num < parts[i].size())
+          {
+            ++begin_quote_num;
+          }
+        }
+        
+        if(parts[i].endsWith('\'') && parts[i].size() > 1)
+        {
+          ends_with_quote = true;
+          auto part_size = parts[i].size() - 1;
+          while(parts[i].at(part_size - end_quote_num) == QChar('\'') && end_quote_num < parts[i].size())
+          {
+            ++end_quote_num;
+          }
+        }
 
-        if (!isRomanNumeral(parts[i]))
+        if(starts_with_quote || ends_with_quote)
+        {
+          parts[i].remove(QChar('\''));
+        }
+
+        if(!isRomanNumeral(parts[i]))
         {
           parts[i] = parts[i].toLower();
           parts[i].replace(0, 1, parts[i][0].toUpper());
+        }
+
+        if(starts_with_quote)
+        {
+          while(begin_quote_num > 0)
+          {
+            parts[i].insert(0, QChar('\''));
+            --begin_quote_num;
+          }
+        }
+
+        if(ends_with_quote)
+        {
+          while(end_quote_num > 0)
+          {
+            parts[i].append(QChar('\''));
+            --end_quote_num;
+          }
         }
 
         if (starts_with_parenthesis)

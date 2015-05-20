@@ -71,6 +71,7 @@ void PlaylistWorker::generate_playlist()
 
   if(files.empty())
   {
+    emit information_message(QString("There aren't MP3 files in folder '%1'.").arg(m_source_info.absoluteFilePath()));
     return;
   }
 
