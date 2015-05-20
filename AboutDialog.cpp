@@ -29,8 +29,9 @@ AboutDialog::AboutDialog()
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & ~(Qt::WindowMaximizeButtonHint) & ~(Qt::WindowMinimizeButtonHint));
 
   auto compilation_date = QString(__DATE__);
+  auto compilation_time = QString(" (") + QString(__TIME__) + QString(")");
 
-  m_compilationDate->setText(tr("Compiled on ") + compilation_date);
+  m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
   m_version->setText(VERSION);
 }
 
