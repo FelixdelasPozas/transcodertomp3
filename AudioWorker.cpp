@@ -347,7 +347,10 @@ bool AudioWorker::encode_buffers(unsigned int buffer_start, unsigned int buffer_
 //-----------------------------------------------------------------
 void AudioWorker::transcode()
 {
-  open_next_destination_file();
+  if(!open_next_destination_file())
+  {
+    return;
+  }
 
   while(0 == av_read_frame(m_libav_context, &m_packet))
   {
@@ -442,7 +445,10 @@ bool AudioWorker::process_audio_packet()
 
         close_destination_file();
 
-        open_next_destination_file();
+        if(!open_next_destination_file())
+        {
+          return false;
+        }
 
         if(destination().duration != 0)
         {

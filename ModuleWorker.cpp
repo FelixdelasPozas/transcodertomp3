@@ -23,6 +23,9 @@
 // libopenmpt
 #include <libopenmpt/libopenmpt.hpp>
 
+// C++
+#include <fstream>
+
 //-----------------------------------------------------------------
 ModuleWorker::ModuleWorker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
 : Worker{source_info, configuration}

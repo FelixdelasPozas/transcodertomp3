@@ -40,7 +40,7 @@ Worker::~Worker()
 {
   if((has_been_cancelled() && m_configuration.deleteOutputOnCancellation()) || m_fail)
   {
-    if(m_mp3_file_stream.is_open())
+    if(m_mp3_file_stream.isOpen())
     {
       m_mp3_file_stream.close();
     }
@@ -164,15 +164,19 @@ bool Worker::lame_encode_internal_buffer(unsigned int buffer_start, unsigned int
     {
       case -1:
         emit error_message(QString("Error in LAME code stage, mp3 buffer was too small."));
+        m_fail = true;
         break;
       case -2:
         emit error_message(QString("Error in LAME code stage, malloc() problem."));
+        m_fail = true;
         break;
       case -3:
         emit error_message(QString("Error in LAME code stage, lame_init_params() not called."));
+        m_fail = true;
         break;
       case -4:
         emit error_message(QString("Error in LAME code stage, psycho acoustic problems."));
+        m_fail = true;
         break;
       default:
         Q_ASSERT(false);
@@ -194,6 +198,7 @@ bool Worker::encode(unsigned int buffer_start, unsigned int buffer_length, unsig
   {
     auto source_file = m_source_info.absoluteFilePath();
     emit error_message(QString("Error in encode phase for file '%1'. Unknown sample format, format is '%2'").arg(source_file).arg(sample_format_string()));
+    m_fail = true;
     return false;
   }
 
@@ -203,7 +208,7 @@ bool Worker::encode(unsigned int buffer_start, unsigned int buffer_length, unsig
 //-----------------------------------------------------------------
 bool Worker::open_next_destination_file()
 {
-  Q_ASSERT(!m_mp3_file_stream.is_open());
+  Q_ASSERT(!m_mp3_file_stream.isOpen());
 
   if(m_destinations.empty())
   {
@@ -217,16 +222,19 @@ bool Worker::open_next_destination_file()
   if(0 != init_lame())
   {
     emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
+    m_fail = true;
     return false;
   }
 
   auto destination = m_destinations.first();
   auto mp3_file = m_source_path + destination.name;
-  m_mp3_file_stream.open(mp3_file.toStdString().c_str(), std::ios::trunc|std::ios::binary);
+  m_mp3_file_stream.setFileName(mp3_file);
+  m_mp3_file_stream.open(QIODevice::WriteOnly|QIODevice::Truncate);
 
-  if(!m_mp3_file_stream.is_open())
+  if(!m_mp3_file_stream.isOpen())
   {
-    emit error_message(QString("Couldn't open destination file: %1").arg(mp3_file));
+    emit error_message(QString("Couldn't open destination file: %1. Error is: %2.").arg(mp3_file).arg(m_mp3_file_stream.error()));
+    m_fail = true;
     return false;
   }
 
@@ -249,6 +257,7 @@ void Worker::close_destination_file()
 {
   m_destinations.removeFirst();
 
+  m_mp3_file_stream.flush();
   m_mp3_file_stream.close();
 
   deinit_lame();
@@ -267,7 +276,7 @@ const int Worker::number_of_tracks() const
 }
 
 //-----------------------------------------------------------------
-bool Worker::check_input_file_permissions() const
+bool Worker::check_input_file_permissions()
 {
   if(m_source_info.isDir())
   {
@@ -278,6 +287,7 @@ bool Worker::check_input_file_permissions() const
   if(file.exists() && !file.open(QFile::ReadOnly))
   {
     emit error_message(QString("Can't open file '%1' but it exists, check for permissions.").arg(m_source_info.absoluteFilePath()));
+    m_fail = true;
     return false;
   }
 
@@ -286,13 +296,14 @@ bool Worker::check_input_file_permissions() const
 }
 
 //-----------------------------------------------------------------
-bool Worker::check_output_file_permissions() const
+bool Worker::check_output_file_permissions()
 {
   auto temp_file = QString(m_source_info.absoluteFilePath()) + QString(".TranscoderTemporalFile");
   QFile file(temp_file);
   if(!file.open(QFile::WriteOnly|QFile::Truncate))
   {
     emit error_message(QString("Can't create files in '%1' path, check for permissions.").arg(m_source_info.absoluteFilePath()));
+    m_fail = true;
     return false;
   }
 

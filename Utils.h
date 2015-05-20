@@ -92,7 +92,16 @@ namespace Utils
                                 << QPair<QString, QString>(".", " ")
                                 << QPair<QString, QString>("_", " ")
                                 << QPair<QString, QString>(":", ",")
-                                << QPair<QString, QString>("Pt ", "Part ");
+                                << QPair<QString, QString>("?", "-")
+                                << QPair<QString, QString>("~", "-")
+                                << QPair<QString, QString>("/", "-")
+                                << QPair<QString, QString>(";", "-")
+                                << QPair<QString, QString>("\"", "''")
+                                << QPair<QString, QString>("pt ", "part ")
+                                << QPair<QString, QString>("#", "Nº")
+                                << QPair<QString, QString>("arr ", "arranged")
+                                << QPair<QString, QString>("cond ", "conductor")
+                                << QPair<QString, QString>("comp ", "composed");
       number_and_name_separator = '-';
       number_of_digits          = 2;
       to_title_case             = true;

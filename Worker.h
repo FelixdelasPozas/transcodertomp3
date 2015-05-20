@@ -30,9 +30,6 @@
 // Lame
 #include <lame.h>
 
-// C++
-#include <fstream>
-
 class Worker
 : public QThread
 {
@@ -178,12 +175,12 @@ class Worker
     /** \brief Returns true if the input file can be read and false otherwise.
      *
      */
-    bool check_input_file_permissions() const;
+    bool check_input_file_permissions();
 
     /** \brief Returns true if the program can write in the output directory and false otherwise.
      *
      */
-    bool check_output_file_permissions() const;
+    bool check_output_file_permissions();
 
     /** \brief Returns the bytes per sample of the source audio.
      *
@@ -208,7 +205,7 @@ class Worker
     bool               m_fail;
     lame_global_flags *m_gfp;
     unsigned char      m_mp3_buffer[MP3_BUFFER_SIZE];
-    std::ofstream      m_mp3_file_stream;
+    QFile              m_mp3_file_stream;
 };
 
 #endif // WORKER_H_
