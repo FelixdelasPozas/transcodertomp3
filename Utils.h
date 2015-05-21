@@ -24,6 +24,7 @@
 #include <QDir>
 #include <QString>
 #include <QPair>
+#include <QMutex>
 
 // C++
 #include <functional>
@@ -33,6 +34,7 @@ namespace Utils
   extern const QStringList MODULE_FILE_EXTENSIONS;
   extern const QStringList WAVE_FILE_EXTENSIONS;
   extern const QStringList MOVIE_FILE_EXTENSIONS;
+  static QMutex s_mutex;
 
   /** \brief Returns true if the file given as parameter has a audio extension.
    * \param[in] file file QFileInfo struct.
@@ -57,6 +59,19 @@ namespace Utils
    *
    */
   bool isMP3File(const QFileInfo &file);
+
+  /** \brief Returs true if the string has only spaces.
+   *
+   */
+  bool isSpaces(const QString &string);
+
+  /** \brief Returns true if the file given as parameter could be renamed to a temporary
+   *         filename.
+   * \param[in] input_filename filename of the file to rename.
+   * \param[out] output_filename filename of the renamed file.
+   *
+   */
+  bool renameFile(const QString &input_filename, QString &output_filename);
 
   /** \brief Returns the files in the specified directory tree that has the specified extensions.
    * \param[in] rootDir starting directory.
@@ -99,9 +114,11 @@ namespace Utils
                                 << QPair<QString, QString>("\"", "''")
                                 << QPair<QString, QString>("pt ", "part ")
                                 << QPair<QString, QString>("#", "Nº")
-                                << QPair<QString, QString>("arr ", "arranged")
-                                << QPair<QString, QString>("cond ", "conductor")
-                                << QPair<QString, QString>("comp ", "composed");
+                                << QPair<QString, QString>("arr ", "arranged ")
+                                << QPair<QString, QString>("cond ", "conductor ")
+                                << QPair<QString, QString>("comp ", "composer ")
+                                << QPair<QString, QString>("feat ", "featuring ")
+                                << QPair<QString, QString>("alt ", "alternate ");
       number_and_name_separator = '-';
       number_of_digits          = 2;
       to_title_case             = true;

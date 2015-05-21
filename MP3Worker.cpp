@@ -44,7 +44,14 @@ MP3Worker::~MP3Worker()
 //-----------------------------------------------------------------
 void MP3Worker::run_implementation()
 {
-  auto file_name = m_source_info.absoluteFilePath().replace('/',QDir::separator());
+  QString temporal_filename;
+  if(!Utils::renameFile(m_source_info.absoluteFilePath(), temporal_filename))
+  {
+    emit error_message(QString("Couldn't rename '%1'.").arg(m_source_info.absoluteFilePath()));
+    return;
+  }
+
+  auto file_name = temporal_filename.replace('/',QDir::separator());
   QString track_title;
 
   ID3_Tag file_id3_tag(file_name.toStdString().c_str());
@@ -53,6 +60,21 @@ void MP3Worker::run_implementation()
   {
     if(m_configuration.useMetadataToRenameOutput())
     {
+      // CD number
+      auto disc_frame = file_id3_tag.Find(ID3FID_PARTINSET);
+      if(disc_frame)
+      {
+        auto field = disc_frame->GetField(ID3FN_TEXT);
+        auto text = QString(field->GetRawText());
+        auto number = text.split('/').first();
+
+        if (!number.isEmpty() && !Utils::isSpaces(number))
+        {
+          track_title += number + QString("-");
+        }
+      }
+
+      // track number
       auto num_frame = file_id3_tag.Find(ID3FID_TRACKNUM);
       if (num_frame)
       {
@@ -60,12 +82,13 @@ void MP3Worker::run_implementation()
         auto text = QString(field->GetRawText());
         auto number = text.split('/').first();
 
-        if (!number.isEmpty())
+        if (!number.isEmpty() && !Utils::isSpaces(number))
         {
           track_title += number + QString(" - ");
         }
       }
 
+      // track title
       auto title_frame = file_id3_tag.Find(ID3FID_TITLE);
       if (title_frame)
       {
@@ -74,10 +97,19 @@ void MP3Worker::run_implementation()
 
         delete[] charString;
 
-        if (!title.isEmpty())
+        if (!title.isEmpty() && !Utils::isSpaces(title))
         {
+          title.replace(QDir::separator(), QChar('-'));
           track_title += title;
         }
+        else
+        {
+          track_title.clear();
+        }
+      }
+      else
+      {
+        track_title.clear();
       }
     }
 
@@ -113,12 +145,11 @@ void MP3Worker::run_implementation()
   emit information_message(QString("%1: processing to %2").arg(source_name).arg(track_title));
 
   // this two step rename is needed beacuse QFile::rename won't rename files with the same name but different upper and lower cases.
-  auto TEMPORAL_FILE_EXTENSION = QString(".temp");
-  QFile::rename(m_source_info.absoluteFilePath(), m_source_info.absoluteFilePath() + TEMPORAL_FILE_EXTENSION);
-  if (!QFile::rename(m_source_info.absoluteFilePath() + TEMPORAL_FILE_EXTENSION, m_source_path + track_title))
+
+  if (!QFile::rename(temporal_filename, m_source_path + track_title))
   {
     emit error_message(QString("Couldn't rename '%1' file to '%2'.").arg(m_source_info.absoluteFilePath()).arg(m_source_path + track_title));
-    QFile::rename(m_source_info.absoluteFilePath() + TEMPORAL_FILE_EXTENSION, m_source_info.absoluteFilePath());
+    QFile::rename(temporal_filename, m_source_info.absoluteFilePath());
   }
 }
 

@@ -23,6 +23,7 @@
 // Qt
 #include <QSettings>
 #include <QDirIterator>
+#include <QTemporaryFile>
 
 // C++
 #include <thread>
@@ -168,26 +169,51 @@ QString Utils::formatString(const QString filename,
     int index = 0;
 
     // adjust the number prefix and insert the default separator.
-    QRegExp re("\\d*");
+    // Format 1: 01 ...
+    QRegExp re1("\\d*");
+    auto re1_match = re1.exactMatch(parts[index]);
+
+    // Format 2: 1-01 ...
+    QRegExp re2("\\d-\\d*");
+    auto re2_match = re2.exactMatch(parts[index]);
 
     // only check number format if it exists
-    if (re.exactMatch(parts[index]))
+    if (re1_match || re2_match)
     {
-      while (conf.number_of_digits > parts[index].length())
+      QString number_string, number_disc_id;
+      if(re1_match)
       {
-        parts[index] = "0" + parts[index];
-      }
-
-      if ((parts.size() > index) && (parts[index + 1] != QString(conf.number_and_name_separator)))
-      {
-        parts[index] += QString(' ' + conf.number_and_name_separator + ' ');
+        number_string = parts[index];
       }
       else
       {
-        parts[index + 1] = QString(' ' + conf.number_and_name_separator);
+        auto splits = parts[index].split('-');
+        number_disc_id = splits.first();
+        number_string = splits.last();
       }
 
-      formattedName = parts[index];
+      while (conf.number_of_digits > number_string.length())
+      {
+        number_string = "0" + number_string;
+      }
+
+      if (index != parts.size() - 1)
+      {
+        if(parts[index + 1] != QString(conf.number_and_name_separator))
+        {
+          number_string += QString(' ' + conf.number_and_name_separator + ' ');
+        }
+        else
+        {
+          parts[index + 1] = QString(' ' + conf.number_and_name_separator);
+        }
+      }
+
+      if(!number_disc_id.isEmpty())
+      {
+        number_string = number_disc_id + QString("-") + number_string;
+      }
+      formattedName = number_string;
       ++index;
     }
 
@@ -244,7 +270,7 @@ QString Utils::formatString(const QString filename,
         if(!isRomanNumeral(parts[i]))
         {
           parts[i] = parts[i].toLower();
-          parts[i].replace(0, 1, parts[i][0].toUpper());
+          parts[i].replace(0, 1, parts[i].at(0).toUpper());
         }
 
         if(starts_with_quote)
@@ -279,7 +305,10 @@ QString Utils::formatString(const QString filename,
       }
     }
 
-    formattedName += parts[index++];
+    if(index < parts.size())
+    {
+      formattedName += parts[index++];
+    }
 
     // compose the name.
     while (index < parts.size())
@@ -294,6 +323,27 @@ QString Utils::formatString(const QString filename,
   }
 
   return formattedName;
+}
+
+//-----------------------------------------------------------------
+bool Utils::renameFile(const QString& input_filename, QString& output_filename)
+{
+  QString temp_name = QDir::separator() + QString("XXXXXX.temporal");
+
+  QMutexLocker lock(&s_mutex);
+
+  {
+    QTemporaryFile file(input_filename + temp_name);
+    if(!file.open())
+    {
+      return false;
+    }
+    output_filename = file.fileName();
+    file.close();
+    file.remove();
+  }
+
+  return true;
 }
 
 //-----------------------------------------------------------------
@@ -623,4 +673,18 @@ bool Utils::TranscoderConfiguration::createM3Ufiles() const
 void Utils::TranscoderConfiguration::setCreateM3Ufiles(bool enabled)
 {
   m_create_M3U_files = enabled;
+}
+
+//-----------------------------------------------------------------
+bool Utils::isSpaces(const QString& string)
+{
+  for(int i = 0; i < string.size(); ++i)
+  {
+    if(!string.at(i).isSpace())
+    {
+      return false;
+    }
+  }
+
+  return true;
 }

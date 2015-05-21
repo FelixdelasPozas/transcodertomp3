@@ -66,28 +66,36 @@ AudioWorker::~AudioWorker()
 //-----------------------------------------------------------------
 void AudioWorker::run_implementation()
 {
-  auto music_file = m_source_info.absoluteFilePath().replace('/',QDir::separator());
+  auto input_filename = m_source_info.absoluteFilePath();
+  if(!Utils::renameFile(input_filename, m_working_filename))
+  {
+    emit error_message(QString("Couldn't rename '%1'.").arg(input_filename));
+    return;
+  }
 
   if(!init_libav())
   {
-    emit error_message(QString("Error in LibAV init stage for '%1'").arg(music_file));
+    deinit_libav();
+    QFile::rename(m_working_filename, input_filename);
     return;
   }
 
   transcode();
 
   deinit_libav();
+
+  QFile::rename(m_working_filename, input_filename);
 }
 
 //-----------------------------------------------------------------
 bool AudioWorker::init_libav()
 {
   auto source_name = m_source_info.absoluteFilePath();
-  auto source_name_string = source_name.replace('/',QDir::separator());
+  auto av_filename = m_working_filename.replace(QDir::separator(), QChar('\\'));
 
   int value = 0;
 
-  value = avformat_open_input(&m_libav_context, source_name_string.toStdString().c_str(), nullptr, nullptr);
+  value = avformat_open_input(&m_libav_context, av_filename.toStdString().c_str(), nullptr, nullptr);
   if (value < 0)
   {
     emit error_message(QString("Couldn't open file: '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(value)));
@@ -101,7 +109,6 @@ bool AudioWorker::init_libav()
   if(value < 0)
   {
     emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(value)));
-    deinit_libav();
     return false;
   }
 
@@ -109,7 +116,6 @@ bool AudioWorker::init_libav()
   if (m_audio_stream_id < 0)
   {
     emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(m_audio_stream_id)));
-    deinit_libav();
     return false;
   }
 
@@ -120,7 +126,6 @@ bool AudioWorker::init_libav()
     if (!m_audio_decoder)
     {
       emit error_message(QString("Couldn't find decoder for '%1'.").arg(source_name));
-      deinit_libav();
       return false;
     }
   }
@@ -137,7 +142,6 @@ bool AudioWorker::init_libav()
   if (value < 0)
   {
     emit error_message(QString("Couldn't open decoder for '%1'. Error is \"%2\"").arg(source_name).arg(av_error_string(value)));
-    deinit_libav();
     return false;
   }
 

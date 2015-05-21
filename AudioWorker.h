@@ -117,6 +117,7 @@ class AudioWorker
     AVFrame           *m_frame;
     AVFrame           *m_cover_frame;
     int                m_audio_stream_id;
+    QString            m_working_filename;
 
     static QMutex      s_mutex;
 };

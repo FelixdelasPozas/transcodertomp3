@@ -118,12 +118,19 @@ void PlaylistWorker::generate_playlist()
 //-----------------------------------------------------------------
 bool PlaylistWorker::get_song_duration(const QString &file_name, long long &duration)
 {
-  auto complete_name = QString(m_source_info.absoluteFilePath() + "/" + file_name).replace('/',QDir::separator());
+  QString temporal_filename;
+  if(!Utils::renameFile(file_name, temporal_filename))
+  {
+    return false;
+  }
 
-  auto value = avformat_open_input(&m_libav_context, complete_name.toStdString().c_str(), nullptr, nullptr);
+  auto av_name = temporal_filename.replace('/',QDir::separator());
+
+  auto value = avformat_open_input(&m_libav_context, av_name.toStdString().c_str(), nullptr, nullptr);
   if (value < 0)
   {
-    emit error_message(QString("Couldn't open file: '%1'. Error is \"%2\".").arg(complete_name).arg(av_error_string(value)));
+    emit error_message(QString("Couldn't open file: '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(-value)));
+    QFile::rename(temporal_filename, file_name);
     return false;
   }
 
@@ -133,8 +140,9 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   value = avformat_find_stream_info(m_libav_context, nullptr);
   if(value < 0)
   {
-    emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(complete_name).arg(av_error_string(value)));
+    emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(value)));
     deinit_libav();
+    QFile::rename(temporal_filename, file_name);
     return false;
   }
 
@@ -142,8 +150,9 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   auto stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_AUDIO, -1, -1, &dummy_decoder, 0);
   if (stream_id < 0)
   {
-    emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(complete_name).arg(av_error_string(stream_id)));
+    emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(stream_id)));
     deinit_libav();
+    QFile::rename(temporal_filename, file_name);
     return false;
   }
 
@@ -151,6 +160,8 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   duration = (stream->duration * stream->time_base.num) / stream->time_base.den;
 
   deinit_libav();
+
+  QFile::rename(temporal_filename, file_name);
 
   return true;
 }
