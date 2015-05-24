@@ -58,57 +58,7 @@ void MP3Worker::run_implementation()
 
   if(file_id3_tag.HasV1Tag() || file_id3_tag.HasV2Tag())
   {
-    if(m_configuration.useMetadataToRenameOutput())
-    {
-      // CD number
-      auto disc_frame = file_id3_tag.Find(ID3FID_PARTINSET);
-      if(disc_frame)
-      {
-        auto charString = ID3_GetString(disc_frame, ID3FN_TEXT);
-        auto cd_number = QString(charString);
-
-        delete [] charString;
-
-        if (!cd_number.isEmpty() && !Utils::isSpaces(cd_number))
-        {
-          track_title += cd_number + QString("-");
-        }
-      }
-
-      // track number
-      auto num_frame = file_id3_tag.Find(ID3FID_TRACKNUM);
-      if (num_frame)
-      {
-        auto track_number = ID3_GetTrackNum(&file_id3_tag);
-
-        track_title += QString().number(track_number) + QString(" - ");
-      }
-
-      // track title
-      auto title_frame = file_id3_tag.Find(ID3FID_TITLE);
-      if (title_frame)
-      {
-        auto charString = ID3_GetString(title_frame, ID3FN_TEXT);
-        auto title = QString(charString);
-
-        delete[] charString;
-
-        if (!title.isEmpty() && !Utils::isSpaces(title))
-        {
-          title.replace(QDir::separator(), QChar('-'));
-          title.replace(QChar('/'),QChar('-'));
-          track_title += title;
-        }
-        else
-        {
-          track_title.clear();
-        }
-      }
-      else
-      {
-        track_title.clear();
-      }
-    }
+    track_title = parse_metadata(file_id3_tag);
 
     emit progress(25);
 
@@ -242,4 +192,64 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------
+QString MP3Worker::parse_metadata(const ID3_Tag& file_tag)
+{
+  QString track_title;
+
+  if(m_configuration.useMetadataToRenameOutput())
+  {
+    // CD number
+    auto disc_frame = file_tag.Find(ID3FID_PARTINSET);
+    if(disc_frame)
+    {
+      auto charString = ID3_GetString(disc_frame, ID3FN_TEXT);
+      auto cd_number = QString(charString);
+
+      delete [] charString;
+
+      if (!cd_number.isEmpty() && !Utils::isSpaces(cd_number))
+      {
+        track_title += cd_number + QString("-");
+      }
+    }
+
+    // track number
+    auto num_frame = file_tag.Find(ID3FID_TRACKNUM);
+    if (num_frame)
+    {
+      auto track_number = ID3_GetTrackNum(&file_tag);
+
+      track_title += QString().number(track_number) + QString(" - ");
+    }
+
+    // track title
+    auto title_frame = file_tag.Find(ID3FID_TITLE);
+    if (title_frame)
+    {
+      auto charString = ID3_GetString(title_frame, ID3FN_TEXT);
+      auto title = QString(charString);
+
+      delete[] charString;
+
+      if (!title.isEmpty() && !Utils::isSpaces(title))
+      {
+        title.replace(QDir::separator(), QChar('-'));
+        title.replace(QChar('/'),QChar('-'));
+        track_title += title;
+      }
+      else
+      {
+        track_title.clear();
+      }
+    }
+    else
+    {
+      track_title.clear();
+    }
+  }
+
+  return track_title;
 }

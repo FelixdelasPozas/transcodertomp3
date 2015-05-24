@@ -42,6 +42,7 @@ void ModuleWorker::run_implementation()
 {
   if(!init())
   {
+    m_fail = true;
     return;
   }
 
@@ -114,6 +115,7 @@ void ModuleWorker::process_module()
   if(!file.is_open())
   {
     emit error_message(QString("Couldn't open source file: %1").arg(file_name));
+    m_fail = true;
     return;
   }
 
@@ -143,7 +145,7 @@ void ModuleWorker::process_module()
         emit progress((position * 100) / duration);
       }
 
-      lame_encode_internal_buffer(0, count, reinterpret_cast<unsigned char *>(&m_left_buffer), reinterpret_cast<unsigned char *>(&m_right_buffer));
+      encode(0, count, reinterpret_cast<unsigned char *>(&m_left_buffer), reinterpret_cast<unsigned char *>(&m_right_buffer));
     }
   }
 
@@ -151,8 +153,6 @@ void ModuleWorker::process_module()
   {
     return;
   }
-
-  lame_encoder_flush();
 
   close_destination_file();
 }

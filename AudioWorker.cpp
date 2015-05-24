@@ -62,16 +62,21 @@ AudioWorker::~AudioWorker()
 //-----------------------------------------------------------------
 void AudioWorker::run_implementation()
 {
-  if(!init_libav())
+  if(!Utils::renameFile(m_source_info, m_working_filename))
   {
-    deinit_libav();
-
-    QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
+    emit error_message(QString("Couldn't rename '%1'.").arg(m_source_info.absoluteFilePath()));
     m_fail = true;
     return;
   }
 
-  transcode();
+  if(init_libav())
+  {
+    transcode();
+  }
+  else
+  {
+    m_fail = true;
+  }
 
   deinit_libav();
 
@@ -82,12 +87,6 @@ void AudioWorker::run_implementation()
 bool AudioWorker::init_libav()
 {
   av_register_all();
-
-  if(!Utils::renameFile(m_source_info, m_working_filename))
-  {
-    emit error_message(QString("Couldn't rename '%1'.").arg(m_source_info.absoluteFilePath()));
-    return false;
-  }
 
   auto source_name = m_source_info.absoluteFilePath();
   auto av_filename = m_working_filename.replace('/', QDir::separator());
@@ -135,7 +134,7 @@ bool AudioWorker::init_libav()
 
   if(m_libav_context->nb_streams != 1 && !Utils::isVideoFile(m_source_info) && m_configuration.extractMetadataCoverPicture())
   {
-    init_libav_cover_transcoding();
+    init_libav_cover_extraction();
   }
 
   value = avcodec_open2(m_audio_decoder_context, m_audio_decoder, nullptr);
@@ -155,9 +154,6 @@ bool AudioWorker::init_libav()
 
   switch(m_audio_decoder_context->sample_fmt)
   {
-    case AV_SAMPLE_FMT_U8:
-      m_information.format = Sample_format::UNSIGNED_8;
-      break;
     case AV_SAMPLE_FMT_S16:
       m_information.format = Sample_format::SIGNED_16;
       break;
@@ -169,9 +165,6 @@ bool AudioWorker::init_libav()
       break;
     case AV_SAMPLE_FMT_DBL:
       m_information.format = Sample_format::DOUBLE;
-      break;
-    case AV_SAMPLE_FMT_U8P:
-      m_information.format = Sample_format::UNSIGNED_8_PLANAR;
       break;
     case AV_SAMPLE_FMT_S16P:
       m_information.format = Sample_format::SIGNED_16_PLANAR;
@@ -185,7 +178,11 @@ bool AudioWorker::init_libav()
     case AV_SAMPLE_FMT_DBLP:
       m_information.format = Sample_format::DOUBLE_PLANAR;
       break;
-    default:
+    default: // unsupported sample formats.
+    case AV_SAMPLE_FMT_U8P:
+    case AV_SAMPLE_FMT_U8:
+      emit error_message(QString("Couldn't transcode '%1', because it has an unsupported sample format (8 bits).").arg(source_name));
+      return false;
       break;
   }
 
@@ -193,14 +190,12 @@ bool AudioWorker::init_libav()
 }
 
 //-----------------------------------------------------------------
-void AudioWorker::init_libav_cover_transcoding()
+void AudioWorker::init_libav_cover_extraction()
 {
   // try to guess if the other stream is the album cover picture.
   m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
   if(m_cover_stream_id > 0)
   {
-    s_mutex.lock();
-
     m_cover_codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
     switch(m_libav_context->streams[m_cover_stream_id]->codec->codec_id)
     {
@@ -222,6 +217,9 @@ void AudioWorker::init_libav_cover_transcoding()
     }
 
     auto cover_name = m_source_path + m_configuration.coverPictureName() + m_cover_extension;
+
+    s_mutex.lock();
+
     if(!QFile::exists(cover_name) && m_cover_stream_id > 0)
     {
       // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
@@ -234,6 +232,7 @@ void AudioWorker::init_libav_cover_transcoding()
       // the rest of workers will ignore the cover stream.
       m_cover_stream_id = -1;
     }
+
     s_mutex.unlock();
   }
 }
@@ -330,7 +329,6 @@ void AudioWorker::transcode()
       if(!extract_cover_picture())
       {
         emit error_message(QString("Error extracting cover picture for file '%1.").arg(m_source_info.absoluteFilePath()));
-        return;
       }
     }
 
@@ -359,8 +357,6 @@ void AudioWorker::transcode()
 
     av_free_packet(&m_packet);
   }
-
-  lame_encoder_flush();
 
   close_destination_file();
 }
@@ -395,8 +391,6 @@ bool AudioWorker::process_audio_packet()
         {
           return false;
         }
-
-        lame_encoder_flush();
 
         close_destination_file();
 

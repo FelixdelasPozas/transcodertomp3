@@ -63,7 +63,7 @@ class AudioWorker
      *         If the cover is already in jpg format this method doesn't need
      *         to be called, as the picture will be just dumped to disk.
      */
-    void init_libav_cover_transcoding();
+    void init_libav_cover_extraction();
 
     /** \brief Frees the structures allocated in the init stages of libav library.
      *

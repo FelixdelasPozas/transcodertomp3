@@ -58,6 +58,12 @@ class MP3Worker
      */
     bool extract_cover(const ID3_Tag &file_tag);
 
+    /** \brief Constructs the final filename using the metadata.
+     * \param[in] file_tag file tag structure.
+     *
+     */
+    QString parse_metadata(const ID3_Tag &file_tag);
+
     static QMutex s_mutex;
 };
 

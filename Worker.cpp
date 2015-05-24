@@ -38,7 +38,7 @@ Worker::Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration
 //-----------------------------------------------------------------
 Worker::~Worker()
 {
-  if((has_been_cancelled() && m_configuration.deleteOutputOnCancellation()) || m_fail)
+  if((has_been_cancelled() && m_configuration.deleteOutputOnCancellation()) || has_failed())
   {
     if(m_mp3_file_stream.isOpen())
     {
@@ -55,7 +55,7 @@ Worker::~Worker()
     }
   }
 
-  if(!has_been_cancelled() && !m_fail && m_configuration.renameInputOnSuccess() && !Utils::isMP3File(m_source_info) && !m_source_info.isDir())
+  if(!has_been_cancelled() && !has_failed() && m_configuration.renameInputOnSuccess() && !Utils::isMP3File(m_source_info) && !m_source_info.isDir())
   {
     auto file_name = m_source_info.absoluteFilePath();
     QFile file(file_name);
@@ -74,6 +74,12 @@ void Worker::stop()
 bool Worker::has_been_cancelled()
 {
   return m_stop;
+}
+
+//-----------------------------------------------------------------
+bool Worker::has_failed()
+{
+  return m_fail;
 }
 
 //-----------------------------------------------------------------
@@ -183,23 +189,22 @@ bool Worker::lame_encode_internal_buffer(unsigned int buffer_start, unsigned int
     {
       case -1:
         emit error_message(QString("Error in LAME code stage, mp3 buffer was too small."));
-        m_fail = true;
         break;
       case -2:
         emit error_message(QString("Error in LAME code stage, malloc() problem."));
-        m_fail = true;
         break;
       case -3:
         emit error_message(QString("Error in LAME code stage, lame_init_params() not called."));
-        m_fail = true;
         break;
       case -4:
         emit error_message(QString("Error in LAME code stage, psycho acoustic problems."));
-        m_fail = true;
         break;
       default:
         Q_ASSERT(false);
     }
+
+    m_fail = true;
+    return false;
   }
 
   if (output_bytes > 0)
@@ -275,6 +280,8 @@ bool Worker::open_next_destination_file()
 void Worker::close_destination_file()
 {
   m_destinations.removeFirst();
+
+  lame_encoder_flush();
 
   m_mp3_file_stream.flush();
   m_mp3_file_stream.close();

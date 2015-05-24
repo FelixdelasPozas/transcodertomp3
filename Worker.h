@@ -57,6 +57,11 @@ class Worker
      */
     bool has_been_cancelled();
 
+    /** \brief Returns true if the process has failed to finish it's job.
+     *
+     */
+    bool has_failed();
+
   signals:
     /** \brief Emits a error message signal.
      * \param[in] message error message.
@@ -83,31 +88,6 @@ class Worker
      *
      */
     virtual void run_implementation() = 0;
-
-    /** \brief Initializes lame library structures and data to encode the pcm data.
-     *
-     */
-    int init_lame();
-
-    /** \brief Frees the structures allocated in the init stages of lame library.
-     *
-     */
-    void deinit_lame();
-
-    /** \brief Flushes the encoder to write the last bytes of the encoder.
-     *
-     */
-    void lame_encoder_flush();
-
-    /** \brief Encodes the pcm data in the libav packet to the mp3 buffer and writes it
-     *         to disk.
-     * \param[in] buffer_start starting position in the data buffer to convert.
-     * \param[in] buffer_length number of samples per channel in the data buffer.
-     * \param[in] buffer1 pointer to first buffer (main or left).
-     * \param[in] buffer2 pointer to second buffer (unused or right).
-     *
-     */
-    bool lame_encode_internal_buffer(unsigned int buffer_start, unsigned int buffer_length, unsigned char *buffer1, unsigned char *buffer2);
 
     /** \brief Encodes the data using the lame_encode() method and emits a message
      *         in case of error.
@@ -173,6 +153,31 @@ class Worker
     bool                           m_fail;
 
   private:
+    /** \brief Initializes lame library structures and data to encode the pcm data.
+     *
+     */
+    int init_lame();
+
+    /** \brief Frees the structures allocated in the init stages of lame library.
+     *
+     */
+    void deinit_lame();
+
+    /** \brief Flushes the encoder to write the last bytes of the encoder.
+     *
+     */
+    void lame_encoder_flush();
+
+    /** \brief Encodes the pcm data in the libav packet to the mp3 buffer and writes it
+     *         to disk.
+     * \param[in] buffer_start starting position in the data buffer to convert.
+     * \param[in] buffer_length number of samples per channel in the data buffer.
+     * \param[in] buffer1 pointer to first buffer (main or left).
+     * \param[in] buffer2 pointer to second buffer (unused or right).
+     *
+     */
+    bool lame_encode_internal_buffer(unsigned int buffer_start, unsigned int buffer_length, unsigned char *buffer1, unsigned char *buffer2);
+
     /** \brief Returns true if the input file can be read and false otherwise.
      *
      */
