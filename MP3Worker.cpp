@@ -28,7 +28,8 @@
 QMutex MP3Worker::s_mutex;
 
 QString MP3Worker::MP3_EXTENSION = ".mp3";
-QString MP3Worker::COVER_MIME_TYPE = "image/jpeg";
+QString MP3Worker::COVER_MIME_TYPE_1 = "image/jpeg";
+QString MP3Worker::COVER_MIME_TYPE_2 = "image/jpg";
 
 //-----------------------------------------------------------------
 MP3Worker::MP3Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
@@ -44,14 +45,13 @@ MP3Worker::~MP3Worker()
 //-----------------------------------------------------------------
 void MP3Worker::run_implementation()
 {
-  QString temporal_filename;
-  if(!Utils::renameFile(m_source_info.absoluteFilePath(), temporal_filename))
+  if(!Utils::renameFile(m_source_info, m_working_filename))
   {
     emit error_message(QString("Couldn't rename '%1'.").arg(m_source_info.absoluteFilePath()));
     return;
   }
 
-  auto file_name = temporal_filename.replace('/',QDir::separator());
+  auto file_name = m_working_filename.replace('/', QDir::separator());
   QString track_title;
 
   ID3_Tag file_id3_tag(file_name.toStdString().c_str());
@@ -64,13 +64,14 @@ void MP3Worker::run_implementation()
       auto disc_frame = file_id3_tag.Find(ID3FID_PARTINSET);
       if(disc_frame)
       {
-        auto field = disc_frame->GetField(ID3FN_TEXT);
-        auto text = QString(field->GetRawText());
-        auto number = text.split('/').first();
+        auto charString = ID3_GetString(disc_frame, ID3FN_TEXT);
+        auto cd_number = QString(charString);
 
-        if (!number.isEmpty() && !Utils::isSpaces(number))
+        delete [] charString;
+
+        if (!cd_number.isEmpty() && !Utils::isSpaces(cd_number))
         {
-          track_title += number + QString("-");
+          track_title += cd_number + QString("-");
         }
       }
 
@@ -78,14 +79,9 @@ void MP3Worker::run_implementation()
       auto num_frame = file_id3_tag.Find(ID3FID_TRACKNUM);
       if (num_frame)
       {
-        auto field = num_frame->GetField(ID3FN_TEXT);
-        auto text = QString(field->GetRawText());
-        auto number = text.split('/').first();
+        auto track_number = ID3_GetTrackNum(&file_id3_tag);
 
-        if (!number.isEmpty() && !Utils::isSpaces(number))
-        {
-          track_title += number + QString(" - ");
-        }
+        track_title += QString().number(track_number) + QString(" - ");
       }
 
       // track title
@@ -100,6 +96,7 @@ void MP3Worker::run_implementation()
         if (!title.isEmpty() && !Utils::isSpaces(title))
         {
           title.replace(QDir::separator(), QChar('-'));
+          title.replace(QChar('/'),QChar('-'));
           track_title += title;
         }
         else
@@ -136,7 +133,7 @@ void MP3Worker::run_implementation()
 
   if(track_title.isEmpty())
   {
-    track_title = file_name.split(QDir::separator()).last().remove(MP3_EXTENSION);
+    track_title = m_source_info.absoluteFilePath().split('/').last().remove(MP3_EXTENSION);
   }
 
   track_title = Utils::formatString(track_title, m_configuration.formatConfiguration());
@@ -144,12 +141,19 @@ void MP3Worker::run_implementation()
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
   emit information_message(QString("%1: processing to %2").arg(source_name).arg(track_title));
 
-  // this two step rename is needed beacuse QFile::rename won't rename files with the same name but different upper and lower cases.
+  auto final_name = m_source_path + track_title;
 
-  if (!QFile::rename(temporal_filename, m_source_path + track_title))
+  if(m_source_info.absoluteFilePath().compare(final_name) != 0)
   {
-    emit error_message(QString("Couldn't rename '%1' file to '%2'.").arg(m_source_info.absoluteFilePath()).arg(m_source_path + track_title));
-    QFile::rename(temporal_filename, m_source_info.absoluteFilePath());
+    if (!QFile::rename(m_working_filename, final_name))
+    {
+      emit error_message(QString("Couldn't rename '%1' file to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
+      QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
+    }
+  }
+  else
+  {
+    QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
   }
 }
 
@@ -185,9 +189,11 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
     }
 
     auto mime_type   = ID3_GetString(cover_frame, ID3FN_MIMETYPE);
+    auto qmime_type  = QString(mime_type);
+    delete [] mime_type;
     auto data_size   = cover_frame->GetField(ID3FN_DATA)->Size();
 
-    if(QString(mime_type).compare(COVER_MIME_TYPE) == 0)
+    if(qmime_type.compare(COVER_MIME_TYPE_1) == 0 || qmime_type.compare(COVER_MIME_TYPE_2) == 0)
     {
       auto field = cover_frame->GetField(ID3FN_DATA);
       auto picture = reinterpret_cast<const char *>(field->GetRawBinary());
@@ -201,7 +207,10 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
     else
     {
       // damn, call the artillery
-      init_libav();
+      if(!init_libav())
+      {
+        return false;
+      }
 
       while(0 == av_read_frame(m_libav_context, &m_packet))
       {
@@ -230,8 +239,6 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
 
       deinit_libav();
     }
-
-    delete [] mime_type;
   }
 
   return true;

@@ -28,9 +28,9 @@ Worker::Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration
 : m_source_info  {source_info}
 , m_source_path  {m_source_info.absoluteFilePath().remove(m_source_info.absoluteFilePath().split('/').last())}
 , m_configuration(configuration)
+, m_fail         {false}
 , m_num_tracks   {0}
 , m_stop         {false}
-, m_fail         {false}
 , m_gfp          {nullptr}
 {
 }
@@ -154,11 +154,24 @@ bool Worker::lame_encode_internal_buffer(unsigned int buffer_start, unsigned int
     case Sample_format::DOUBLE_PLANAR:
       output_bytes = lame_encode_buffer_ieee_double(m_gfp, reinterpret_cast<const double *>(buffer_pointer_L), reinterpret_cast<const double *>(buffer_pointer_R), buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
       break;
+    case Sample_format::SIGNED_32: // not natively supported by lame, we need to make it planar. it's a common sample format in flac files.
+      {
+        long int bufferL[buffer_length];
+        long int bufferR[buffer_length];
+        auto L_pointer = reinterpret_cast<long int *>(buffer_L);
+
+        for(unsigned long i = 0; i < buffer_length * 2; i += 2)
+        {
+          bufferL[i/2] = L_pointer[i];
+          bufferR[i/2] = L_pointer[i+1];
+        }
+        output_bytes = lame_encode_buffer_long2(m_gfp, bufferL, bufferR, buffer_length, m_mp3_buffer, MP3_BUFFER_SIZE);
+      }
+      break;
       // Unsupported formats
     default:
     case Sample_format::UNSIGNED_8:
     case Sample_format::UNSIGNED_8_PLANAR:
-    case Sample_format::SIGNED_32:
       m_fail = true;
       return false;
       break;
@@ -224,9 +237,9 @@ bool Worker::open_next_destination_file()
 
   std::memset(m_mp3_buffer, 0, MP3_BUFFER_SIZE);
 
-  auto music_file = m_source_info.absoluteFilePath().replace('/',QDir::separator());
   if(0 != init_lame())
   {
+    auto music_file = m_source_info.absoluteFilePath().replace('/',QDir::separator());
     emit error_message(QString("Error in LAME library init stage for '%1'").arg(music_file));
     m_fail = true;
     return false;
@@ -304,7 +317,7 @@ bool Worker::check_input_file_permissions()
 //-----------------------------------------------------------------
 bool Worker::check_output_file_permissions()
 {
-  auto temp_file = QString(m_source_info.absoluteFilePath()) + QString(".TranscoderTemporalFile");
+  auto temp_file = QString(m_source_info.absoluteFilePath()) + Utils::TEMPORAL_FILE_EXTENSION;
   QFile file(temp_file);
   if(!file.open(QFile::WriteOnly|QFile::Truncate))
   {

@@ -28,9 +28,10 @@
 // C++
 #include <thread>
 
-const QStringList Utils::MODULE_FILE_EXTENSIONS = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
-const QStringList Utils::WAVE_FILE_EXTENSIONS   = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
-const QStringList Utils::MOVIE_FILE_EXTENSIONS  = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
+const QStringList Utils::MODULE_FILE_EXTENSIONS  = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
+const QStringList Utils::WAVE_FILE_EXTENSIONS    = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
+const QStringList Utils::MOVIE_FILE_EXTENSIONS   = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
+const QString     Utils::TEMPORAL_FILE_EXTENSION = QString(".MusicTranscoderTemporal");
 
 const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY                 = QObject::tr("Root directory");
 const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS              = QObject::tr("Number of threads");
@@ -326,24 +327,24 @@ QString Utils::formatString(const QString filename,
 }
 
 //-----------------------------------------------------------------
-bool Utils::renameFile(const QString& input_filename, QString& output_filename)
+bool Utils::renameFile(const QFileInfo &file_info, QString &output_filename)
 {
-  QString temp_name = QDir::separator() + QString("XXXXXX.temporal");
-
+  auto temporal_filename = file_info.absolutePath() + QString("/XXXXXX") + TEMPORAL_FILE_EXTENSION;
   QMutexLocker lock(&s_mutex);
 
   {
-    QTemporaryFile file(input_filename + temp_name);
-    if(!file.open())
+    QTemporaryFile temp_file(temporal_filename);
+    if(!temp_file.open())
     {
       return false;
     }
-    output_filename = file.fileName();
-    file.close();
-    file.remove();
+
+    output_filename = temp_file.fileName();
+    temp_file.close();
+    temp_file.remove();
   }
 
-  return true;
+  return QFile::rename(file_info.absoluteFilePath(), output_filename);
 }
 
 //-----------------------------------------------------------------

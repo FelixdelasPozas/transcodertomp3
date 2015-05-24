@@ -50,7 +50,8 @@ class MP3Worker
 
   private:
     static QString MP3_EXTENSION;
-    static QString COVER_MIME_TYPE;
+    static QString COVER_MIME_TYPE_1;
+    static QString COVER_MIME_TYPE_2;
 
     /** \brief Helper method to extract the cover.
      *

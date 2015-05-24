@@ -83,6 +83,9 @@ class AudioWorker
     AVFormatContext   *m_libav_context;
     AVPacket           m_packet;
     int                m_cover_stream_id;
+    int                m_cover_codec_id;
+    QString            m_cover_extension;
+    QString            m_working_filename;
 
   private:
     /** \brief Helper method to send the buffers to encode. Returns the value of the lame library buffer
@@ -109,15 +112,8 @@ class AudioWorker
 
     AVCodec           *m_audio_decoder;
     AVCodecContext    *m_audio_decoder_context;
-    AVCodec           *m_cover_encoder;
-    AVCodecContext    *m_cover_encoder_context;
-    AVCodec           *m_cover_decoder;
-    AVCodecContext    *m_cover_decoder_context;
-    AVPacket           m_cover_packet;
     AVFrame           *m_frame;
-    AVFrame           *m_cover_frame;
     int                m_audio_stream_id;
-    QString            m_working_filename;
 
     static QMutex      s_mutex;
 };

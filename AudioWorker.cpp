@@ -46,14 +46,10 @@ AudioWorker::AudioWorker(const QFileInfo origin_info, const Utils::TranscoderCon
 : Worker{origin_info, configuration}
 , m_libav_context        {nullptr}
 , m_cover_stream_id      {-1}
+, m_cover_codec_id       {-1}
 , m_audio_decoder        {nullptr}
 , m_audio_decoder_context{nullptr}
-, m_cover_encoder        {nullptr}
-, m_cover_encoder_context{nullptr}
-, m_cover_decoder        {nullptr}
-, m_cover_decoder_context{nullptr}
 , m_frame                {nullptr}
-, m_cover_frame          {nullptr}
 , m_audio_stream_id      {-1}
 {
 }
@@ -66,32 +62,31 @@ AudioWorker::~AudioWorker()
 //-----------------------------------------------------------------
 void AudioWorker::run_implementation()
 {
-  auto input_filename = m_source_info.absoluteFilePath();
-  if(!Utils::renameFile(input_filename, m_working_filename))
-  {
-    emit error_message(QString("Couldn't rename '%1'.").arg(input_filename));
-    return;
-  }
-
   if(!init_libav())
   {
     deinit_libav();
-    QFile::rename(m_working_filename, input_filename);
+    m_fail = true;
     return;
   }
 
   transcode();
 
   deinit_libav();
-
-  QFile::rename(m_working_filename, input_filename);
 }
 
 //-----------------------------------------------------------------
 bool AudioWorker::init_libav()
 {
+  av_register_all();
+
+  if(!Utils::renameFile(m_source_info, m_working_filename))
+  {
+    emit error_message(QString("Couldn't rename '%1'.").arg(m_source_info.absoluteFilePath()));
+    return false;
+  }
+
   auto source_name = m_source_info.absoluteFilePath();
-  auto av_filename = m_working_filename.replace(QDir::separator(), QChar('\\'));
+  auto av_filename = m_working_filename.replace('/', QDir::separator());
 
   int value = 0;
 
@@ -106,6 +101,7 @@ bool AudioWorker::init_libav()
   m_libav_context->max_analyze_duration *= 1000;
 
   value = avformat_find_stream_info(m_libav_context, nullptr);
+
   if(value < 0)
   {
     emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(value)));
@@ -195,17 +191,34 @@ bool AudioWorker::init_libav()
 //-----------------------------------------------------------------
 void AudioWorker::init_libav_cover_transcoding()
 {
-  auto source_name = m_source_info.absoluteFilePath();
-  int value = 0;
-
   // try to guess if the other stream is the album cover picture.
   m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
   if(m_cover_stream_id > 0)
   {
-    auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".jpg");
-
     s_mutex.lock();
-    if(!QFile::exists(cover_name))
+
+    m_cover_codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
+    switch(m_libav_context->streams[m_cover_stream_id]->codec->codec_id)
+    {
+      case AV_CODEC_ID_MJPEG:
+        m_cover_extension = QString(".jpg");
+        break;
+      case AV_CODEC_ID_PNG:
+        m_cover_extension = QString(".png");
+        break;
+      case AV_CODEC_ID_BMP:
+        m_cover_extension = QString(".bmp");
+        break;
+      case AV_CODEC_ID_TIFF:
+        m_cover_extension = QString(".tiff");
+        break;
+      default:
+        m_cover_extension = QString(".picture_unknown_format");
+        break;
+    }
+
+    auto cover_name = m_source_path + m_configuration.coverPictureName() + m_cover_extension;
+    if(!QFile::exists(cover_name) && m_cover_stream_id > 0)
     {
       // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
       QFile file(cover_name);
@@ -218,52 +231,6 @@ void AudioWorker::init_libav_cover_transcoding()
       m_cover_stream_id = -1;
     }
     s_mutex.unlock();
-
-    if(m_cover_stream_id > 0)
-    {
-      auto cover_codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
-      if(cover_codec_id != AV_CODEC_ID_MJPEG)
-      {
-        av_init_packet(&m_cover_packet);
-        m_cover_frame = av_frame_alloc();
-
-        m_cover_decoder = avcodec_find_decoder(cover_codec_id);
-        m_cover_decoder_context = m_libav_context->streams[m_cover_stream_id]->codec;
-
-        if (!m_cover_decoder)
-        {
-          emit error_message(QString("Couldn't find decoder for cover in '%1'.").arg(source_name));
-          m_cover_stream_id = -1;
-        }
-        else
-        {
-          value = avcodec_open2(m_cover_decoder_context, m_cover_decoder, nullptr);
-          if (value < 0)
-          {
-            emit error_message(QString("Couldn't open decoder for cover in '%1'. Error is \"%2\"").arg(source_name).arg(av_error_string(value)));
-            m_cover_stream_id = -1;
-          }
-        }
-
-        m_cover_encoder = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
-        m_cover_encoder_context = avcodec_alloc_context3(m_cover_encoder);
-
-        if (!m_cover_encoder)
-        {
-          emit error_message(QString("Couldn't find encoder for cover in '%1'.").arg(source_name));
-          m_cover_stream_id = -1;
-        }
-        else
-        {
-          value = avcodec_open2(m_cover_encoder_context, m_cover_encoder, nullptr);
-          if (value < 0)
-          {
-            emit error_message(QString("Couldn't open encoder for '%1'. Error is \"%2\"").arg(source_name).arg(av_error_string(value)));
-            m_cover_stream_id = -1;
-          }
-        }
-      }
-    }
   }
 }
 
@@ -280,13 +247,6 @@ void AudioWorker::deinit_libav()
     av_frame_free(&m_frame);
   }
 
-  if(m_cover_decoder_context)
-  {
-    avcodec_close(m_cover_decoder_context);
-    avcodec_close(m_cover_encoder_context);
-    av_frame_free(&m_cover_frame);
-  }
-
   if(m_libav_context)
   {
     avformat_close_input(&m_libav_context);
@@ -297,20 +257,7 @@ void AudioWorker::deinit_libav()
     av_frame_free(&m_frame);
   }
 
-  if(m_cover_frame)
-  {
-    av_frame_free(&m_cover_frame);
-  }
-
-  if(m_cover_encoder_context)
-  {
-    avcodec_free_context(&m_cover_encoder_context);
-  }
-
-  if(m_cover_decoder_context)
-  {
-    avcodec_free_context(&m_cover_decoder_context);
-  }
+  QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
 }
 
 //-----------------------------------------------------------------
@@ -330,12 +277,12 @@ bool AudioWorker::encode_buffers(unsigned int buffer_start, unsigned int buffer_
   switch(m_audio_decoder_context->sample_fmt)
   {
     case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S32:
     case AV_SAMPLE_FMT_FLT:
     case AV_SAMPLE_FMT_DBL:
       buffer1 = m_frame->data[0];
       break;
     case AV_SAMPLE_FMT_S16P:
-    case AV_SAMPLE_FMT_S32:
     case AV_SAMPLE_FMT_FLTP:
     case AV_SAMPLE_FMT_DBLP:
       buffer1 = m_frame->extended_data[0];
@@ -353,6 +300,7 @@ void AudioWorker::transcode()
 {
   if(!open_next_destination_file())
   {
+    m_fail = true;
     return;
   }
 
@@ -368,17 +316,18 @@ void AudioWorker::transcode()
       {
         if(!process_audio_packet())
         {
+          m_fail = true;
           return;
         }
       }
     }
 
-    // dump the cover if the format is jpeg, if not a decoding-encoding phase must be applied.
+    // dump the cover
     if(m_packet.stream_index == m_cover_stream_id)
     {
       if(!extract_cover_picture())
       {
-        emit error_message(QString("Error encoding cover picture for file '%1.").arg(m_source_info.absoluteFilePath()));
+        emit error_message(QString("Error extracting cover picture for file '%1.").arg(m_source_info.absoluteFilePath()));
         return;
       }
     }
@@ -487,7 +436,7 @@ bool AudioWorker::process_audio_packet()
 //-----------------------------------------------------------------
 bool AudioWorker::extract_cover_picture() const
 {
-  auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".jpg");
+  auto cover_name = m_source_path + m_configuration.coverPictureName() + m_cover_extension;
 
   QFile file(cover_name);
   if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
@@ -496,36 +445,8 @@ bool AudioWorker::extract_cover_picture() const
     return false;
   }
 
-  if(m_cover_encoder)
-  {
-    AVPacket *packet = const_cast<AVPacket *>(&m_packet);             // remove the constness of the reference.
-    AVPacket *cover_packet = const_cast<AVPacket *>(&m_cover_packet); // remove the constness of the reference.
-
-    while(packet->size > 0)
-    {
-      int gotFrame = 0;
-      int result = avcodec_decode_video2(m_cover_decoder_context, m_cover_frame, &gotFrame, packet);
-
-      if (result >= 0 && gotFrame)
-      {
-        packet->size -= result;
-        packet->data += result;
-
-        int gotFrame2 = 0;
-        int result2 = avcodec_encode_video2(m_cover_encoder_context, cover_packet, m_cover_frame, &gotFrame);
-
-        if(result2 >= 0 && gotFrame2)
-        {
-          file.write(reinterpret_cast<const char *>(cover_packet->data), static_cast<long long int>(cover_packet->size));
-        }
-      }
-    }
-  }
-  else
-  {
-    file.write(reinterpret_cast<const char *>(m_packet.data), static_cast<long long int>(m_packet.size));
-  }
-
+  file.write(reinterpret_cast<const char *>(m_packet.data), static_cast<long long int>(m_packet.size));
+  file.flush();
   file.close();
 
   return true;
@@ -581,25 +502,20 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
 
           auto cdtext = track_get_cdtext(track);
           auto track_name = QString(cdtext_get(PTI_TITLE, cdtext));
-          auto track_clean_name = Utils::formatString(track_name, m_configuration.formatConfiguration());
+          track_name.replace(QChar('/'), QChar('-'));
+          track_name.replace(QDir::separator(), QChar('-'));
+          auto track_clean_name = Utils::formatString(QString().number(i) + QString(" ") + track_name, m_configuration.formatConfiguration());
           auto track_length = track_get_length(track);
           // convert to number of samples.
           track_length = m_information.samplerate * (track_length / CD_FRAMES_PER_SECOND);
-          auto number_prefix = QString().number(i);
 
-          while(number_prefix.length() < m_configuration.formatConfiguration().number_of_digits)
-          {
-            number_prefix = "0" + number_prefix;
-          }
-
-          auto final_name = number_prefix + QString(" ") + QString(m_configuration.formatConfiguration().number_and_name_separator) + QString(" ") + track_clean_name;
-
-          destinations << Destination(final_name, track_length);
+          destinations << Destination(track_clean_name, track_length);
         }
       }
     }
   }
-  else
+
+  if(destinations.empty())
   {
     destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration()), 0);
   }

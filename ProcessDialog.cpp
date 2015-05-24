@@ -66,8 +66,9 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInf
   auto boxLayout = new QVBoxLayout();
   m_workers->setLayout(boxLayout);
 
-  auto bars_num = std::min(m_max_workers, total_jobs);
+  auto initial_jobs = (m_music_files.size() != 0) ? m_music_files.size() : m_music_folders.size();
 
+  auto bars_num = std::min(m_max_workers, initial_jobs);
   for(int i = 0; i < bars_num; ++i)
   {
     auto bar = new QProgressBar();
@@ -143,6 +144,7 @@ void ProcessDialog::increment_global_progress()
   m_mutex.lock();
 
   auto worker = qobject_cast<Worker *>(sender());
+  Q_ASSERT(worker);
 
   disconnect(worker, SIGNAL(error_message(const QString &)),
              this,      SLOT(log_error(const QString &)));
@@ -189,6 +191,21 @@ void ProcessDialog::increment_global_progress()
   if(m_music_files.empty() && m_num_workers == 0)
   {
     m_finished_transcoding = true;
+
+    auto bars_num = std::min(m_max_workers, m_music_folders.size());
+    while(m_progress_bars.size() < bars_num)
+    {
+      auto bar = new QProgressBar();
+      bar->setAlignment(Qt::AlignCenter);
+      bar->setMaximum(0);
+      bar->setMaximum(100);
+      bar->setValue(0);
+      bar->setEnabled(false);
+
+      m_progress_bars[bar] = nullptr;
+
+      m_workers->layout()->addWidget(bar);
+    }
   }
 
   m_mutex.unlock();

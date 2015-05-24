@@ -56,7 +56,7 @@ QStringList PlaylistWorker::get_file_names() const
 
   for(auto file: files)
   {
-    fileNames << file.absoluteFilePath().split('/').last();
+    fileNames << file.absoluteFilePath();
   }
 
   fileNames.sort();
@@ -102,13 +102,15 @@ void PlaylistWorker::generate_playlist()
       return;
     }
 
+    auto basename = file.split('/').last();
+
     contents.append(QString("#EXTINF:") +
                     QString().number(duration) +
                     QString(",") +
-                    file.split('.').first() +
+                    basename.split('.').first() +
                     newline);
 
-    contents.append(file + newline);
+    contents.append(basename + newline);
   }
 
   playlist.write(contents);
@@ -119,7 +121,7 @@ void PlaylistWorker::generate_playlist()
 bool PlaylistWorker::get_song_duration(const QString &file_name, long long &duration)
 {
   QString temporal_filename;
-  if(!Utils::renameFile(file_name, temporal_filename))
+  if(!Utils::renameFile(QFileInfo(file_name), temporal_filename))
   {
     return false;
   }

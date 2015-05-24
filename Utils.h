@@ -34,6 +34,7 @@ namespace Utils
   extern const QStringList MODULE_FILE_EXTENSIONS;
   extern const QStringList WAVE_FILE_EXTENSIONS;
   extern const QStringList MOVIE_FILE_EXTENSIONS;
+  extern const QString TEMPORAL_FILE_EXTENSION;
   static QMutex s_mutex;
 
   /** \brief Returns true if the file given as parameter has a audio extension.
@@ -66,12 +67,12 @@ namespace Utils
   bool isSpaces(const QString &string);
 
   /** \brief Returns true if the file given as parameter could be renamed to a temporary
-   *         filename.
-   * \param[in] input_filename filename of the file to rename.
+   *         filename. The temporal filename is passed out as the second parameter.
+   * \param[in] file_info QFileInfo struct of the file to rename.
    * \param[out] output_filename filename of the renamed file.
    *
    */
-  bool renameFile(const QString &input_filename, QString &output_filename);
+  bool renameFile(const QFileInfo& file_info, QString &output_filename);
 
   /** \brief Returns the files in the specified directory tree that has the specified extensions.
    * \param[in] rootDir starting directory.
@@ -104,6 +105,8 @@ namespace Utils
       apply                     = true;
       chars_to_replace          << QPair<QString, QString>("[", "(")
                                 << QPair<QString, QString>("]", ")")
+                                << QPair<QString, QString>("}", ")")
+                                << QPair<QString, QString>("{", "(")
                                 << QPair<QString, QString>(".", " ")
                                 << QPair<QString, QString>("_", " ")
                                 << QPair<QString, QString>(":", ",")
