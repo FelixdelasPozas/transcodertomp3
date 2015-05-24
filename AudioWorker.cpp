@@ -65,6 +65,8 @@ void AudioWorker::run_implementation()
   if(!init_libav())
   {
     deinit_libav();
+
+    QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
     m_fail = true;
     return;
   }
@@ -72,6 +74,8 @@ void AudioWorker::run_implementation()
   transcode();
 
   deinit_libav();
+
+  QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
 }
 
 //-----------------------------------------------------------------
@@ -256,8 +260,6 @@ void AudioWorker::deinit_libav()
   {
     av_frame_free(&m_frame);
   }
-
-  QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
 }
 
 //-----------------------------------------------------------------
