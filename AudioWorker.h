@@ -57,21 +57,13 @@ class AudioWorker
      */
     bool init_libav();
 
-    /** \brief Initializes additional libav structures to decode the video stream
-     *         containing the cover picture of the source file if the stream is not
-     *         an jpg codec, and also structures to encode the cover to jpg format.
-     *         If the cover is already in jpg format this method doesn't need
-     *         to be called, as the picture will be just dumped to disk.
-     */
-    void init_libav_cover_extraction();
-
     /** \brief Frees the structures allocated in the init stages of libav library.
      *
      */
     void deinit_libav();
 
-    /** \brief Extracts the cover picture and dumps it to the disk. An additional transcode
-     *         process might be needed if the source isn't already in jpeg format.
+    /** \brief Extracts the cover picture and dumps it to the disk.
+     *
      */
     bool extract_cover_picture() const;
 
@@ -88,6 +80,11 @@ class AudioWorker
     QString            m_working_filename;
 
   private:
+    /** \brief Initializes additional libav structures to decode the video stream
+     *         containing the cover picture of the source file.
+     */
+    void init_libav_cover_extraction();
+
     /** \brief Helper method to send the buffers to encode. Returns the value of the lame library buffer
      *         encoding method called.
      *

@@ -46,7 +46,6 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInf
 {
   setupUi(this);
 
-  av_register_all();
   register_av_lock_manager();
 
   connect(m_cancelButton, SIGNAL(clicked()),

@@ -81,6 +81,7 @@ void PlaylistWorker::generate_playlist()
   if(!playlist.open(QFile::WriteOnly|QFile::Truncate))
   {
     emit error_message(QString("Couldn't create playlist file in folder '%1'.").arg(m_source_info.absoluteFilePath()));
+    m_fail = true;
     return;
   }
 
@@ -133,6 +134,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   {
     emit error_message(QString("Couldn't open file: '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(-value)));
     QFile::rename(temporal_filename, file_name);
+    m_fail = true;
     return false;
   }
 
@@ -145,6 +147,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
     emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(value)));
     deinit_libav();
     QFile::rename(temporal_filename, file_name);
+    m_fail = true;
     return false;
   }
 
@@ -155,6 +158,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
     emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(stream_id)));
     deinit_libav();
     QFile::rename(temporal_filename, file_name);
+    m_fail = true;
     return false;
   }
 
