@@ -45,13 +45,7 @@ MP3Worker::~MP3Worker()
 //-----------------------------------------------------------------
 void MP3Worker::run_implementation()
 {
-  if(!Utils::renameFile(m_source_info, m_working_filename))
-  {
-    emit error_message(QString("Couldn't rename '%1'.").arg(m_source_info.absoluteFilePath()));
-    return;
-  }
-
-  auto file_name = m_working_filename.replace('/', QDir::separator());
+  auto file_name = m_source_info.absoluteFilePath().replace('/', QDir::separator());
   QString track_title;
 
   ID3_Tag file_id3_tag(file_name.toStdString().c_str());
@@ -93,17 +87,17 @@ void MP3Worker::run_implementation()
 
   auto final_name = m_source_path + track_title;
 
+  // we need to do the rename in two steps as Qt won't rename a file if the only difference is the case of the letters,
+  // but usually we need to do just that.
   if(m_source_info.absoluteFilePath().compare(final_name) != 0)
   {
-    if (!QFile::rename(m_working_filename, final_name))
+    QString temporal_string("rename");
+
+    if(!QFile::rename(m_source_info.absoluteFilePath(), m_source_info.absoluteFilePath() + temporal_string) ||
+       !QFile::rename(m_source_info.absoluteFilePath() + temporal_string, final_name))
     {
       emit error_message(QString("Couldn't rename '%1' file to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
-      QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
     }
-  }
-  else
-  {
-    QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
   }
 }
 

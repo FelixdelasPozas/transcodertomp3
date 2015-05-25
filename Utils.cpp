@@ -135,16 +135,23 @@ QString Utils::formatString(const QString filename,
                             bool add_mp3_extension)
 {
   // works for filenames and plain strings
-  auto fileInfo = QFileInfo(QFile(filename));
-  auto name = fileInfo.absoluteFilePath().split('/').last();
-  auto extension = name.split('.').last();
-  QString formattedName = name;
+  QString formattedName = filename;
 
-  auto extension_id = QString("*.") + extension;
-  bool identified = WAVE_FILE_EXTENSIONS.contains(extension_id) || MODULE_FILE_EXTENSIONS.contains(extension_id) || MOVIE_FILE_EXTENSIONS.contains(extension_id);
-  if (identified && name.contains('.'))
+  auto fileInfo = QFileInfo(filename);
+  if(fileInfo.exists())
   {
-    formattedName = name.remove(name.lastIndexOf('.'), extension.length() + 1);
+    formattedName = fileInfo.absoluteFilePath().split('/').last();
+
+    auto extension = formattedName.split('.').last();
+    auto extension_id = QString("*.") + extension;
+    bool identified = WAVE_FILE_EXTENSIONS.contains(extension_id)   ||
+                      MODULE_FILE_EXTENSIONS.contains(extension_id) ||
+                      MOVIE_FILE_EXTENSIONS.contains(extension_id);
+
+    if (identified)
+    {
+      formattedName.remove(formattedName.lastIndexOf('.'), extension.length() + 1);
+    }
   }
 
   if (conf.apply)
@@ -324,27 +331,6 @@ QString Utils::formatString(const QString filename,
   }
 
   return formattedName;
-}
-
-//-----------------------------------------------------------------
-bool Utils::renameFile(const QFileInfo &file_info, QString &output_filename)
-{
-  auto temporal_filename = file_info.absolutePath() + QString("/XXXXXX") + TEMPORAL_FILE_EXTENSION;
-  QMutexLocker lock(&s_mutex);
-
-  {
-    QTemporaryFile temp_file(temporal_filename);
-    if(!temp_file.open())
-    {
-      return false;
-    }
-
-    output_filename = temp_file.fileName();
-    temp_file.close();
-    temp_file.remove();
-  }
-
-  return QFile::rename(file_info.absoluteFilePath(), output_filename);
 }
 
 //-----------------------------------------------------------------

@@ -72,12 +72,15 @@ class AudioWorker
      */
     QString av_error_string(const int error_number) const;
 
+    static int customIORead(void *opaque, unsigned char *buffer, int buffer_size);
+
     AVFormatContext   *m_libav_context;
     AVPacket           m_packet;
     int                m_cover_stream_id;
     int                m_cover_codec_id;
     QString            m_cover_extension;
-    QString            m_working_filename;
+
+    static const int   s_io_buffer_size = 16384+FF_INPUT_BUFFER_PADDING_SIZE;
 
   private:
     /** \brief Initializes additional libav structures to decode the video stream
@@ -102,6 +105,9 @@ class AudioWorker
      *
      */
     bool process_audio_packet();
+
+
+    QFile m_input_file;
 
     virtual Destinations compute_destinations() override final;
 

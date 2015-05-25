@@ -67,6 +67,8 @@ QStringList PlaylistWorker::get_file_names() const
 //-----------------------------------------------------------------
 void PlaylistWorker::generate_playlist()
 {
+  av_register_all();
+
   auto files = get_file_names();
 
   if(files.empty())
@@ -75,7 +77,8 @@ void PlaylistWorker::generate_playlist()
     return;
   }
 
-  auto baseName = Utils::formatString(m_source_info.baseName(), m_configuration.formatConfiguration(), false);
+  auto playlistname = m_source_info.absoluteFilePath().split('/').last();
+  auto baseName = Utils::formatString(playlistname, m_configuration.formatConfiguration(), false);
   QFile playlist(m_source_info.absoluteFilePath() + QDir::separator() + baseName + PLAYLIST_EXTENSION);
 
   if(!playlist.open(QFile::WriteOnly|QFile::Truncate))
@@ -121,19 +124,25 @@ void PlaylistWorker::generate_playlist()
 //-----------------------------------------------------------------
 bool PlaylistWorker::get_song_duration(const QString &file_name, long long &duration)
 {
-  QString temporal_filename;
-  if(!Utils::renameFile(QFileInfo(file_name), temporal_filename))
+  QFile input_file(file_name);
+  if(!input_file.open(QIODevice::ReadOnly))
   {
+    emit error_message(QString("Couldn't open input file '%1'.").arg(file_name));
     return false;
   }
 
-  auto av_name = temporal_filename.replace('/',QDir::separator());
+  unsigned char *ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
+  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &customIORead, nullptr, nullptr);
+  avioContext->seekable = 0;
+  avioContext->write_flag = 0;
 
-  auto value = avformat_open_input(&m_libav_context, av_name.toStdString().c_str(), nullptr, nullptr);
+  m_libav_context = avformat_alloc_context();
+  m_libav_context->pb = avioContext;
+
+  auto value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
   if (value < 0)
   {
-    emit error_message(QString("Couldn't open file: '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(-value)));
-    QFile::rename(temporal_filename, file_name);
+    emit error_message(QString("Couldn't open file: '%1' with libav. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
     m_fail = true;
     return false;
   }
@@ -146,7 +155,6 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   {
     emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(value)));
     deinit_libav();
-    QFile::rename(temporal_filename, file_name);
     m_fail = true;
     return false;
   }
@@ -157,7 +165,6 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   {
     emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(stream_id)));
     deinit_libav();
-    QFile::rename(temporal_filename, file_name);
     m_fail = true;
     return false;
   }
@@ -167,7 +174,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
 
   deinit_libav();
 
-  QFile::rename(temporal_filename, file_name);
+  input_file.close();
 
   return true;
 }

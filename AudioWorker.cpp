@@ -62,13 +62,6 @@ AudioWorker::~AudioWorker()
 //-----------------------------------------------------------------
 void AudioWorker::run_implementation()
 {
-  if(!Utils::renameFile(m_source_info, m_working_filename))
-  {
-    emit error_message(QString("Couldn't rename '%1'.").arg(m_source_info.absoluteFilePath()));
-    m_fail = true;
-    return;
-  }
-
   if(init_libav())
   {
     transcode();
@@ -79,8 +72,6 @@ void AudioWorker::run_implementation()
   }
 
   deinit_libav();
-
-  QFile::rename(m_working_filename, m_source_info.absoluteFilePath());
 }
 
 //-----------------------------------------------------------------
@@ -89,14 +80,27 @@ bool AudioWorker::init_libav()
   av_register_all();
 
   auto source_name = m_source_info.absoluteFilePath();
-  auto av_filename = m_working_filename.replace('/', QDir::separator());
+  m_input_file.setFileName(source_name);
+  if(!m_input_file.open(QIODevice::ReadOnly))
+  {
+    emit error_message(QString("Couldn't open input file '%1'.").arg(source_name));
+    return false;
+  }
+
+  unsigned char *ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
+  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &customIORead, nullptr, nullptr);
+  avioContext->seekable = 0;
+  avioContext->write_flag = 0;
+
+  m_libav_context = avformat_alloc_context();
+  m_libav_context->pb = avioContext;
 
   int value = 0;
 
-  value = avformat_open_input(&m_libav_context, av_filename.toStdString().c_str(), nullptr, nullptr);
+  value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
   if (value < 0)
   {
-    emit error_message(QString("Couldn't open file: '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(value)));
+    emit error_message(QString("Couldn't open file: '%1' with libav. Error is \"%2\"").arg(source_name).arg(av_error_string(value)));
     return false;
   }
 
@@ -240,6 +244,11 @@ void AudioWorker::init_libav_cover_extraction()
 //-----------------------------------------------------------------
 void AudioWorker::deinit_libav()
 {
+  if(m_input_file.isOpen())
+  {
+    m_input_file.close();
+  }
+
   if(m_audio_decoder_context)
   {
     avcodec_close(m_audio_decoder_context);
@@ -252,6 +261,7 @@ void AudioWorker::deinit_libav()
 
   if(m_libav_context)
   {
+    av_free(m_libav_context->pb->buffer);
     avformat_close_input(&m_libav_context);
   }
 
@@ -517,4 +527,11 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
   }
 
   return destinations;
+}
+
+//-----------------------------------------------------------------
+int AudioWorker::customIORead(void* opaque, unsigned char* buffer, int buffer_size)
+{
+  auto reader = reinterpret_cast<QFile *>(opaque);
+  return reader->read(reinterpret_cast<char *>(buffer), buffer_size);
 }
