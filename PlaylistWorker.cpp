@@ -132,7 +132,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   }
 
   unsigned char *ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
-  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &customIORead, nullptr, nullptr);
+  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &custom_IO_read, nullptr, &custom_IO_seek);
   avioContext->seekable = 0;
   avioContext->write_flag = 0;
 

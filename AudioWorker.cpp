@@ -88,7 +88,7 @@ bool AudioWorker::init_libav()
   }
 
   unsigned char *ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
-  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &customIORead, nullptr, nullptr);
+  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &custom_IO_read, nullptr, &custom_IO_seek);
   avioContext->seekable = 0;
   avioContext->write_flag = 0;
 
@@ -315,7 +315,8 @@ void AudioWorker::transcode()
     return;
   }
 
-  while(0 == av_read_frame(m_libav_context, &m_packet))
+  int value;
+  while(0 == (value = av_read_frame(m_libav_context, &m_packet)))
   {
     emit progress(m_libav_context->pb->pos * 100 / m_source_info.size());
 
@@ -347,6 +348,12 @@ void AudioWorker::transcode()
 
     // stop and return if user has aborted the conversion.
     if(has_been_cancelled()) return;
+  }
+
+  if(value < 0)
+  {
+    emit error_message(QString("Error reading input file '%1.").arg(m_source_info.absoluteFilePath()));
+    return;
   }
 
   // flush buffered frames from the decoder
@@ -530,8 +537,29 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
 }
 
 //-----------------------------------------------------------------
-int AudioWorker::customIORead(void* opaque, unsigned char* buffer, int buffer_size)
+int AudioWorker::custom_IO_read(void* opaque, unsigned char* buffer, int buffer_size)
 {
   auto reader = reinterpret_cast<QFile *>(opaque);
   return reader->read(reinterpret_cast<char *>(buffer), buffer_size);
+}
+
+//-----------------------------------------------------------------
+long long int AudioWorker::custom_IO_seek(void* opaque, long long int offset, int whence)
+{
+  auto reader = reinterpret_cast<QFile *>(opaque);
+  switch(whence)
+  {
+    case AVSEEK_SIZE:
+      return reader->size();
+    case SEEK_SET:
+      return reader->seek(offset);
+    case SEEK_END:
+      return reader->seek(reader->size());
+    case SEEK_CUR:
+      return reader->pos();
+      break;
+    default:
+      Q_ASSERT(false);
+  }
+  return 0;
 }
