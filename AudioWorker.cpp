@@ -25,6 +25,7 @@
 
 // Qt
 #include <QStringList>
+#include <QDebug>
 
 // libav
 extern "C"
@@ -350,9 +351,9 @@ void AudioWorker::transcode()
     if(has_been_cancelled()) return;
   }
 
-  if(value < 0)
+  if(value < 0 && value != AVERROR_EOF)
   {
-    emit error_message(QString("Error reading input file '%1.").arg(m_source_info.absoluteFilePath()));
+    emit error_message(QString("Error reading input file '%1. %2").arg(m_source_info.absoluteFilePath()).arg(av_error_string(value)));
     return;
   }
 
