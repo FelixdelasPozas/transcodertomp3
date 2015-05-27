@@ -89,8 +89,8 @@ bool ModuleWorker::init()
     {
       // mod files usually have unallowed characters in the title.
       auto qTitle = tr(title.c_str());
-      m_module_file_name += qTitle.replace('/','-');
-      m_module_file_name += qTitle.replace(QDir::separator(),'-');
+      qTitle = qTitle.replace('/','-');
+      m_module_file_name = qTitle.replace(QDir::separator(),'-');
     }
   }
 
