@@ -456,7 +456,7 @@ QGroupBox::title {
          <item>
           <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Subtitutions will be made in order, top to bottom.</string>
+            <string>Substitutions will be made in order, top to bottom.</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
