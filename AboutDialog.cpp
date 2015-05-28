@@ -17,6 +17,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Project
 #include <AboutDialog.h>
 
 const QString AboutDialog::VERSION = QString("version 1.0.0");

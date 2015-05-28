@@ -74,7 +74,7 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Number Of Simultaneous Converters</string>
+         <string>Number of simultaneous jobs</string>
         </property>
        </widget>
       </item>
