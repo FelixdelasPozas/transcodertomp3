@@ -95,7 +95,7 @@ bool Utils::isMP3File(const QFileInfo &file)
 QList<QFileInfo> Utils::findFiles(const QDir initialDir,
                                   const QStringList extensions,
                                   bool with_subdirectories,
-                                  const std::function<bool (const QFileInfo &)> condition)
+                                  const std::function<bool (const QFileInfo &)> &condition)
 {
   QList<QFileInfo> otherFilesFound, mp3FilesFound;
 
@@ -131,7 +131,7 @@ QList<QFileInfo> Utils::findFiles(const QDir initialDir,
 
 //-----------------------------------------------------------------
 QString Utils::formatString(const QString filename,
-                            const Utils::FormatConfiguration conf,
+                            const Utils::FormatConfiguration &conf,
                             bool add_mp3_extension)
 {
   // works for filenames and plain strings
@@ -668,6 +668,20 @@ bool Utils::isSpaces(const QString& string)
   for(int i = 0; i < string.size(); ++i)
   {
     if(!string.at(i).isSpace())
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------
+bool Utils::isANumber(const QString& string)
+{
+  for(int i = 0; i < string.size(); ++i)
+  {
+    if(!string.at(i).isDigit())
     {
       return false;
     }

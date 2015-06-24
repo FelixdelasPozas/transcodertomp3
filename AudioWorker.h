@@ -41,7 +41,7 @@ class AudioWorker
      * \param[in] configuration configuration struct reference.
      *
      */
-    explicit AudioWorker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
+    explicit AudioWorker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief AudioWorker class virtual destructor.
      *
@@ -125,7 +125,7 @@ class AudioWorker
 
     virtual Destinations compute_destinations() override final;
 
-    static const int   CD_FRAMES_PER_SECOND = 75;
+    static constexpr double CD_FRAMES_PER_SECOND = 75.0;
 
     AVCodec           *m_audio_decoder;
     AVCodecContext    *m_audio_decoder_context;

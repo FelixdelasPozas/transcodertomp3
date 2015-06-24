@@ -66,6 +66,11 @@ namespace Utils
    */
   bool isSpaces(const QString &string);
 
+  /** \brief Returns true if the string contains only digits.
+   *
+   */
+  bool isANumber(const QString &string);
+
   /** \brief Returns the files in the specified directory tree that has the specified extensions.
    * \param[in] rootDir starting directory.
    * \param[in] filters extensions of the files to return.
@@ -81,7 +86,7 @@ namespace Utils
   QList<QFileInfo> findFiles(const QDir rootDirectory,
                              const QStringList extensions,
                              bool with_subdirectories = true,
-                             const std::function<bool (const QFileInfo &)> condition = [](const QFileInfo &info) { return true; });
+                             const std::function<bool (const QFileInfo &)> &condition = [](const QFileInfo &info) { return true; });
 
   struct FormatConfiguration
   {
@@ -95,7 +100,7 @@ namespace Utils
     FormatConfiguration()
     {
       apply                     = true;
-      chars_to_delete           = QString("¿?");
+      chars_to_delete           = QString("Â¿?");
       chars_to_replace          << QPair<QString, QString>("[", "(")
                                 << QPair<QString, QString>("]", ")")
                                 << QPair<QString, QString>("}", ")")
@@ -108,7 +113,7 @@ namespace Utils
                                 << QPair<QString, QString>(";", "-")
                                 << QPair<QString, QString>("\"", "''")
                                 << QPair<QString, QString>("pt ", "part ")
-                                << QPair<QString, QString>("#", "Nº")
+                                << QPair<QString, QString>("#", "NÂº")
                                 << QPair<QString, QString>("arr ", "arranged ")
                                 << QPair<QString, QString>("cond ", "conductor ")
                                 << QPair<QString, QString>("comp ", "composer ")
@@ -127,7 +132,7 @@ namespace Utils
    *
    */
   QString formatString(const QString filename,
-                       const FormatConfiguration conf,
+                       const FormatConfiguration &conf,
                        bool add_mp3_extension = true);
 
   /** \brief Returns true if the string represents a roman numeral.

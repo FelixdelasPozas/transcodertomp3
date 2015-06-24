@@ -24,7 +24,7 @@
 #include <cstring>
 
 //-----------------------------------------------------------------
-Worker::Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
+Worker::Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
 : m_source_info  {source_info}
 , m_source_path  {m_source_info.absoluteFilePath().remove(m_source_info.absoluteFilePath().split('/').last())}
 , m_configuration(configuration)
@@ -33,6 +33,7 @@ Worker::Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration
 , m_stop         {false}
 , m_gfp          {nullptr}
 {
+  std::memset(&m_mp3_buffer, 0, MP3_BUFFER_SIZE);
 }
 
 //-----------------------------------------------------------------
@@ -264,7 +265,7 @@ bool Worker::open_next_destination_file()
 
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
 
-  if(m_num_tracks != 1)
+  if(number_of_tracks() != 1)
   {
     emit information_message(QString("Extracting '%1' from '%2'.").arg(destination.name).arg(source_name));
   }

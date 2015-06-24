@@ -30,7 +30,7 @@ extern "C"
 const QString PlaylistWorker::PLAYLIST_EXTENSION = QString(".m3u");
 
 //-----------------------------------------------------------------
-PlaylistWorker::PlaylistWorker(const QFileInfo source_info, const Utils::TranscoderConfiguration& configuration)
+PlaylistWorker::PlaylistWorker(const QFileInfo &source_info, const Utils::TranscoderConfiguration& configuration)
 : AudioWorker(source_info, configuration)
 {
 }

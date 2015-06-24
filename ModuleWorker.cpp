@@ -25,11 +25,14 @@
 
 // C++
 #include <fstream>
+#include <cstring>
 
 //-----------------------------------------------------------------
-ModuleWorker::ModuleWorker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
+ModuleWorker::ModuleWorker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
 : Worker{source_info, configuration}
 {
+  std::memset(&m_left_buffer, 0, BUFFER_SIZE * sizeof(short int));
+  std::memset(&m_right_buffer, 0, BUFFER_SIZE * sizeof(short int));
 }
 
 //-----------------------------------------------------------------

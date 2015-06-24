@@ -32,7 +32,7 @@ class ModuleWorker
      * \param[in] configuration configuration struct reference.
      *
      */
-    explicit ModuleWorker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
+    explicit ModuleWorker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief ModuleWorker class virtual destructor.
      *

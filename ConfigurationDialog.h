@@ -37,7 +37,7 @@ class ConfigurationDialog
      * \param[in] configuration configuration struct.
      *
      */
-    ConfigurationDialog(const Utils::TranscoderConfiguration &configuration);
+    explicit ConfigurationDialog(const Utils::TranscoderConfiguration &configuration);
 
     /** \brief ConfigurationDialog class virtual destructor.
      *

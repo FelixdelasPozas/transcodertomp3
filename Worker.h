@@ -40,7 +40,7 @@ class Worker
      * \param[in] configuration configuration struct reference.
      *
      */
-    explicit Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
+    explicit Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief Worker class virtual destructor.
      *
@@ -122,6 +122,8 @@ class Worker
       long          samplerate;
       MPEG_mode_e   mode;
       Sample_format format;
+	  
+      Source_Info(): init{false}, num_channels{-1}, samplerate{-1}, mode{MPEG_mode_e::STEREO}, format{Sample_format::UNDEFINED} {};
     };
 
     // information of a destination file that will be created.

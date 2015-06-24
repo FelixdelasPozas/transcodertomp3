@@ -242,7 +242,7 @@ void ProcessDialog::create_transcoder()
 
   ++m_num_workers;
 
-  Worker *worker;
+  Worker *worker = nullptr;
 
   if(Utils::isModuleFile(fs_handle))
   {
@@ -256,7 +256,14 @@ void ProcessDialog::create_transcoder()
     }
     else
     {
-      worker = new AudioWorker(fs_handle, m_configuration);
+      if(Utils::isAudioFile(fs_handle))
+      {
+        worker = new AudioWorker(fs_handle, m_configuration);
+      }
+      else
+      {
+        Q_ASSERT(false);
+      }
     }
   }
 

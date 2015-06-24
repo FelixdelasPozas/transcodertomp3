@@ -25,7 +25,6 @@
 
 // Qt
 #include <QStringList>
-#include <QDebug>
 
 // libav
 extern "C"
@@ -43,7 +42,7 @@ extern "C"
 QMutex AudioWorker::s_mutex;
 
 //-----------------------------------------------------------------
-AudioWorker::AudioWorker(const QFileInfo origin_info, const Utils::TranscoderConfiguration &configuration)
+AudioWorker::AudioWorker(const QFileInfo &origin_info, const Utils::TranscoderConfiguration &configuration)
 : Worker{origin_info, configuration}
 , m_libav_context        {nullptr}
 , m_cover_stream_id      {-1}
@@ -78,6 +77,8 @@ void AudioWorker::run_implementation()
 //-----------------------------------------------------------------
 bool AudioWorker::init_libav()
 {
+  QMutexLocker lock(&s_mutex);
+
   av_register_all();
 
   auto source_name = m_source_info.absoluteFilePath();
@@ -89,12 +90,25 @@ bool AudioWorker::init_libav()
   }
 
   unsigned char *ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
+  if(nullptr == ioBuffer)
+  {
+    emit error_message(QString("Couldn't allocate buffer for custom libav IO for file: '%1'.").arg(source_name));
+    return false;
+  }
+
   AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &custom_IO_read, nullptr, &custom_IO_seek);
+  if(nullptr == avioContext)
+  {
+    emit error_message(QString("Couldn't allocate context for custom libav IO for file: '%1'.").arg(source_name));
+    return false;
+  }
+
   avioContext->seekable = 0;
   avioContext->write_flag = 0;
 
   m_libav_context = avformat_alloc_context();
   m_libav_context->pb = avioContext;
+  m_libav_context->flags |= AVFMT_FLAG_CUSTOM_IO;
 
   int value = 0;
 
@@ -223,8 +237,6 @@ void AudioWorker::init_libav_cover_extraction()
 
     auto cover_name = m_source_path + m_configuration.coverPictureName() + m_cover_extension;
 
-    s_mutex.lock();
-
     if(!QFile::exists(cover_name) && m_cover_stream_id > 0)
     {
       // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
@@ -237,8 +249,6 @@ void AudioWorker::init_libav_cover_extraction()
       // the rest of workers will ignore the cover stream.
       m_cover_stream_id = -1;
     }
-
-    s_mutex.unlock();
   }
 }
 
@@ -364,8 +374,7 @@ void AudioWorker::transcode()
 
     // Decode all the remaining frames in the buffer, until the end is reached
     int gotFrame = 0;
-    int result = 0;
-    while ((result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet) >= 0) && gotFrame)
+    while ((avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet) >= 0) && gotFrame)
     {
       if(!encode_buffers(0, m_frame->nb_samples))
       {
@@ -505,6 +514,7 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
       else
       {
         auto num_tracks = cd_get_ntrack(cd);
+
         for(int i = 1; i < num_tracks + 1; ++i)
         {
           auto track = cd_get_track(cd, i);
@@ -520,6 +530,7 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
           track_name.replace(QDir::separator(), QChar('-'));
           auto track_clean_name = Utils::formatString(QString().number(i) + QString(" ") + track_name, m_configuration.formatConfiguration());
           auto track_length = track_get_length(track);
+
           // convert to number of samples.
           track_length = m_information.samplerate * (track_length / CD_FRAMES_PER_SECOND);
 

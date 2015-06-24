@@ -32,7 +32,7 @@ QString MP3Worker::COVER_MIME_TYPE_1 = "image/jpeg";
 QString MP3Worker::COVER_MIME_TYPE_2 = "image/jpg";
 
 //-----------------------------------------------------------------
-MP3Worker::MP3Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration)
+MP3Worker::MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
 : AudioWorker(source_info, configuration)
 {
 }
@@ -83,7 +83,7 @@ void MP3Worker::run_implementation()
   track_title = Utils::formatString(track_title, m_configuration.formatConfiguration());
 
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
-  emit information_message(QString("%1: processing to %2").arg(source_name).arg(track_title));
+  emit information_message(QString("Renaming '%1' from '%2'.").arg(source_name).arg(track_title));
 
   auto final_name = m_source_path + track_title;
 
@@ -204,7 +204,7 @@ QString MP3Worker::parse_metadata(const ID3_Tag& file_tag)
 
       delete [] charString;
 
-      if (!cd_number.isEmpty() && !Utils::isSpaces(cd_number))
+      if (!cd_number.isEmpty() && !Utils::isSpaces(cd_number) && Utils::isANumber(cd_number))
       {
         track_title += cd_number + QString("-");
       }
@@ -215,8 +215,17 @@ QString MP3Worker::parse_metadata(const ID3_Tag& file_tag)
     if (num_frame)
     {
       auto track_number = ID3_GetTrackNum(&file_tag);
+      auto number_string = QString().number(track_number);
 
-      track_title += QString().number(track_number) + QString(" - ");
+      if(Utils::isANumber(number_string))
+      {
+        while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
+        {
+          number_string = "0" + number_string;
+        }
+
+        track_title += QString().number(track_number) + QString(" - ");
+      }
     }
 
     // track title

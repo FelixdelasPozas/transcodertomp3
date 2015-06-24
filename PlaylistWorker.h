@@ -32,7 +32,7 @@ class PlaylistWorker
      * \param[in] configuration configuration struct reference.
      *
      */
-    explicit PlaylistWorker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
+    explicit PlaylistWorker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief PlaylistWorker class virtual destructor.
      *

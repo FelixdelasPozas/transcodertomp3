@@ -38,7 +38,7 @@ class MP3Worker
      * \param[in] configuration configuration struct reference.
      *
      */
-    explicit MP3Worker(const QFileInfo source_info, const Utils::TranscoderConfiguration &configuration);
+    explicit MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration);
 
     /** \brief MP3Worker class virtual destructor.
      *
