@@ -2,11 +2,11 @@ Music Transcoder To MP3
 =======================
 
 # Summary
-- [Description](# Description)
-- [Compilation](# Compilation requirements)
-- [Install](# Install)
-- [Screenshots](# Screenshots)
-- [Repository information](# Repository information)
+- [Description](#description)
+- [Compilation](#compilation-requirements)
+- [Install](#install)
+- [Screenshots](#screenshots)
+- [Repository information](#repository-information)
 
 # Description
 Music Transcoder To MP3 is a cross-platform tool to transcode music files from multiple formats (music files, audio track of video files and module files) to MP3 format. 
@@ -43,19 +43,25 @@ The following libraries are required:
 The only current option is build from source as binaries are not provided. 
 
 # Screenshots
-Configuration dialog. 
+Configuration dialog.
+
 ![Configuration Dialog](https://cloud.githubusercontent.com/assets/12167134/7867871/e2fcceba-0578-11e5-83bd-e806f5f95672.jpg)
 
 Simple main dialog.
+
 ![Main dialog](https://cloud.githubusercontent.com/assets/12167134/7867872/e2fd4c28-0578-11e5-93bb-56c7ee8b26df.jpg)
 
 Dialog shown while processing files.
+
 ![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
 
 # Repository information
 **Version**: 1.0.0
+
 **Status**: finished
+
 **cloc statistics**
+
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
 | C++                          |   11          |  567        |    368           |2277  |
