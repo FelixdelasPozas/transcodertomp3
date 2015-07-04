@@ -46,7 +46,6 @@ AudioWorker::AudioWorker(const QFileInfo &origin_info, const Utils::TranscoderCo
 : Worker{origin_info, configuration}
 , m_libav_context        {nullptr}
 , m_cover_stream_id      {-1}
-, m_cover_codec_id       {-1}
 , m_audio_decoder        {nullptr}
 , m_audio_decoder_context{nullptr}
 , m_frame                {nullptr}
@@ -215,8 +214,8 @@ void AudioWorker::init_libav_cover_extraction()
   m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
   if(m_cover_stream_id > 0)
   {
-    m_cover_codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
-    switch(m_libav_context->streams[m_cover_stream_id]->codec->codec_id)
+    auto codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
+    switch(codec_id)
     {
       case AV_CODEC_ID_MJPEG:
         m_cover_extension = QString(".jpg");
@@ -237,7 +236,7 @@ void AudioWorker::init_libav_cover_extraction()
 
     auto cover_name = m_source_path + m_configuration.coverPictureName() + m_cover_extension;
 
-    if(!QFile::exists(cover_name) && m_cover_stream_id > 0)
+    if(!QFile::exists(cover_name))
     {
       // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
       QFile file(cover_name);

@@ -91,7 +91,6 @@ class AudioWorker
     AVFormatContext   *m_libav_context;
     AVPacket           m_packet;
     int                m_cover_stream_id;
-    int                m_cover_codec_id;
     QString            m_cover_extension;
 
     static const int   s_io_buffer_size = 16384+FF_INPUT_BUFFER_PADDING_SIZE;

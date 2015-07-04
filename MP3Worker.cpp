@@ -28,8 +28,6 @@
 QMutex MP3Worker::s_mutex;
 
 QString MP3Worker::MP3_EXTENSION = ".mp3";
-QString MP3Worker::COVER_MIME_TYPE_1 = "image/jpeg";
-QString MP3Worker::COVER_MIME_TYPE_2 = "image/jpg";
 
 //-----------------------------------------------------------------
 MP3Worker::MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
@@ -58,10 +56,7 @@ void MP3Worker::run_implementation()
 
     if(m_configuration.extractMetadataCoverPicture())
     {
-      if (!extract_cover(file_id3_tag))
-      {
-        return;
-      }
+      extract_cover(file_id3_tag);
     }
 
     emit progress(50);
@@ -102,20 +97,31 @@ void MP3Worker::run_implementation()
 }
 
 //-----------------------------------------------------------------
-bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
+void MP3Worker::extract_cover(const ID3_Tag &file_tag)
 {
   auto cover_frame = file_tag.Find(ID3FID_PICTURE);
   if(cover_frame)
   {
     bool adquired = false;
-    auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".jpg");
+
+    auto mime_type   = ID3_GetString(cover_frame, ID3FN_MIMETYPE);
+    auto qmime_type  = QString(mime_type);
+    delete [] mime_type;
+
+    auto extension = qmime_type.split('/').at(1);
+    if(extension.isEmpty())
+    {
+      extension = qmime_type;
+    }
+
+    auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".") + extension;
 
     s_mutex.lock();
-    if(!QFile::exists(cover_name))
+    if (!QFile::exists(cover_name))
     {
       // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
       QFile file(cover_name);
-      if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
+      if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
       {
         emit error_message(QString("Couldn't create cover picture file for '%1', check for file permissions.").arg(m_source_info.absoluteFilePath()));
       }
@@ -127,18 +133,10 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
     }
     s_mutex.unlock();
 
-    if(!adquired)
+    if (adquired)
     {
-      return true;
-    }
+      auto data_size = cover_frame->GetField(ID3FN_DATA)->Size();
 
-    auto mime_type   = ID3_GetString(cover_frame, ID3FN_MIMETYPE);
-    auto qmime_type  = QString(mime_type);
-    delete [] mime_type;
-    auto data_size   = cover_frame->GetField(ID3FN_DATA)->Size();
-
-    if(qmime_type.compare(COVER_MIME_TYPE_1) == 0 || qmime_type.compare(COVER_MIME_TYPE_2) == 0)
-    {
       auto field = cover_frame->GetField(ID3FN_DATA);
       auto picture = reinterpret_cast<const char *>(field->GetRawBinary());
 
@@ -148,44 +146,7 @@ bool MP3Worker::extract_cover(const ID3_Tag &file_tag)
       file.flush();
       file.close();
     }
-    else
-    {
-      // damn, call the artillery
-      if(!init_libav())
-      {
-        return false;
-      }
-
-      while(0 == av_read_frame(m_libav_context, &m_packet))
-      {
-        // dump the cover if the format is jpeg, if not a transcoding phase must be applied.
-        if(m_packet.stream_index == m_cover_stream_id)
-        {
-          if(!extract_cover_picture())
-          {
-            emit error_message(QString("Error encoding cover picture for file '%1.").arg(m_source_info.absoluteFilePath()));
-            return false;
-          }
-
-          av_free_packet(&m_packet);
-          break;
-        }
-
-        // You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-        av_free_packet(&m_packet);
-
-        // stop and return if user has aborted the conversion.
-        if(has_been_cancelled())
-        {
-          return false;
-        }
-      }
-
-      deinit_libav();
-    }
   }
-
-  return true;
 }
 
 //-----------------------------------------------------------------

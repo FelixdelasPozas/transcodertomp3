@@ -50,13 +50,11 @@ class MP3Worker
 
   private:
     static QString MP3_EXTENSION;
-    static QString COVER_MIME_TYPE_1;
-    static QString COVER_MIME_TYPE_2;
 
     /** \brief Helper method to extract the cover.
      *
      */
-    bool extract_cover(const ID3_Tag &file_tag);
+    void extract_cover(const ID3_Tag &file_tag);
 
     /** \brief Constructs the final filename using the metadata.
      * \param[in] file_tag file tag structure.
