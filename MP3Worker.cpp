@@ -78,7 +78,7 @@ void MP3Worker::run_implementation()
   track_title = Utils::formatString(track_title, m_configuration.formatConfiguration());
 
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
-  emit information_message(QString("Renaming '%1' from '%2'.").arg(source_name).arg(track_title));
+  emit information_message(QString("Renaming '%1' from '%2'.").arg(track_title).arg(source_name));
 
   auto final_name = m_source_path + track_title;
 
