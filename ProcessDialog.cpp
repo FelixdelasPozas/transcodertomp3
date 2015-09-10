@@ -256,7 +256,7 @@ void ProcessDialog::create_transcoder()
     }
     else
     {
-      if(Utils::isAudioFile(fs_handle))
+      if(Utils::isAudioFile(fs_handle) || Utils::isVideoFile(fs_handle))
       {
         worker = new AudioWorker(fs_handle, m_configuration);
       }
