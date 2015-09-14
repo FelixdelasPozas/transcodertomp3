@@ -100,18 +100,29 @@ void MP3Worker::run_implementation()
 void MP3Worker::extract_cover(const ID3_Tag &file_tag)
 {
   auto cover_frame = file_tag.Find(ID3FID_PICTURE);
+
   if(cover_frame)
   {
     bool adquired = false;
 
-    auto mime_type   = ID3_GetString(cover_frame, ID3FN_MIMETYPE);
-    auto qmime_type  = QString(mime_type);
-    delete [] mime_type;
+    auto format  = ID3_GetString(cover_frame, ID3FN_IMAGEFORMAT);
+    auto extension = QString(format).toLower();
+    delete [] format;
 
-    auto extension = qmime_type.split('/').at(1);
     if(extension.isEmpty())
     {
-      extension = qmime_type;
+      auto mimeType = ID3_GetString(cover_frame, ID3FN_MIMETYPE);
+      auto qmimeType = QString(mimeType);
+      delete [] mimeType;
+
+      if(!qmimeType.isEmpty())
+      {
+        extension = qmimeType.split('/').last().toLower();
+      }
+      else
+      {
+        extension = QString("unknown");
+      }
     }
 
     auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".") + extension;
