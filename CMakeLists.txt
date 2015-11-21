@@ -37,14 +37,17 @@ set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a
 set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src")
 set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src/libcue/.libs/libcue.a")
 
-# id3lib library
-set(ID3LIB_DIR         "D:/Desarrollo/Bibliotecas/id3lib-3.8.3")
-set(ID3LIB_INCLUDE_DIR ${ID3LIB_DIR}/include)
-set(ID3LIB_LIBRARIES   ${ID3LIB_DIR}/src/.libs/libid3.a ${ID3LIB_DIR}/zlib/src/.libs/libz.a)
+# taglib library
+set(TAGLIB_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/taglib-1.10/taglib")
+set(TAGLIB_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/taglib-build")
+set(TAGLIB_LIBRARIES   ${TAGLIB_LIBRARY_DIR}/taglib/libtag.a)
 
 # libopenmpt library
 set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.4954-beta12-windows")
 set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.4954-beta12-windows/bin/libopenmpt.a")
+
+#include zlib
+set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -56,10 +59,11 @@ include_directories(
   ${LIBAV_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
   ${LIBOPENMPT_INCLUDE_DIR}
-  ${ID3LIB_INCLUDE_DIR}
+  ${TAGLIB_INCLUDE_DIR}
+  ${TAGLIB_LIBRARY_DIR}
   )
 
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows -DTAGLIB_STATIC")
 
 # Add Qt Resource files
 qt4_add_resources(RESOURCES
@@ -107,8 +111,9 @@ set(CORE_EXTERNAL_LIBS
   ${LAME_LIBRARY}
   ${LIBAV_LIBRARIES}
   ${LIBCUE_LIBRARY}
-  ${ID3LIB_LIBRARIES}
+  ${TAGLIB_LIBRARIES}
   ${LIBOPENMPT_LIBRARY}
+  ${ZLIB_LIBRARY}
 )
   
 add_executable(MusicTranscoder ${CORE_SOURCES})

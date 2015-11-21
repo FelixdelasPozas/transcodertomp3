@@ -20,14 +20,30 @@
 // Project
 #include "MP3Worker.h"
 
-// id3lib
-#include <id3/tag.h>
-#include <id3/utils.h>
-#include <id3/misc_support.h>
+// taglib
+#include <tag.h>
+#include <id3v2tag.h>
+#include <id3v2frame.h>
+#include <id3v2header.h>
+#include <id3v2extendedheader.h>
+#include <id3v2framefactory.h>
+#include <attachedpictureframe.h>
+#include <id3v1tag.h>
+#include <mpegfile.h>
+#include <tstring.h>
+#include <tpropertymap.h>
+
+// Qt
+#include <QTemporaryFile>
+#include <QUuid>
+
+// C++
+#include <memory>
 
 QMutex MP3Worker::s_mutex;
 
 QString MP3Worker::MP3_EXTENSION = ".mp3";
+QString TEMP_EXTENSION           = ".temp";
 
 //-----------------------------------------------------------------
 MP3Worker::MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
@@ -44,27 +60,54 @@ MP3Worker::~MP3Worker()
 void MP3Worker::run_implementation()
 {
   auto file_name = m_source_info.absoluteFilePath().replace('/', QDir::separator());
+
+  // QTemporaryFile and QThreads are not playing fine together, the temp names are being reused
+  // and taglib fails upon reading the file. This approach seems to work.
+  auto id = QUuid::createUuid();
+  QTemporaryFile temp_file(id.toString());
+  if(!temp_file.open())
+  {
+    emit error_message(QString("Couldn't open temporary file for file '%1'.").arg(file_name));
+    return;
+  }
+
+  QFile original_file(file_name);
+  if(!original_file.open(QFile::ReadOnly))
+  {
+    emit error_message(QString("Couldn't open file '%1'.").arg(file_name));
+    return;
+  }
+
+  // taglib wouldn't open files with unicode names.
+  temp_file.write(original_file.readAll());
+  temp_file.flush();
+  temp_file.close();
+
+  auto temp_name = temp_file.fileName() + MP3_EXTENSION;
+  temp_file.rename(temp_name); // taglib won't open a file if it doesn't have the correct extension. ¿¿??
+  original_file.close();
+
   QString track_title;
 
-  ID3_Tag file_id3_tag(file_name.toStdString().c_str());
+  TagLib::MPEG::File file_metadata(temp_name.toStdString().c_str());
 
-  if(file_id3_tag.HasV1Tag() || file_id3_tag.HasV2Tag())
+  if(file_metadata.hasID3v1Tag() || file_metadata.hasID3v2Tag())
   {
-    track_title = parse_metadata(file_id3_tag);
+    track_title = parse_metadata(file_metadata.tag());
 
     emit progress(25);
 
-    if(m_configuration.extractMetadataCoverPicture())
+    if(m_configuration.extractMetadataCoverPicture() && file_metadata.hasID3v2Tag())
     {
-      extract_cover(file_id3_tag);
+      extract_cover(file_metadata.ID3v2Tag());
     }
 
     emit progress(50);
 
     if(m_configuration.stripTagsFromMp3())
     {
-      file_id3_tag.Strip(ID3TT_ALL);
-      file_id3_tag.Clear();
+      file_metadata.strip();
+      file_metadata.save();
     }
   }
 
@@ -74,7 +117,6 @@ void MP3Worker::run_implementation()
   {
     track_title = m_source_info.absoluteFilePath().split('/').last().remove(MP3_EXTENSION);
   }
-
   track_title = Utils::formatString(track_title, m_configuration.formatConfiguration());
 
   auto source_name = m_source_info.absoluteFilePath().split('/').last();
@@ -82,50 +124,48 @@ void MP3Worker::run_implementation()
 
   auto final_name = m_source_path + track_title;
 
-  // we need to do the rename in two steps as Qt won't rename a file if the only difference is the case of the letters,
-  // but usually we need to do just that.
-  if(m_source_info.absoluteFilePath().compare(final_name) != 0)
-  {
-    QString temporal_string("rename");
+  original_file.rename(original_file.fileName() + TEMP_EXTENSION);
 
-    if(!QFile::rename(m_source_info.absoluteFilePath(), m_source_info.absoluteFilePath() + temporal_string) ||
-       !QFile::rename(m_source_info.absoluteFilePath() + temporal_string, final_name))
-    {
-      emit error_message(QString("Couldn't rename '%1' file to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
-    }
+  if(!QFile::copy(temp_file.fileName(), final_name))
+  {
+    emit error_message(QString("Couldn't rename file '%1' to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
+    original_file.rename(original_file.fileName().remove(TEMP_EXTENSION));
+  }
+  else
+  {
+    original_file.remove();
   }
 }
 
 //-----------------------------------------------------------------
-void MP3Worker::extract_cover(const ID3_Tag &file_tag)
+void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
 {
-  auto cover_frame = file_tag.Find(ID3FID_PICTURE);
-
-  if(cover_frame)
+  auto picture_frames = tags->frameList("APIC");
+  int i = 0;
+  for(auto it = picture_frames.begin(); it != picture_frames.end(); ++it)
   {
     bool adquired = false;
-
-    auto format  = ID3_GetString(cover_frame, ID3FN_IMAGEFORMAT);
-    auto extension = QString(format).toLower();
-    delete [] format;
-
-    if(extension.isEmpty())
+    QString name = m_configuration.coverPictureName();
+    QString extension = "unknown";
+    if(picture_frames.size() > 1)
     {
-      auto mimeType = ID3_GetString(cover_frame, ID3FN_MIMETYPE);
-      auto qmimeType = QString(mimeType);
-      delete [] mimeType;
-
-      if(!qmimeType.isEmpty())
-      {
-        extension = qmimeType.split('/').last().toLower();
-      }
-      else
-      {
-        extension = QString("unknown");
-      }
+      name = "Image_" + QString::number(i);
     }
 
-    auto cover_name = m_source_path + m_configuration.coverPictureName() + QString(".") + extension;
+    auto picture = reinterpret_cast<TagLib::ID3v2::AttachedPictureFrame *>(*it);
+    auto mime = QString::fromStdWString(picture->mimeType().toWString());
+
+    if(mime.contains("jpg") || mime.contains("jpeg"))
+    {
+      extension = ".jpg";
+    }
+
+    if(mime.contains("png"))
+    {
+      extension = ".png";
+    }
+
+    auto cover_name = m_source_path + name + extension;
 
     s_mutex.lock();
     if (!QFile::exists(cover_name))
@@ -146,14 +186,9 @@ void MP3Worker::extract_cover(const ID3_Tag &file_tag)
 
     if (adquired)
     {
-      auto data_size = cover_frame->GetField(ID3FN_DATA)->Size();
-
-      auto field = cover_frame->GetField(ID3FN_DATA);
-      auto picture = reinterpret_cast<const char *>(field->GetRawBinary());
-
       QFile file(cover_name);
       file.open(QIODevice::WriteOnly | QIODevice::Append);
-      file.write(picture, data_size);
+      file.write(picture->picture().data(), picture->picture().size());
       file.flush();
       file.close();
     }
@@ -161,64 +196,35 @@ void MP3Worker::extract_cover(const ID3_Tag &file_tag)
 }
 
 //-----------------------------------------------------------------
-QString MP3Worker::parse_metadata(const ID3_Tag& file_tag)
+QString MP3Worker::parse_metadata(const TagLib::Tag *tags)
 {
   QString track_title;
 
   if(m_configuration.useMetadataToRenameOutput())
   {
-    // CD number
-    auto disc_frame = file_tag.Find(ID3FID_PARTINSET);
-    if(disc_frame)
-    {
-      auto charString = ID3_GetString(disc_frame, ID3FN_TEXT);
-      auto cd_number = QString(charString);
-
-      delete [] charString;
-
-      if (!cd_number.isEmpty() && !Utils::isSpaces(cd_number) && Utils::isANumber(cd_number))
-      {
-        track_title += cd_number + QString("-");
-      }
-    }
-
     // track number
-    auto num_frame = file_tag.Find(ID3FID_TRACKNUM);
-    if (num_frame)
+    auto track_number = tags->track();
+    if (track_number != 0)
     {
-      auto track_number = ID3_GetTrackNum(&file_tag);
       auto number_string = QString().number(track_number);
 
-      if(Utils::isANumber(number_string))
+      while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
       {
-        while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
-        {
-          number_string = "0" + number_string;
-        }
-
-        track_title += QString().number(track_number) + QString(" - ");
+        number_string = "0" + number_string;
       }
+
+      track_title += QString().number(track_number) + QString(" - ");
     }
 
     // track title
-    auto title_frame = file_tag.Find(ID3FID_TITLE);
-    if (title_frame)
+    TagLib::String temp;
+    auto title = QString::fromStdWString(tags->title().toWString());
+
+    if (!title.isEmpty() && !Utils::isSpaces(title))
     {
-      auto charString = ID3_GetString(title_frame, ID3FN_TEXT);
-      auto title = QString(charString);
-
-      delete[] charString;
-
-      if (!title.isEmpty() && !Utils::isSpaces(title))
-      {
-        title.replace(QDir::separator(), QChar('-'));
-        title.replace(QChar('/'),QChar('-'));
-        track_title += title;
-      }
-      else
-      {
-        track_title.clear();
-      }
+      title.replace(QDir::separator(), QChar('-'));
+      title.replace(QChar('/'), QChar('-'));
+      track_title += title;
     }
     else
     {

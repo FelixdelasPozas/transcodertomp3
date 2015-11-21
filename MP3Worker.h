@@ -27,7 +27,8 @@
 #include <QMutex>
 
 // id3lib
-#include <id3/tag.h>
+#include <tag.h>
+#include <mpegfile.h>
 
 class MP3Worker
 : public AudioWorker
@@ -52,15 +53,16 @@ class MP3Worker
     static QString MP3_EXTENSION;
 
     /** \brief Helper method to extract the cover.
+     * \param[in] tags music file metadata.
      *
      */
-    void extract_cover(const ID3_Tag &file_tag);
+    void extract_cover(const TagLib::ID3v2::Tag *tags);
 
     /** \brief Constructs the final filename using the metadata.
-     * \param[in] file_tag file tag structure.
+     * \param[in] tags music file metadata.
      *
      */
-    QString parse_metadata(const ID3_Tag &file_tag);
+    QString parse_metadata(const TagLib::Tag *tags);
 
     static QMutex s_mutex;
 };
