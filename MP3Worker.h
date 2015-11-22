@@ -64,6 +64,12 @@ class MP3Worker
      */
     QString parse_metadata(const TagLib::Tag *tags);
 
+    /** \brief Constructs the final filename using the ID3v2 metadata.
+     * \param[in] tags music file metadata.
+     *
+     */
+    QString parse_metadata(const TagLib::ID3v2::Tag *tags);
+
     static QMutex s_mutex;
 };
 

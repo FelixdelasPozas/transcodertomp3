@@ -28,6 +28,7 @@
 #include <id3v2extendedheader.h>
 #include <id3v2framefactory.h>
 #include <attachedpictureframe.h>
+#include <textidentificationframe.h>
 #include <id3v1tag.h>
 #include <mpegfile.h>
 #include <tstring.h>
@@ -36,6 +37,7 @@
 // Qt
 #include <QTemporaryFile>
 #include <QUuid>
+#include <QDebug>
 
 // C++
 #include <memory>
@@ -93,7 +95,17 @@ void MP3Worker::run_implementation()
 
   if(file_metadata.hasID3v1Tag() || file_metadata.hasID3v2Tag())
   {
-    track_title = parse_metadata(file_metadata.tag());
+    if(m_configuration.useMetadataToRenameOutput())
+    {
+      if(!file_metadata.hasID3v2Tag())
+      {
+        track_title = parse_metadata(file_metadata.tag());
+      }
+      else
+      {
+        track_title = parse_metadata(file_metadata.ID3v2Tag());
+      }
+    }
 
     emit progress(25);
 
@@ -200,36 +212,92 @@ QString MP3Worker::parse_metadata(const TagLib::Tag *tags)
 {
   QString track_title;
 
-  if(m_configuration.useMetadataToRenameOutput())
+  // track number
+  auto track_number = tags->track();
+  if (track_number != 0)
   {
-    // track number
-    auto track_number = tags->track();
-    if (track_number != 0)
-    {
-      auto number_string = QString().number(track_number);
+    auto number_string = QString().number(track_number);
 
-      while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
+    while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
+    {
+      number_string = "0" + number_string;
+    }
+
+    track_title += QString().number(track_number) + QString(" - ");
+  }
+
+  // track title
+  TagLib::String temp;
+  auto title = QString::fromStdWString(tags->title().toWString());
+
+  if (!title.isEmpty() && !Utils::isSpaces(title))
+  {
+    title.replace(QDir::separator(), QChar('-'));
+    title.replace(QChar('/'), QChar('-'));
+    track_title += title;
+  }
+  else
+  {
+    track_title.clear();
+  }
+
+  return track_title;
+}
+
+//-----------------------------------------------------------------
+QString MP3Worker::parse_metadata(const TagLib::ID3v2::Tag *tags)
+{
+  QString track_title;
+
+  // disc in set
+  auto frames = tags->frameList();
+
+  for(auto it = frames.begin(); it != frames.end(); ++it)
+  {
+    auto frameId = QString::fromStdWString(TagLib::String((*it)->frameID()).toWString());
+    if(frameId.compare("TPOS") == 0)
+    {
+      auto tposFrame = static_cast<TagLib::ID3v2::TextIdentificationFrame *>(*it);
+      if(tposFrame)
       {
-        number_string = "0" + number_string;
+        auto disc_num = tposFrame->toString().toInt();
+
+        if(disc_num != 0)
+        {
+          track_title += QString::number(tposFrame->toString().toInt()) + QString("-");
+        }
       }
 
-      track_title += QString().number(track_number) + QString(" - ");
+    }
+  }
+
+  // track number
+  auto track_number = tags->track();
+  if (track_number != 0)
+  {
+    auto number_string = QString().number(track_number);
+
+    while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
+    {
+      number_string = "0" + number_string;
     }
 
-    // track title
-    TagLib::String temp;
-    auto title = QString::fromStdWString(tags->title().toWString());
+    track_title += QString().number(track_number) + QString(" - ");
+  }
 
-    if (!title.isEmpty() && !Utils::isSpaces(title))
-    {
-      title.replace(QDir::separator(), QChar('-'));
-      title.replace(QChar('/'), QChar('-'));
-      track_title += title;
-    }
-    else
-    {
-      track_title.clear();
-    }
+  // track title
+  TagLib::String temp;
+  auto title = QString::fromStdWString(tags->title().toWString());
+
+  if (!title.isEmpty() && !Utils::isSpaces(title))
+  {
+    title.replace(QDir::separator(), QChar('-'));
+    title.replace(QChar('/'), QChar('-'));
+    track_title += title;
+  }
+  else
+  {
+    track_title.clear();
   }
 
   return track_title;
