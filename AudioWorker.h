@@ -23,6 +23,9 @@
 // Project
 #include "Worker.h"
 
+// taglib
+#include <tag.h>
+
 // Qt
 #include <QMutex>
 
@@ -50,6 +53,12 @@ class AudioWorker
 
   protected:
     virtual void run_implementation() override;
+
+    /** \brief Builds the file name based on the metadata.
+     * \param[in] tags TagLib::tags metadata.
+     *
+     */
+    QString parse_metadata(const TagLib::Tag *tags);
 
     /** \brief Initializes libav library structures and data to decode the source file to
      *         pcm data.
@@ -118,7 +127,6 @@ class AudioWorker
      *
      */
     bool process_audio_packet();
-
 
     QFile m_input_file;
 

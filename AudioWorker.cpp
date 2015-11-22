@@ -33,6 +33,13 @@ extern "C"
 #include <libavutil/avutil.h>
 }
 
+// taglib
+#include <fileref.h>
+
+// Qt
+#include <QUuid>
+#include <QTemporaryFile>
+
 // libcue
 extern "C"
 {
@@ -541,10 +548,83 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
 
   if(destinations.empty())
   {
-    destinations << Destination(Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration()), 0);
+    QString parsed_file_name;
+    auto file_extension = m_source_info.absoluteFilePath().split('.').last();
+    auto file_metadata = TagLib::FileRef(m_source_info.absoluteFilePath().toStdString().c_str());
+
+    // try the hard way
+    if(file_metadata.isNull())
+    {
+      auto id = QUuid::createUuid();
+      QTemporaryFile temp_file(id.toString());
+      QFile original_file(m_source_info.absoluteFilePath());
+
+      if(temp_file.open() && original_file.open(QFile::ReadOnly))
+      {
+        temp_file.write(original_file.readAll());
+        original_file.close();
+        temp_file.flush();
+        temp_file.close();
+        temp_file.rename(temp_file.fileName() + file_extension);
+
+        file_metadata = TagLib::FileRef(temp_file.fileName().toStdString().c_str());
+        parsed_file_name = parse_metadata(file_metadata.tag());
+      }
+      original_file.close();
+      temp_file.remove();
+    }
+    else
+    {
+      parsed_file_name = parse_metadata(file_metadata.tag());
+    }
+
+    auto temp = parsed_file_name;
+    if(parsed_file_name.isEmpty())
+    {
+      parsed_file_name = Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration());
+    }
+
+    destinations << Destination(Utils::formatString(parsed_file_name, m_configuration.formatConfiguration()), 0);
   }
 
   return destinations;
+}
+
+//-----------------------------------------------------------------
+QString AudioWorker::parse_metadata(const TagLib::Tag *tags)
+{
+  QString track_title;
+
+  // track number
+  auto track_number = tags->track();
+  if (track_number != 0)
+  {
+    auto number_string = QString().number(track_number);
+
+    while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
+    {
+      number_string = "0" + number_string;
+    }
+
+    track_title += QString().number(track_number) + QString(" - ");
+  }
+
+  // track title
+  TagLib::String temp;
+  auto title = QString::fromStdWString(tags->title().toWString());
+
+  if (!title.isEmpty() && !Utils::isSpaces(title))
+  {
+    title.replace(QDir::separator(), QChar('-'));
+    title.replace(QChar('/'), QChar('-'));
+    track_title += title;
+  }
+  else
+  {
+    track_title.clear();
+  }
+
+  return track_title;
 }
 
 //-----------------------------------------------------------------

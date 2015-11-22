@@ -675,17 +675,3 @@ bool Utils::isSpaces(const QString& string)
 
   return true;
 }
-
-//-----------------------------------------------------------------
-bool Utils::isANumber(const QString& string)
-{
-  for(int i = 0; i < string.size(); ++i)
-  {
-    if(!string.at(i).isDigit())
-    {
-      return false;
-    }
-  }
-
-  return true;
-}

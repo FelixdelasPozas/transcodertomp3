@@ -58,17 +58,11 @@ class MP3Worker
      */
     void extract_cover(const TagLib::ID3v2::Tag *tags);
 
-    /** \brief Constructs the final filename using the metadata.
-     * \param[in] tags music file metadata.
-     *
-     */
-    QString parse_metadata(const TagLib::Tag *tags);
-
     /** \brief Constructs the final filename using the ID3v2 metadata.
      * \param[in] tags music file metadata.
      *
      */
-    QString parse_metadata(const TagLib::ID3v2::Tag *tags);
+    QString parse_metadata_id3v2(const TagLib::ID3v2::Tag *tags);
 
     static QMutex s_mutex;
 };

@@ -66,11 +66,6 @@ namespace Utils
    */
   bool isSpaces(const QString &string);
 
-  /** \brief Returns true if the string contains only digits.
-   *
-   */
-  bool isANumber(const QString &string);
-
   /** \brief Returns the files in the specified directory tree that has the specified extensions.
    * \param[in] rootDir starting directory.
    * \param[in] filters extensions of the files to return.

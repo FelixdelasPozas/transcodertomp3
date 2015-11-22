@@ -103,7 +103,7 @@ void MP3Worker::run_implementation()
       }
       else
       {
-        track_title = parse_metadata(file_metadata.ID3v2Tag());
+        track_title = parse_metadata_id3v2(file_metadata.ID3v2Tag());
       }
     }
 
@@ -158,7 +158,7 @@ void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
   {
     bool adquired = false;
     QString name = m_configuration.coverPictureName();
-    QString extension = "unknown";
+    QString extension = "picture_unknown_format";
     if(picture_frames.size() > 1)
     {
       name = "Image_" + QString::number(i);
@@ -175,6 +175,16 @@ void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
     if(mime.contains("png"))
     {
       extension = ".png";
+    }
+
+    if(mime.contains("bmp"))
+    {
+      extension = ".bmp";
+    }
+
+    if(mime.contains("tiff"))
+    {
+      extension = ".tiff";
     }
 
     auto cover_name = m_source_path + name + extension;
@@ -208,44 +218,7 @@ void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
 }
 
 //-----------------------------------------------------------------
-QString MP3Worker::parse_metadata(const TagLib::Tag *tags)
-{
-  QString track_title;
-
-  // track number
-  auto track_number = tags->track();
-  if (track_number != 0)
-  {
-    auto number_string = QString().number(track_number);
-
-    while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
-    {
-      number_string = "0" + number_string;
-    }
-
-    track_title += QString().number(track_number) + QString(" - ");
-  }
-
-  // track title
-  TagLib::String temp;
-  auto title = QString::fromStdWString(tags->title().toWString());
-
-  if (!title.isEmpty() && !Utils::isSpaces(title))
-  {
-    title.replace(QDir::separator(), QChar('-'));
-    title.replace(QChar('/'), QChar('-'));
-    track_title += title;
-  }
-  else
-  {
-    track_title.clear();
-  }
-
-  return track_title;
-}
-
-//-----------------------------------------------------------------
-QString MP3Worker::parse_metadata(const TagLib::ID3v2::Tag *tags)
+QString MP3Worker::parse_metadata_id3v2(const TagLib::ID3v2::Tag *tags)
 {
   QString track_title;
 
