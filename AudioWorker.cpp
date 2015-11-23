@@ -581,7 +581,7 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
     auto temp = parsed_file_name;
     if(parsed_file_name.isEmpty())
     {
-      parsed_file_name = Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration());
+      parsed_file_name = Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration(), false);
     }
 
     destinations << Destination(Utils::formatString(parsed_file_name, m_configuration.formatConfiguration()), 0);
