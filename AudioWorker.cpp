@@ -548,7 +548,7 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
 
   if(destinations.empty())
   {
-    QString parsed_file_name;
+    QString file_name;
     auto file_extension = m_source_info.absoluteFilePath().split('.').last();
     auto file_metadata = TagLib::FileRef(m_source_info.absoluteFilePath().toStdString().c_str());
 
@@ -568,23 +568,22 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
         temp_file.rename(temp_file.fileName() + file_extension);
 
         file_metadata = TagLib::FileRef(temp_file.fileName().toStdString().c_str());
-        parsed_file_name = parse_metadata(file_metadata.tag());
+        file_name = parse_metadata(file_metadata.tag());
       }
       original_file.close();
       temp_file.remove();
     }
     else
     {
-      parsed_file_name = parse_metadata(file_metadata.tag());
+      file_name = parse_metadata(file_metadata.tag());
     }
 
-    auto temp = parsed_file_name;
-    if(parsed_file_name.isEmpty())
+    if(file_name.isEmpty())
     {
-      parsed_file_name = Utils::formatString(m_source_info.absoluteFilePath(), m_configuration.formatConfiguration(), false);
+      file_name = m_source_info.absoluteFilePath();
     }
 
-    destinations << Destination(Utils::formatString(parsed_file_name, m_configuration.formatConfiguration()), 0);
+    destinations << Destination(Utils::formatString(file_name, m_configuration.formatConfiguration()), 0);
   }
 
   return destinations;
@@ -600,11 +599,6 @@ QString AudioWorker::parse_metadata(const TagLib::Tag *tags)
   if (track_number != 0)
   {
     auto number_string = QString().number(track_number);
-
-    while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
-    {
-      number_string = "0" + number_string;
-    }
 
     track_title += QString().number(track_number) + QString(" - ");
   }
