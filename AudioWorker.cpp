@@ -594,28 +594,31 @@ QString AudioWorker::parse_metadata(const TagLib::Tag *tags)
 {
   QString track_title;
 
-  // track number
-  auto track_number = tags->track();
-  if (track_number != 0)
+  if(tags)
   {
-    auto number_string = QString().number(track_number);
+    // track number
+    auto track_number = tags->track();
+    if (track_number != 0)
+    {
+      auto number_string = QString().number(track_number);
 
-    track_title += QString().number(track_number) + QString(" - ");
-  }
+      track_title += QString().number(track_number) + QString(" - ");
+    }
 
-  // track title
-  TagLib::String temp;
-  auto title = QString::fromStdWString(tags->title().toWString());
+    // track title
+    TagLib::String temp;
+    auto title = QString::fromStdWString(tags->title().toWString());
 
-  if (!title.isEmpty() && !Utils::isSpaces(title))
-  {
-    title.replace(QDir::separator(), QChar('-'));
-    title.replace(QChar('/'), QChar('-'));
-    track_title += title;
-  }
-  else
-  {
-    track_title.clear();
+    if (!title.isEmpty() && !Utils::isSpaces(title))
+    {
+      title.replace(QDir::separator(), QChar('-'));
+      title.replace(QChar('/'), QChar('-'));
+      track_title += title;
+    }
+    else
+    {
+      track_title.clear();
+    }
   }
 
   return track_title;
