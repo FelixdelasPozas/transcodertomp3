@@ -29,7 +29,7 @@
 #include <thread>
 
 const QStringList Utils::MODULE_FILE_EXTENSIONS  = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
-const QStringList Utils::WAVE_FILE_EXTENSIONS    = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3"};
+const QStringList Utils::WAVE_FILE_EXTENSIONS    = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3", "*.aiff"};
 const QStringList Utils::MOVIE_FILE_EXTENSIONS   = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
 const QString     Utils::TEMPORAL_FILE_EXTENSION = QString(".MusicTranscoderTemporal");
 
