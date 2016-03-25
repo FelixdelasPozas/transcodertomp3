@@ -45,7 +45,7 @@ The only current option is build from source as binaries are not provided.
 # Screenshots
 Configuration dialog.
 
-![Configuration Dialog](https://cloud.githubusercontent.com/assets/12167134/7867871/e2fcceba-0578-11e5-83bd-e806f5f95672.jpg)
+![Configuration Dialog](https://cloud.githubusercontent.com/assets/12167134/14055036/94e9906a-f2de-11e5-8f8c-5989a96dc791.jpg)
 
 Simple main dialog.
 
@@ -56,7 +56,7 @@ Dialog shown while processing files.
 ![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
 
 # Repository information
-**Version**: 1.1.0
+**Version**: 1.1.1
 
 **Status**: finished
 
