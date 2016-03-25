@@ -91,6 +91,7 @@ namespace Utils
     int                           number_of_digits;          // number of digits the number should have.
     QString                       number_and_name_separator; // separator between the number and the rest of the name.
     bool                          to_title_case;             // capitalize the first letter of every word in the name.
+    bool                          prefix_disk_num;           // true to prefix the track number with the disk number.
 
     FormatConfiguration()
     {
@@ -117,6 +118,7 @@ namespace Utils
       number_and_name_separator = '-';
       number_of_digits          = 2;
       to_title_case             = true;
+      prefix_disk_num           = false;
     }
   };
 
@@ -393,6 +395,7 @@ namespace Utils
       static const QString REFORMAT_SEPARATOR;
       static const QString REFORMAT_NUMBER_OF_DIGITS;
       static const QString REFORMAT_USE_TITLE_CASE;
+      static const QString REFORMAT_PREFIX_DISK_NUMBER;
 
       static const QString SETTINGS_FILENAME;
   };

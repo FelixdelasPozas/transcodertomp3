@@ -181,6 +181,7 @@ void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguratio
   m_replaceChars->selectRow(0);
 
   m_prefixNumDigits->setValue(configuration.formatConfiguration().number_of_digits);
+  m_prefix_disk->setChecked(configuration.formatConfiguration().prefix_disk_num);
   m_separator->setText(configuration.formatConfiguration().number_and_name_separator);
   m_titleCase->setChecked(configuration.formatConfiguration().to_title_case);
 }
@@ -298,11 +299,12 @@ const Utils::TranscoderConfiguration ConfigurationDialog::getConfiguration() con
   configuration.setUseMetadataToRenameOutput(m_renameOutput->isChecked());
 
   Utils::FormatConfiguration format;
-  format.apply = m_reformat->isChecked();
-  format.chars_to_delete = m_deleteChars->text();
+  format.apply                     = m_reformat->isChecked();
+  format.chars_to_delete           = m_deleteChars->text();
   format.number_and_name_separator = m_separator->text();
-  format.number_of_digits = m_prefixNumDigits->value();
-  format.to_title_case = m_titleCase->isChecked();
+  format.number_of_digits          = m_prefixNumDigits->value();
+  format.to_title_case             = m_titleCase->isChecked();
+  format.prefix_disk_num           = m_prefix_disk->isChecked();
 
   format.chars_to_replace.clear();
   for(int i = 0; i < m_replaceChars->rowCount(); ++i)

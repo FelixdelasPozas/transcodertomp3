@@ -56,6 +56,7 @@ const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_TO   = Q
 const QString Utils::TranscoderConfiguration::REFORMAT_SEPARATOR             = QObject::tr("Track and title separator");
 const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS      = QObject::tr("Number of digits");
 const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE        = QObject::tr("Use title case");
+const QString Utils::TranscoderConfiguration::REFORMAT_PREFIX_DISK_NUMBER    = QObject::tr("Prefix track number with disk number");
 
 const QString Utils::TranscoderConfiguration::SETTINGS_FILENAME = QString("MusicTranscoder.ini");
 
@@ -217,7 +218,7 @@ QString Utils::formatString(const QString filename,
         }
       }
 
-      if(!number_disc_id.isEmpty())
+      if(!number_disc_id.isEmpty() && conf.prefix_disk_num)
       {
         number_string = number_disc_id + QString("-") + number_string;
       }
@@ -391,6 +392,7 @@ void Utils::TranscoderConfiguration::load()
   m_format_configuration.number_of_digits          = settings.value(REFORMAT_NUMBER_OF_DIGITS, 2).toInt();
   m_format_configuration.number_and_name_separator = settings.value(REFORMAT_SEPARATOR, QString("-")).toString();
   m_format_configuration.to_title_case             = settings.value(REFORMAT_USE_TITLE_CASE, true).toBool();
+  m_format_configuration.prefix_disk_num           = settings.value(REFORMAT_PREFIX_DISK_NUMBER, false).toBool();
 
   auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, QStringList()).toStringList();
   auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, QStringList()).toStringList();
@@ -432,6 +434,7 @@ void Utils::TranscoderConfiguration::save() const
   settings.setValue(REFORMAT_NUMBER_OF_DIGITS, m_format_configuration.number_of_digits);
   settings.setValue(REFORMAT_SEPARATOR, m_format_configuration.number_and_name_separator);
   settings.setValue(REFORMAT_USE_TITLE_CASE, m_format_configuration.to_title_case);
+  settings.setValue(REFORMAT_PREFIX_DISK_NUMBER, m_format_configuration.prefix_disk_num);
 
   QStringList from, to;
   for(auto pair: m_format_configuration.chars_to_replace)

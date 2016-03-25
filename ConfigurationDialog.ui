@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>346</width>
-    <height>738</height>
+    <height>762</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>346</width>
-    <height>738</height>
+    <height>762</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>346</width>
-    <height>738</height>
+    <height>762</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -474,7 +474,7 @@ QGroupBox::title {
            <string>Number of digits of the track number.</string>
           </property>
           <property name="text">
-           <string>Number of digits of the number prefix</string>
+           <string>Number of digits of the track number prefix</string>
           </property>
          </widget>
         </item>
@@ -501,7 +501,7 @@ QGroupBox::title {
            <string>Separator between the track and the title in the output file name.</string>
           </property>
           <property name="text">
-           <string>Number prefix and title separator</string>
+           <string>Track number prefix and title separator</string>
           </property>
          </widget>
         </item>
@@ -513,6 +513,13 @@ QGroupBox::title {
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="m_prefix_disk">
+        <property name="text">
+         <string>Prefix track number with the disk number in metatada</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="m_titleCase">
