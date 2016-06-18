@@ -48,7 +48,7 @@ ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &c
   m_replaceChars->setSelectionBehavior(QTableWidget::SelectionBehavior::SelectRows);
   m_replaceChars->setColumnWidth(0, 110);
   m_replaceChars->setColumnWidth(1, 110);
-  m_replaceChars->horizontalHeader()->setResizeMode(QHeaderView::Fixed);
+  m_replaceChars->horizontalHeader()->resizeSections(QHeaderView::Fixed);
   m_replaceChars->selectRow(0);
 
   connectSignals();

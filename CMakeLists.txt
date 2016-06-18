@@ -7,19 +7,26 @@ set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 1)
 set (MUSIC_TRANSCODER_VERSION_PATCH 1)
 
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
+
+# Find the QtWidgets library
+find_package(Qt5 COMPONENTS Widgets)
+
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
-if(DEFINED MUSIC_TRANSCODER_VERSION_MAJOR)
+if(DEFINED MINGW)
   configure_file("${PROJECT_SOURCE_DIR}/resources.rc.in" "${PROJECT_BINARY_DIR}/resources.rc")
   set(CORE_SOURCES ${CORE_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/resources.rc)
   set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
   enable_language(RC)
-endif(DEFINED MUSIC_TRANSCODER_VERSION_MAJOR)
+endif(DEFINED MINGW)
 
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
 
 # LAME library
 set(LAME_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/lame-3.99.5/include")
@@ -64,13 +71,14 @@ include_directories(
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows -DTAGLIB_STATIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 # Add Qt Resource files
-qt4_add_resources(RESOURCES
+qt5_add_resources(RESOURCES
   rsc/resources.qrc
 )
 
-qt4_wrap_ui(CORE_UI
+qt5_wrap_ui(CORE_UI
   # .ui for Qt
   MusicTranscoder.ui
   ProcessDialog.ui
@@ -78,20 +86,10 @@ qt4_wrap_ui(CORE_UI
   ConfigurationDialog.ui
 )
 	
-qt4_wrap_cpp(CORE_MOC
-  # .h for Qt
-  MusicTranscoder.h
-  ProcessDialog.h
-  AboutDialog.h
-  ConfigurationDialog.h
-  Worker.h
-)
-
 set (CORE_SOURCES
   # project files
   ${CORE_SOURCES}
   ${RESOURCES}
-  ${CORE_MOC}
   ${CORE_UI}
   Main.cpp
   MusicTranscoder.cpp
@@ -106,6 +104,8 @@ set (CORE_SOURCES
   PlaylistWorker.cpp
 )
 
+SET_SOURCE_FILES_PROPERTIES(${CORE_SOURCES} PROPERTIES OBJECT_DEPENDS "${CORE_UI}")
+
 set(CORE_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${LAME_LIBRARY}
@@ -118,3 +118,4 @@ set(CORE_EXTERNAL_LIBS
   
 add_executable(MusicTranscoder ${CORE_SOURCES})
 target_link_libraries (MusicTranscoder ${CORE_EXTERNAL_LIBS})
+qt5_use_modules(MusicTranscoder Widgets)
