@@ -419,6 +419,19 @@ void Utils::TranscoderConfiguration::load()
   auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, QStringList()).toStringList();
   auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, QStringList()).toStringList();
 
+  // go to parent or home if the saved directory no longer exists.
+  QDir dir{m_root_directory};
+  while(!dir.exists() && !dir.isRoot()) dir.cdUp();
+
+  if(dir.isRoot())
+  {
+    m_root_directory = QDir::homePath();
+  }
+  else
+  {
+    m_root_directory = dir.path();
+  }
+
   if(!from.isEmpty())
   {
     m_format_configuration.chars_to_replace.clear();
