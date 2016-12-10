@@ -42,7 +42,7 @@ MusicTranscoder::MusicTranscoder()
 
 	m_configuration.load();
 
-  m_directoryText->setText(m_configuration.rootDirectory());
+  m_directoryText->setText(QDir::toNativeSeparators(m_configuration.rootDirectory()));
   m_threads->setValue(m_configuration.numberOfThreads());
 
 	m_threads->setMinimum(1);

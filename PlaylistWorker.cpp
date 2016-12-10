@@ -27,7 +27,8 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
-const QString PlaylistWorker::PLAYLIST_EXTENSION = QString(".m3u");
+const QString PLAYLIST_EXTENSION = QString(".m3u8");
+const QChar   SEPARATOR          = QChar('/');
 
 //-----------------------------------------------------------------
 PlaylistWorker::PlaylistWorker(const QFileInfo &source_info, const Utils::TranscoderConfiguration& configuration)
@@ -77,7 +78,7 @@ void PlaylistWorker::generate_playlist()
     return;
   }
 
-  auto playlistname = m_source_info.absoluteFilePath().split('/').last();
+  auto playlistname = m_source_info.absoluteFilePath().split(SEPARATOR).last();
   auto baseName = Utils::formatString(playlistname, m_configuration.formatConfiguration(), false);
   QFile playlist(m_source_info.absoluteFilePath() + QDir::separator() + baseName + PLAYLIST_EXTENSION);
 
@@ -88,7 +89,7 @@ void PlaylistWorker::generate_playlist()
     return;
   }
 
-  emit information_message(QString("Creating playlist for %1%2").arg(m_source_info.absoluteFilePath().replace('/',QDir::separator())).arg(QDir::separator()));
+  emit information_message(QString("Creating playlist for %1%2").arg(m_source_info.absoluteFilePath().replace(SEPARATOR,QDir::separator())).arg(QDir::separator()));
 
   auto newline = QString("\n");
   QByteArray contents;
@@ -106,7 +107,7 @@ void PlaylistWorker::generate_playlist()
       return;
     }
 
-    auto basename = file.split('/').last();
+    auto basename = file.split(SEPARATOR).last().toUtf8();
 
     contents.append(QString("#EXTINF:") +
                     QString().number(duration) +

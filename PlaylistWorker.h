@@ -59,8 +59,6 @@ class PlaylistWorker
      *
      */
     bool get_song_duration(const QString &file_name, long long &duration);
-
-    static const QString PLAYLIST_EXTENSION;
 };
 
 #endif // PLAYLIST_WORKER_H_

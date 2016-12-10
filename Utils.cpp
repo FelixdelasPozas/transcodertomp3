@@ -393,7 +393,7 @@ void Utils::TranscoderConfiguration::load()
 {
   QSettings settings(SETTINGS_FILENAME, QSettings::IniFormat);
 
-  m_root_directory                                 = settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString().replace('/',QDir::separator());
+  m_root_directory                                 = settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString();
   m_number_of_threads                              = settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency() /2).toInt();
   m_transcode_audio                                = settings.value(TRANSCODE_AUDIO, true).toBool();
   m_transcode_video                                = settings.value(TRANSCODE_VIDEO, true).toBool();
