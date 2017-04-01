@@ -42,6 +42,10 @@ class Worker;
 // C++
 #include <memory>
 
+/** \class ProcessDialog
+ * \brief Implements the processing dialog.
+ *
+ */
 class ProcessDialog
 : public QDialog
 , public Ui_ProcessDialog
@@ -54,12 +58,18 @@ class ProcessDialog
      * \param[in] threadNum number of threads to use in the transcoding process.
      *
      */
-    explicit ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInfo> &folders, const Utils::TranscoderConfiguration &configuration);
+    explicit ProcessDialog(const QList<QFileInfo> &files,
+                           const QList<QFileInfo> &folders,
+                           const Utils::TranscoderConfiguration &configuration,
+                           QWidget *parent = nullptr,
+                           Qt::WindowFlags flags = Qt::WindowFlags());
 
     /** \brief Process dialog class constructor.
      *
      */
     virtual ~ProcessDialog();
+
+    virtual bool event(QEvent * e);
 
   protected:
     virtual void closeEvent(QCloseEvent *e) override final;
@@ -139,16 +149,15 @@ class ProcessDialog
      */
     static int lock_manager(void **mutex, enum AVLockOp op);
 
-    QList<QFileInfo>                      m_music_files;
-    QList<QFileInfo>                      m_music_folders;
-    int                                   m_max_workers;
-    int                                   m_num_workers;
-    const Utils::TranscoderConfiguration &m_configuration;
-    int                                   m_errorsCount;
-    bool                                  m_finished_transcoding;
-
-    QMutex m_mutex;
-    QMap<QProgressBar *, Worker *> m_progress_bars;
+    QList<QFileInfo>                      m_music_files;          /** list of file informations.                 */
+    QList<QFileInfo>                      m_music_folders;        /** list of folder informations.               */
+    int                                   m_max_workers;          /** max number of simultaneous threads.        */
+    int                                   m_num_workers;          /** current number of simultaneous threads.    */
+    const Utils::TranscoderConfiguration &m_configuration;        /** application configuration struct.          */
+    int                                   m_errorsCount;          /** number of errors that have ocurred.        */
+    bool                                  m_finished_transcoding; /** true if process finished, false otherwise. */
+    QMutex                                m_mutex;                /** protects internal data and writes to log.  */
+    QMap<QProgressBar *, Worker *>        m_progress_bars;        /** maps worker<->progress bar.                */
 };
 
 #endif // PROCESSDIALOG_H_

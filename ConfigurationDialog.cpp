@@ -29,7 +29,8 @@ const QStringList ConfigurationDialog::BITRATE_NAMES = { tr("320"), tr("256"), t
 const QList<int>  ConfigurationDialog::BITRATE_VALUES = { 320, 256, 224, 192, 160, 128, 112, 96, 80, 64 };
 
 //-----------------------------------------------------------------
-ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &configuration)
+ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &configuration, QWidget *parent, Qt::WindowFlags flags)
+: QDialog{parent, flags}
 {
   setupUi(this);
 
@@ -54,11 +55,6 @@ ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &c
   connectSignals();
 
   onTableItemChanged(m_replaceChars->currentItem(), nullptr);
-}
-
-//-----------------------------------------------------------------
-ConfigurationDialog::~ConfigurationDialog()
-{
 }
 
 //-----------------------------------------------------------------

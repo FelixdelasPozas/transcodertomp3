@@ -26,10 +26,12 @@
 #include "PlaylistWorker.h"
 
 // Qt
+#include <QObject>
 #include <QLayout>
 #include <QFileInfo>
 #include <QProgressBar>
 #include <QMutexLocker>
+#include <QKeyEvent>
 
 // libav
 extern "C"
@@ -38,8 +40,13 @@ extern "C"
 }
 
 //-----------------------------------------------------------------
-ProcessDialog::ProcessDialog(const QList<QFileInfo> &files, const QList<QFileInfo> &folders, const Utils::TranscoderConfiguration &configuration)
-: m_music_files         {files}
+ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
+                             const QList<QFileInfo> &folders,
+                             const Utils::TranscoderConfiguration &configuration,
+                             QWidget *parent,
+                             Qt::WindowFlags flags)
+: QDialog               {parent, flags}
+, m_music_files         {files}
 , m_music_folders       {folders}
 , m_configuration       (configuration)
 , m_errorsCount         {0}
@@ -323,6 +330,23 @@ void ProcessDialog::onClipboardPressed() const
 {
   m_log->selectAll();
   m_log->copy();
+}
+
+//-----------------------------------------------------------------
+bool ProcessDialog::event(QEvent *e)
+{
+  if(e->type() == QEvent::KeyPress)
+  {
+    auto ke = dynamic_cast<QKeyEvent *>(e);
+    if(ke && (ke->key() == Qt::Key_Escape || ke->key() == Qt::Key_Enter))
+    {
+      e->accept();
+      close();
+      return true;
+    }
+  }
+
+  return QDialog::event(e);
 }
 
 //-----------------------------------------------------------------

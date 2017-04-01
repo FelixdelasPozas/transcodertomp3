@@ -34,7 +34,7 @@ The following file formats are detected and supported by the tool as input files
 The following libraries are required:
 * [lame](http://lame.sourceforge.net/) - Lame Ain't An Mp3 Encoder.
 * [libav](https://libav.org/) - Open source audio and video processing tools.
-* [libcue](http://sourceforge.net/projects/libcue/) - CUE sheet parser library.
+* [libcue](https://github.com/lipnitsk/libcue) - CUE sheet parser library.
 * [TagLib](https://taglib.github.io/) - TagLib Audio Meta-Data Library.
 * [libopenmt](http://lib.openmpt.org/) - OpenMPT based module player library.
 * [Qt opensource framework](http://www.qt.io/).
@@ -56,7 +56,7 @@ Dialog shown while processing files.
 ![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
 
 # Repository information
-**Version**: 1.1.4
+**Version**: 1.2.0
 
 **Status**: finished
 
@@ -64,7 +64,7 @@ Dialog shown while processing files.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   11          |  586        |    375           |2373  |
-| C/C++ Header                 |   10          |  241        |    631           | 447  |
-| CMake                        |    1          |   22        |     13           |  86  |
-| **Total**                    |   **22**      |  **849**    |   **1019**       |**2906**|
+| C++                          |   11          |  589        |    375           |2409  |
+| C/C++ Header                 |   10          |  241        |    685           | 459  |
+| CMake                        |    1          |   22        |     13           |  94  |
+| **Total**                    |   **22**      |  **852**    |   **1073**       |**2962**|

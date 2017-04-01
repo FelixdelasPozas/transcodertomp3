@@ -4,8 +4,8 @@ cmake_minimum_required (VERSION 2.8.6)
 
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
-set (MUSIC_TRANSCODER_VERSION_MINOR 1)
-set (MUSIC_TRANSCODER_VERSION_PATCH 4)
+set (MUSIC_TRANSCODER_VERSION_MINOR 2)
+set (MUSIC_TRANSCODER_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -33,7 +33,7 @@ set(LAME_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/lame-3.99.5/include")
 set(LAME_LIBRARY     "D:/Desarrollo/Bibliotecas/lame-3.99.5/libmp3lame/.libs/libmp3lame.a")
 
 # libav library
-set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/libav-11.3")
+set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/libav-12")
 set(LIBAV_INCLUDE_DIR ${LIBAV_DIR})
 set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a 
                       ${LIBAV_DIR}/libavcodec/libavcodec.a 
@@ -41,17 +41,23 @@ set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a
                       ${LIBAV_DIR}/libavresample/libavresample.a)
 
 # libcue library
-set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src")
-set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-1.4.0/src/libcue/.libs/libcue.a")
+set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-2.1.0")
+set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-build/libcue.a")
 
 # taglib library
-set(TAGLIB_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/taglib-1.10/taglib")
+set(TAGLIB_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib"
+                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/toolkit"
+                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/ape"
+                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg"
+                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg/id3v1"
+                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg/id3v2"
+					   "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg/id3v2/frames")
 set(TAGLIB_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/taglib-build")
 set(TAGLIB_LIBRARIES   ${TAGLIB_LIBRARY_DIR}/taglib/libtag.a)
 
 # libopenmpt library
-set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.4954-beta12-windows")
-set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.4954-beta12-windows/bin/libopenmpt.a")
+set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.7774")
+set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.7774/bin/libopenmpt.a")
 
 #include zlib
 set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
@@ -114,6 +120,8 @@ set(CORE_EXTERNAL_LIBS
   ${TAGLIB_LIBRARIES}
   ${LIBOPENMPT_LIBRARY}
   ${ZLIB_LIBRARY}
+  ws2_32.a
+  wsock32.a
 )
   
 add_executable(MusicTranscoder ${CORE_SOURCES})

@@ -90,7 +90,7 @@
          <item>
           <widget class="QLabel" name="m_version">
            <property name="text">
-            <string>version 1.1.0</string>
+            <string>version 1.2.0</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -221,7 +221,7 @@ LAME Ain't an Mp3 Encoder</string>
             <item>
              <widget class="QLabel" name="label_8">
               <property name="text">
-               <string>version 3.99</string>
+               <string>version 3.99.5</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -304,7 +304,7 @@ Open source audio &amp; video processing tools</string>
             <item>
              <widget class="QLabel" name="label_12">
               <property name="text">
-               <string>version 11.3</string>
+               <string>version 12</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -375,7 +375,7 @@ CUE Sheet parser library</string>
             <item>
              <widget class="QLabel" name="label_16">
               <property name="text">
-               <string>version 1.4.0</string>
+               <string>version 2.1.0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -387,7 +387,7 @@ CUE Sheet parser library</string>
           <item>
            <widget class="QLabel" name="label_17">
             <property name="text">
-             <string>&lt;a href=&quot;http://sourceforge.net/projects/libcue/&quot;&gt;http://sourceforge.net/projects/libcue/&lt;/a&gt;</string>
+             <string>&lt;a href=&quot;http://sourceforge.net/projects/libcue/&quot;&gt;https://github.com/lipnitsk/libcue/&lt;/a&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -452,7 +452,7 @@ TagLib Audio Meta-Data Library</string>
             <item>
              <widget class="QLabel" name="label_21">
               <property name="text">
-               <string>version 1.10</string>
+               <string>version 1.11.1</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -520,7 +520,7 @@ OpenMPT based module player library</string>
             <item>
              <widget class="QLabel" name="label_25">
               <property name="text">
-               <string>version 0.2.4954 beta 12</string>
+               <string>version 0.2.7774</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -597,7 +597,7 @@ Qt Framework</string>
             <item>
              <widget class="QLabel" name="label_27">
               <property name="text">
-               <string>version 5.7.0</string>
+               <string>version 5.8.0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>

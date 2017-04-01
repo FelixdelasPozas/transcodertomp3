@@ -20,10 +20,11 @@
 // Project
 #include <AboutDialog.h>
 
-const QString AboutDialog::VERSION = QString("version 1.1.4");
+const QString AboutDialog::VERSION = QString("version 1.2.0");
 
 //-----------------------------------------------------------------
-AboutDialog::AboutDialog()
+AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
+: QDialog{parent, flags}
 {
   setupUi(this);
 
@@ -34,10 +35,5 @@ AboutDialog::AboutDialog()
 
   m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
   m_version->setText(VERSION);
-}
-
-//-----------------------------------------------------------------
-AboutDialog::~AboutDialog()
-{
 }
 

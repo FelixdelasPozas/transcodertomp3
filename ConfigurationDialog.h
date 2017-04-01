@@ -27,6 +27,10 @@
 #include <QDialog>
 #include "ui_ConfigurationDialog.h"
 
+/** \class ConfigurationDialog
+ * \brief Implements the configuration dialog.
+ *
+ */
 class ConfigurationDialog
 : public QDialog
 , public Ui_ConfigurationDialog
@@ -35,14 +39,17 @@ class ConfigurationDialog
   public:
     /** \brief ConfigurationDialog class constructor.
      * \param[in] configuration configuration struct.
+     * \param[in] parent QWidget parent of this one.
+     * \param[in] flags dialog flags.
      *
      */
-    explicit ConfigurationDialog(const Utils::TranscoderConfiguration &configuration);
+    explicit ConfigurationDialog(const Utils::TranscoderConfiguration &configuration, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
     /** \brief ConfigurationDialog class virtual destructor.
      *
      */
-    virtual ~ConfigurationDialog();
+    virtual ~ConfigurationDialog()
+    {}
 
     /** \brief Returns the configuration struct with the values of the dialog.
      *
@@ -73,10 +80,10 @@ class ConfigurationDialog
     void connectSignals();
 
     // can't do this with QMap in Qt 4.8.6
-    static const QStringList QUALITY_NAMES;
-    static const QList<int>  QUALITY_VALUES;
-    static const QStringList BITRATE_NAMES;
-    static const QList<int>  BITRATE_VALUES;
+    static const QStringList QUALITY_NAMES;  /** strings of the quality levels. */
+    static const QList<int>  QUALITY_VALUES; /** values of the quality levels.  */
+    static const QStringList BITRATE_NAMES;  /** strings of the bitrates.       */
+    static const QList<int>  BITRATE_VALUES; /** values of the bitrates.        */
 };
 
 #endif // CONFIGURATIONDIALOG_H_

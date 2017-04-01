@@ -23,6 +23,10 @@
 // Project
 #include "Worker.h"
 
+/** \class ModuleWorker
+ * \brief Implements a Worker class to use with module audio files.
+ *
+ */
 class ModuleWorker
 : public Worker
 {
@@ -37,7 +41,8 @@ class ModuleWorker
     /** \brief ModuleWorker class virtual destructor.
      *
      */
-    virtual ~ModuleWorker();
+    virtual ~ModuleWorker()
+    {}
 
   protected:
     virtual void run_implementation() override final;
@@ -55,11 +60,11 @@ class ModuleWorker
 
     virtual Destinations compute_destinations() override final;
 
-    static const int BUFFER_SIZE = 16000;
+    static const int BUFFER_SIZE = 16000;  /** size of the buffer to use for transcoding. */
 
-    short int m_left_buffer[BUFFER_SIZE];
-    short int m_right_buffer[BUFFER_SIZE];
-    QString m_module_file_name;
+    short int m_left_buffer[BUFFER_SIZE];  /** left stream buffer.                        */
+    short int m_right_buffer[BUFFER_SIZE]; /** right stream buffer.                       */
+    QString m_module_file_name;            /** output file name.                          */
 };
 
 #endif // MODULE_WORKER_H_

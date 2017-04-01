@@ -23,17 +23,31 @@
 #include <QDialog>
 #include "ui_AboutDialog.h"
 
+/** \class AboutDialog
+ * \brief Implements the narcissitic dialog.
+ *
+ */
 class AboutDialog
 : public QDialog
 , public Ui_AboutDialog
 {
     Q_OBJECT
   public:
-    AboutDialog();
-    virtual ~AboutDialog();
+    /** \brief AboutDialog class constructor.
+     * \param[in] parent QWidget parent of this one.
+     * \param[in] flags dialog flags.
+     *
+     */
+    AboutDialog(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
+
+    /** \briof AboutDialog class virtual destructor.
+     *
+     */
+    virtual ~AboutDialog()
+    {}
 
   private:
-    static const QString VERSION;
+    static const QString VERSION; /** application version string. */
 };
 
 #endif // ABOUTDIALOG_H_

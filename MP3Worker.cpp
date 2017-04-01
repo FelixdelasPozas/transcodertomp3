@@ -22,6 +22,7 @@
 
 // taglib
 #include <tag.h>
+#include <id3v1tag.h>
 #include <id3v2tag.h>
 #include <id3v2frame.h>
 #include <id3v2header.h>
@@ -29,7 +30,6 @@
 #include <id3v2framefactory.h>
 #include <attachedpictureframe.h>
 #include <textidentificationframe.h>
-#include <id3v1tag.h>
 #include <mpegfile.h>
 #include <tstring.h>
 #include <tpropertymap.h>
@@ -50,11 +50,6 @@ QString TEMP_EXTENSION           = ".temp";
 //-----------------------------------------------------------------
 MP3Worker::MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
 : AudioWorker(source_info, configuration)
-{
-}
-
-//-----------------------------------------------------------------
-MP3Worker::~MP3Worker()
 {
 }
 
@@ -184,27 +179,28 @@ void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
 
     if(mime.contains("tiff"))
     {
-      extension = ".tiff";
+      extension = ".tif";
     }
 
     auto cover_name = m_source_path + name + extension;
 
-    s_mutex.lock();
-    if (!QFile::exists(cover_name))
     {
       // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
-      QFile file(cover_name);
-      if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
+      QMutexLocker lock(&s_mutex);
+      if (!QFile::exists(cover_name))
       {
-        emit error_message(QString("Couldn't create cover picture file for '%1', check for file permissions.").arg(m_source_info.absoluteFilePath()));
-      }
-      else
-      {
-        file.close();
-        adquired = true;
+        QFile file(cover_name);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
+        {
+          emit error_message(QString("Couldn't create cover picture file for '%1', check for file permissions.").arg(m_source_info.absoluteFilePath()));
+        }
+        else
+        {
+          file.close();
+          adquired = true;
+        }
       }
     }
-    s_mutex.unlock();
 
     if (adquired)
     {

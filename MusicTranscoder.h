@@ -27,6 +27,10 @@
 // Qt
 #include <QMainWindow>
 
+/** \class MusicTranscoder
+ * \brief Application main window.
+ *
+ */
 class MusicTranscoder
 : public QMainWindow
 , public Ui_MusicTranscoder
@@ -43,6 +47,8 @@ class MusicTranscoder
 		 *
 		 */
 		~MusicTranscoder();
+
+		virtual bool event(QEvent *e) override;
 
 	private slots:
 	  /** \brief Displays the directory selection dialog.
@@ -71,7 +77,7 @@ class MusicTranscoder
 	  void onThreadsNumberChanged(int value);
 
 	private:
-	  Utils::TranscoderConfiguration m_configuration;
+	  Utils::TranscoderConfiguration m_configuration; /** application configuration. */
 };
 
 #endif // MUSIC_TRANSCODER_H_

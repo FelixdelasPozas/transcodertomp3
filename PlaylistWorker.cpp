@@ -37,11 +37,6 @@ PlaylistWorker::PlaylistWorker(const QFileInfo &source_info, const Utils::Transc
 }
 
 //-----------------------------------------------------------------
-PlaylistWorker::~PlaylistWorker()
-{
-}
-
-//-----------------------------------------------------------------
 void PlaylistWorker::run_implementation()
 {
   generate_playlist();

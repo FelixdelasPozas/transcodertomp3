@@ -30,6 +30,10 @@
 #include <tag.h>
 #include <mpegfile.h>
 
+/** \class MP3Worker
+ * \brief Implements a Worker to be used with MP3 audio files.
+ *
+ */
 class MP3Worker
 : public AudioWorker
 {
@@ -44,7 +48,8 @@ class MP3Worker
     /** \brief MP3Worker class virtual destructor.
      *
      */
-    virtual ~MP3Worker();
+    virtual ~MP3Worker()
+    {}
 
   protected:
     virtual void run_implementation() override final;
@@ -64,7 +69,7 @@ class MP3Worker
      */
     QString parse_metadata_id3v2(const TagLib::ID3v2::Tag *tags);
 
-    static QMutex s_mutex;
+    static QMutex s_mutex; /** mutex for cover extraction. */
 };
 
 #endif // MP3_WORKER_H_

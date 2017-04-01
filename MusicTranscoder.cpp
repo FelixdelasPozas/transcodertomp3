@@ -150,7 +150,7 @@ void MusicTranscoder::onConversionStarted()
 //-----------------------------------------------------------------
 void MusicTranscoder::onAboutButtonPressed()
 {
-  AboutDialog dialog;
+  AboutDialog dialog(this);
   dialog.setModal(true);
   dialog.exec();
 }
@@ -174,4 +174,21 @@ void MusicTranscoder::onConfigurationButtonPressed()
 void MusicTranscoder::onThreadsNumberChanged(int value)
 {
   m_configuration.setNumberOfThreads(value);
+}
+
+//-----------------------------------------------------------------
+bool MusicTranscoder::event(QEvent* e)
+{
+  if(e->type() == QEvent::KeyPress)
+  {
+    auto ke = dynamic_cast<QKeyEvent *>(e);
+    if(ke && ke->key() == Qt::Key_Escape)
+    {
+      e->accept();
+      close();
+      return true;
+    }
+  }
+
+  return QMainWindow::event(e);
 }

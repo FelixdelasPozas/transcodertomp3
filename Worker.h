@@ -30,6 +30,10 @@
 // Lame
 #include <lame.h>
 
+/** \class Worker
+ * \brief Implements the API of a transcoding to MP3 worker thread.
+ *
+ */
 class Worker
 : public QThread
 {
@@ -112,26 +116,29 @@ class Worker
     void close_destination_file();
 
     // sample formats, not all supported.
-    enum class Sample_format: unsigned char { UNDEFINED, SIGNED_16, FLOAT, DOUBLE, SIGNED_16_PLANAR, SIGNED_32_PLANAR, FLOAT_PLANAR, DOUBLE_PLANAR, UNSIGNED_8, UNSIGNED_8_PLANAR, SIGNED_32 };
+    enum class Sample_format: unsigned char { UNDEFINED = 0, SIGNED_16, FLOAT, DOUBLE, SIGNED_16_PLANAR, SIGNED_32_PLANAR, FLOAT_PLANAR, DOUBLE_PLANAR, UNSIGNED_8, UNSIGNED_8_PLANAR, SIGNED_32 };
 
     // information of the source audio file
     struct Source_Info
     {
-      bool          init;
-      int           num_channels;
-      long          samplerate;
-      MPEG_mode_e   mode;
-      Sample_format format;
+      bool          init;         /** true if the struct has been initialized, false otherwise. */
+      int           num_channels; /** number of channels in the source file.                    */
+      long          samplerate;   /** sample rate of the source file.                           */
+      MPEG_mode_e   mode;         /** mpeg mode of the source if it's an MP3.                   */
+      Sample_format format;       /** sample format of the source file.                         */
 	  
       Source_Info(): init{false}, num_channels{-1}, samplerate{-1}, mode{MPEG_mode_e::STEREO}, format{Sample_format::UNDEFINED} {};
     };
 
-    // information of a destination file that will be created.
+    /** \struct Destination
+     * \brief Information of a destination file that will be created.
+     *
+     */
     struct Destination
     {
-        QString  name;
-        long long int duration; // there are 75 frames per second in a cue sheet duration.
-                                // 0 indicates not to worry about duration and encode until the end of the source file.
+        QString       name;     /** destination file name.                                                                    */
+        long long int duration; /** duration of the destination file (there are 75 frames per second in a cue sheet duration.
+                                    0 indicates not to worry about duration and encode until the end of the source file).     */
 
         Destination(QString destination_name, long int destination_duration): name{destination_name}, duration{destination_duration} {};
     };
@@ -147,12 +154,11 @@ class Worker
      */
     const int number_of_tracks() const;
 
-
-    const QFileInfo                m_source_info;
-    const QString                  m_source_path;
-    Utils::TranscoderConfiguration m_configuration;
-    Source_Info                    m_information;
-    bool                           m_fail;
+    const QFileInfo                m_source_info;   /** source file information.                  */
+    const QString                  m_source_path;   /** source file path.                         */
+    Utils::TranscoderConfiguration m_configuration; /** application configuration.                */
+    Source_Info                    m_information;   /** source file audio information.            */
+    bool                           m_fail;          /** true on process success, false otherwise. */
 
   private:
     /** \brief Initializes lame library structures and data to encode the pcm data.
@@ -205,14 +211,14 @@ class Worker
      */
     virtual Destinations compute_destinations();
 
-    static const int MP3_BUFFER_SIZE = 33920;
+    static const int MP3_BUFFER_SIZE = 33920; /** buffer size used for encoding to MP3. */
 
-    Destinations       m_destinations;
-    int                m_num_tracks;
-    bool               m_stop;
-    lame_global_flags *m_gfp;
-    unsigned char      m_mp3_buffer[MP3_BUFFER_SIZE];
-    QFile              m_mp3_file_stream;
+    Destinations       m_destinations;                /** list of output file destinations.                     */
+    int                m_num_tracks;                  /** number of tracks in the source file (from CUE sheet). */
+    bool               m_stop;                        /** true if the process needs to abort, false otherwise.  */
+    lame_global_flags *m_gfp;                         /** lame encoder global flags.                            */
+    unsigned char      m_mp3_buffer[MP3_BUFFER_SIZE]; /** encoding buffer.                                      */
+    QFile              m_mp3_file_stream;             /** output mp3 file stream.                               */
 };
 
 #endif // WORKER_H_

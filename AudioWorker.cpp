@@ -43,7 +43,7 @@ extern "C"
 // libcue
 extern "C"
 {
-#include <libcue/libcue.h>
+#include <libcue.h>
 }
 
 QMutex AudioWorker::s_mutex;
@@ -52,16 +52,12 @@ QMutex AudioWorker::s_mutex;
 AudioWorker::AudioWorker(const QFileInfo &origin_info, const Utils::TranscoderConfiguration &configuration)
 : Worker{origin_info, configuration}
 , m_libav_context        {nullptr}
+, m_packet               {nullptr}
 , m_cover_stream_id      {-1}
 , m_audio_decoder        {nullptr}
 , m_audio_decoder_context{nullptr}
 , m_frame                {nullptr}
 , m_audio_stream_id      {-1}
-{
-}
-
-//-----------------------------------------------------------------
-AudioWorker::~AudioWorker()
 {
 }
 
@@ -102,7 +98,7 @@ bool AudioWorker::init_libav()
     return false;
   }
 
-  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &custom_IO_read, nullptr, &custom_IO_seek);
+  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - AV_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &custom_IO_read, nullptr, &custom_IO_seek);
   if(nullptr == avioContext)
   {
     emit error_message(QString("Couldn't allocate context for custom libav IO for file: '%1'.").arg(source_name));
@@ -117,7 +113,6 @@ bool AudioWorker::init_libav()
   m_libav_context->flags |= AVFMT_FLAG_CUSTOM_IO;
 
   int value = 0;
-
   value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
   if (value < 0)
   {
@@ -129,7 +124,6 @@ bool AudioWorker::init_libav()
   m_libav_context->max_analyze_duration *= 1000;
 
   value = avformat_find_stream_info(m_libav_context, nullptr);
-
   if(value < 0)
   {
     emit error_message(QString("Couldn't get the information of '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(value)));
@@ -145,32 +139,30 @@ bool AudioWorker::init_libav()
 
   if(!m_audio_decoder)
   {
-    // try to get the decoder using other ways
-    m_audio_decoder = avcodec_find_decoder(m_libav_context->streams[m_audio_stream_id]->codec->codec_id);
-    if (!m_audio_decoder)
-    {
-      emit error_message(QString("Couldn't find decoder for '%1'.").arg(source_name));
-      return false;
-    }
+    emit error_message(QString("Couldn't find decoder for '%1'.").arg(source_name));
+    return false;
   }
-
-  m_audio_decoder_context = m_libav_context->streams[m_audio_stream_id]->codec;
-  m_audio_decoder_context->codec = m_audio_decoder;
 
   if(m_libav_context->nb_streams != 1 && !Utils::isVideoFile(m_source_info) && m_configuration.extractMetadataCoverPicture())
   {
     init_libav_cover_extraction();
   }
 
+  // NOTE: the use of streams is deprecated but I couldn't find another way to correctly init a
+  // decoder context with the correct parameters found during av_format_find_info(). The method:
+  // avcodec_alloc_context3(const AVCodec *codec) returns an uninitalized context that fails in
+  // the send_packet() API. Also, in the examples it's done this way. Why if it's being deprecated?
+  m_audio_decoder_context = m_libav_context->streams[m_audio_stream_id]->codec;
+
   value = avcodec_open2(m_audio_decoder_context, m_audio_decoder, nullptr);
-  if (value < 0)
+  if (value < 0 || !avcodec_is_open(m_audio_decoder_context))
   {
     emit error_message(QString("Couldn't open decoder for '%1'. Error is \"%2\"").arg(source_name).arg(av_error_string(value)));
     return false;
   }
 
-  av_init_packet(&m_packet);
-  m_frame = av_frame_alloc();
+  m_packet = av_packet_alloc();
+  m_frame  = av_frame_alloc();
 
   m_information.init         = true;
   m_information.samplerate   = m_audio_decoder_context->sample_rate;
@@ -218,10 +210,11 @@ bool AudioWorker::init_libav()
 void AudioWorker::init_libav_cover_extraction()
 {
   // try to guess if the other stream is the album cover picture.
-  m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+  AVCodec *picture_codec = nullptr;
+  m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, &picture_codec, 0);
   if(m_cover_stream_id > 0)
   {
-    auto codec_id = m_libav_context->streams[m_cover_stream_id]->codec->codec_id;
+    auto codec_id = picture_codec->id;
     switch(codec_id)
     {
       case AV_CODEC_ID_MJPEG:
@@ -234,7 +227,7 @@ void AudioWorker::init_libav_cover_extraction()
         m_cover_extension = QString(".bmp");
         break;
       case AV_CODEC_ID_TIFF:
-        m_cover_extension = QString(".tiff");
+        m_cover_extension = QString(".tif");
         break;
       default:
         m_cover_extension = QString(".picture_unknown_format");
@@ -282,9 +275,9 @@ void AudioWorker::deinit_libav()
     avformat_close_input(&m_libav_context);
   }
 
-  if(m_frame)
+  if(m_packet)
   {
-    av_frame_free(&m_frame);
+    av_packet_free(&m_packet);
   }
 }
 
@@ -333,15 +326,15 @@ void AudioWorker::transcode()
   }
 
   int value;
-  while(0 == (value = av_read_frame(m_libav_context, &m_packet)))
+  while(0 == (value = av_read_frame(m_libav_context, m_packet)))
   {
     emit progress(m_libav_context->pb->pos * 100 / m_source_info.size());
 
     // decode audio and encode it to mp3
-    if (m_packet.stream_index == m_audio_stream_id)
+    if (m_packet->stream_index == m_audio_stream_id)
     {
       // Audio packets can have multiple audio frames in a single packet
-      while (m_packet.size > 0)
+      while (m_packet->size > 0)
       {
         if(!process_audio_packet())
         {
@@ -352,16 +345,18 @@ void AudioWorker::transcode()
     }
 
     // dump the cover
-    if(m_packet.stream_index == m_cover_stream_id)
+    if(m_packet->stream_index == m_cover_stream_id)
     {
       if(!extract_cover_picture())
       {
         emit error_message(QString("Error extracting cover picture for file '%1.").arg(m_source_info.absoluteFilePath()));
       }
+
+      av_packet_unref(m_packet);
     }
 
-    // You *must* call av_free_packet() after each call to av_read_frame() or else you'll leak memory
-    av_free_packet(&m_packet);
+    m_packet->size = 0;
+    m_packet->data = nullptr;
 
     // stop and return if user has aborted the conversion.
     if(has_been_cancelled()) return;
@@ -376,19 +371,16 @@ void AudioWorker::transcode()
   // flush buffered frames from the decoder
   if (m_audio_decoder->capabilities & CODEC_CAP_DELAY)
   {
-    av_init_packet(&m_packet);
+    m_packet = av_packet_alloc();
 
-    // Decode all the remaining frames in the buffer, until the end is reached
-    int gotFrame = 0;
-    while ((avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet) >= 0) && gotFrame)
+    if(!process_audio_packet())
     {
-      if(!encode_buffers(0, m_frame->nb_samples))
-      {
-        return;
-      }
+      m_fail = true;
+      return;
     }
 
-    av_free_packet(&m_packet);
+    m_packet->data = nullptr;
+    m_packet->size = 0;
   }
 
   close_destination_file();
@@ -397,15 +389,21 @@ void AudioWorker::transcode()
 //-----------------------------------------------------------------
 bool AudioWorker::process_audio_packet()
 {
-  // Try to decode the packet into a frame. Some frames rely on multiple packets, so we have to
-  // make sure the frame is finished before we can use it.
-  int gotFrame = 0;
-  auto result = avcodec_decode_audio4(m_audio_decoder_context, m_frame, &gotFrame, &m_packet);
+  // Try to decode the packet into a frame/multiple frames.
+  auto result = avcodec_send_packet(m_audio_decoder_context, m_packet);
 
-  if (result >= 0 && gotFrame)
+  if(result != 0)
   {
-    m_packet.size -= result;
-    m_packet.data += result;
+    if(result == AVERROR(EAGAIN)) return true;
+
+    emit error_message(QString("Error sending packet to audio decoder. Input file '%1. %2").arg(m_source_info.absoluteFilePath()).arg(av_error_string(result)));
+    return false;
+  }
+
+  while(0 == (result = avcodec_receive_frame(m_audio_decoder_context, m_frame)))
+  {
+    m_packet->size -= result;
+    m_packet->data += result;
 
     if(destination().duration == 0)
     {
@@ -453,10 +451,16 @@ bool AudioWorker::process_audio_packet()
       }
     }
   }
+
+  if(result == AVERROR_EOF || result == AVERROR(EAGAIN))
+  {
+    m_packet->size = 0;
+    m_packet->data = nullptr;
+  }
   else
   {
-    m_packet.size = 0;
-    m_packet.data = nullptr;
+    emit error_message(QString("Error reading input file '%1. %2").arg(m_source_info.absoluteFilePath()).arg(av_error_string(result)));
+    return false;
   }
 
   return true;
@@ -474,7 +478,7 @@ bool AudioWorker::extract_cover_picture() const
     return false;
   }
 
-  file.write(reinterpret_cast<const char *>(m_packet.data), static_cast<long long int>(m_packet.size));
+  file.write(reinterpret_cast<const char *>(m_packet->data), static_cast<long long int>(m_packet->size));
   file.flush();
   file.close();
 

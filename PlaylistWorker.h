@@ -23,6 +23,10 @@
 // Project
 #include "AudioWorker.h"
 
+/** \class PlaylistWorker
+ * \brief Implements a Worker that creates the playlists with file information.
+ *
+ */
 class PlaylistWorker
 : public AudioWorker
 {
@@ -37,7 +41,8 @@ class PlaylistWorker
     /** \brief PlaylistWorker class virtual destructor.
      *
      */
-    virtual ~PlaylistWorker();
+    virtual ~PlaylistWorker()
+    {}
 
   protected:
     virtual void run_implementation() override final;

@@ -36,11 +36,6 @@ ModuleWorker::ModuleWorker(const QFileInfo &source_info, const Utils::Transcoder
 }
 
 //-----------------------------------------------------------------
-ModuleWorker::~ModuleWorker()
-{
-}
-
-//-----------------------------------------------------------------
 void ModuleWorker::run_implementation()
 {
   if(!init())

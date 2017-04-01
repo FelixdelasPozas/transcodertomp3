@@ -20,14 +20,14 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+// C++
+#include <functional>
+
 // Qt
 #include <QDir>
 #include <QString>
 #include <QPair>
 #include <QMutex>
-
-// C++
-#include <functional>
 
 namespace Utils
 {
@@ -85,13 +85,13 @@ namespace Utils
 
   struct FormatConfiguration
   {
-    bool                          apply;                     // true to apply the formatting process.
-    QString                       chars_to_delete;           // characters to delete.
-    QList<QPair<QString,QString>> chars_to_replace;          // strings to replace (pair <to replace, with>).
-    int                           number_of_digits;          // number of digits the number should have.
-    QString                       number_and_name_separator; // separator between the number and the rest of the name.
-    bool                          to_title_case;             // capitalize the first letter of every word in the name.
-    bool                          prefix_disk_num;           // true to prefix the track number with the disk number.
+    bool                          apply;                     /** true to apply the formatting process.                  */
+    QString                       chars_to_delete;           /** characters to delete.                                  */
+    QList<QPair<QString,QString>> chars_to_replace;          /** strings to replace (pair <to replace, with>).          */
+    int                           number_of_digits;          /** number of digits the number should have.               */
+    QString                       number_and_name_separator; /** separator between the number and the rest of the name. */
+    bool                          to_title_case;             /** capitalize the first letter of every word in the name. */
+    bool                          prefix_disk_num;           /** true to prefix the track number with the disk number.  */
 
     FormatConfiguration()
     {
@@ -137,6 +137,10 @@ namespace Utils
    */
   bool isRomanNumeral(const QString string_part);
 
+  /** \class TranscoderConfiguration
+   * \brief Implements the configuration storage/management.
+   *
+   */
   class TranscoderConfiguration
   {
     public:
@@ -353,25 +357,26 @@ namespace Utils
       void setUseMetadataToRenameOutput(bool enabled);
 
     private:
-      QString m_root_directory;
-      int     m_number_of_threads;
-      bool    m_transcode_audio;
-      bool    m_transcode_video;
-      bool    m_transcode_module;
-      bool    m_strip_tags_from_MP3;
-      bool    m_use_CUE_to_split;
-      bool    m_rename_input_on_success;
-      QString m_renamed_input_extension;
-      bool    m_use_metadata_to_rename_output;
-      bool    m_delete_output_on_cancellation;
-      bool    m_extract_metadata_cover_picture;
-      QString m_cover_picture_name;
-      int     m_bitrate;
-      int     m_quality;
-      bool    m_create_M3U_files;
+      QString m_root_directory;                  /** last used directory.                                                         */
+      int     m_number_of_threads;               /** number of threads to use.                                                    */
+      bool    m_transcode_audio;                 /** true to transcode audio files to mp3, false otherwise.                       */
+      bool    m_transcode_video;                 /** true to extract and transcode audio stream of video files, false otherwise.  */
+      bool    m_transcode_module;                /** true to transcode module files to mp3, false otherwise.                      */
+      bool    m_strip_tags_from_MP3;             /** true to remove metadata from mp3 files, false otherwise.                     */
+      bool    m_use_CUE_to_split;                /** true to use CUE files to split audio files, false otherwise.                 */
+      bool    m_rename_input_on_success;         /** true to rename the output file on a successful transcoding, false otherwise. */
+      QString m_renamed_input_extension;         /** extension to add to succesfully transcoded audio files.                      */
+      bool    m_use_metadata_to_rename_output;   /** use metadata if found to rename the output mp3 file.                         */
+      bool    m_delete_output_on_cancellation;   /** deletes output file if the process is cancelled.                             */
+      bool    m_extract_metadata_cover_picture;  /** true to extract the metadata cover if found, false otherwise.                */
+      QString m_cover_picture_name;              /** name of the cover picture file.                                              */
+      int     m_bitrate;                         /** mp3 output file bitrate.                                                     */
+      int     m_quality;                         /** mp3 output file quality level.                                               */
+      bool    m_create_M3U_files;                /** true to create playlists after the transcoding process.                      */
 
-      FormatConfiguration m_format_configuration;
+      FormatConfiguration m_format_configuration; /** application configuration. */
 
+      /** settings key strings. */
       static const QString ROOT_DIRECTORY;
       static const QString NUMBER_OF_THREADS;
       static const QString TRANSCODE_AUDIO;
@@ -399,7 +404,6 @@ namespace Utils
 
       static const QString SETTINGS_FILENAME;
   };
-
 }
 
 #endif // UTILS_H_

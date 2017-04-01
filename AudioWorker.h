@@ -35,6 +35,10 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
+/** \class AudioWorker
+ * \brief Implements a Worker class to use on audio files that are not MP3s.
+ *
+ */
 class AudioWorker
 : public Worker
 {
@@ -49,7 +53,8 @@ class AudioWorker
     /** \brief AudioWorker class virtual destructor.
      *
      */
-    virtual ~AudioWorker();
+    virtual ~AudioWorker()
+    {}
 
   protected:
     virtual void run_implementation() override;
@@ -97,12 +102,12 @@ class AudioWorker
      */
     static long long int custom_IO_seek(void *opaque, long long int offset, int whence);
 
-    AVFormatContext   *m_libav_context;
-    AVPacket           m_packet;
-    int                m_cover_stream_id;
-    QString            m_cover_extension;
+    AVFormatContext   *m_libav_context;   /** file context.                                                                */
+    AVPacket          *m_packet;          /** libav packet (encodec data).                                                 */
+    int                m_cover_stream_id; /** id of the cover stream on the file, or -1 if not found or already extracted. */
+    QString            m_cover_extension; /** extension of the cover picture in the file (if any, if not it's emtpy).      */
 
-    static const int   s_io_buffer_size = 16384+FF_INPUT_BUFFER_PADDING_SIZE;
+    static const int   s_io_buffer_size = 16384+AV_INPUT_BUFFER_PADDING_SIZE;
 
   private:
     /** \brief Initializes additional libav structures to decode the video stream
@@ -128,18 +133,18 @@ class AudioWorker
      */
     bool process_audio_packet();
 
-    QFile m_input_file;
+    QFile m_input_file;  /** input audio file. */
 
     virtual Destinations compute_destinations() override final;
 
-    static constexpr double CD_FRAMES_PER_SECOND = 75.0;
+    static constexpr double CD_FRAMES_PER_SECOND = 75.0; /** frames per second in a CD. */
 
-    AVCodec           *m_audio_decoder;
-    AVCodecContext    *m_audio_decoder_context;
-    AVFrame           *m_frame;
-    int                m_audio_stream_id;
+    AVCodec           *m_audio_decoder;         /** libav audio decoder.               */
+    AVCodecContext    *m_audio_decoder_context; /** libav audio decoder context.       */
+    AVFrame           *m_frame;                 /** libav frame (decoded data).        */
+    int                m_audio_stream_id;       /** id of the audio stream in the fie. */
 
-    static QMutex      s_mutex;
+    static QMutex      s_mutex; /** mutex to init libav and write cover picture. */
 };
 
 #endif // AUDIO_WORKER_H_
