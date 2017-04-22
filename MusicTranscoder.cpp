@@ -37,6 +37,7 @@
 
 //-----------------------------------------------------------------
 MusicTranscoder::MusicTranscoder()
+: m_messageVisible{false}
 {
 	setupUi(this);
 
@@ -50,6 +51,9 @@ MusicTranscoder::MusicTranscoder()
 
 	connect(m_directoryButton, SIGNAL(clicked()),
 	        this,              SLOT(onDirectoryChanged()));
+
+	connect(m_directoryText, SIGNAL(editingFinished()),
+	        this,            SLOT(onTextChanged()));
 
 	connect(m_startButton, SIGNAL(clicked()),
 	        this,          SLOT(onConversionStarted()));
@@ -74,7 +78,6 @@ MusicTranscoder::~MusicTranscoder()
 void MusicTranscoder::onDirectoryChanged()
 {
   QFileDialog fileBrowser;
-
   fileBrowser.setDirectory(m_directoryText->text());
   fileBrowser.setWindowTitle("Select root directory");
   fileBrowser.setFileMode(QFileDialog::Directory);
@@ -85,9 +88,9 @@ void MusicTranscoder::onDirectoryChanged()
 
   if(fileBrowser.exec() == QDialog::Accepted)
   {
-    auto newDirectory = fileBrowser.selectedFiles().first();
+    auto newDirectory = QDir::toNativeSeparators(fileBrowser.selectedFiles().first());
     m_configuration.setRootDirectory(newDirectory);
-    m_directoryText->setText(newDirectory.replace('/',QDir::separator()));
+    m_directoryText->setText(newDirectory);
   }
 }
 
@@ -191,4 +194,41 @@ bool MusicTranscoder::event(QEvent* e)
   }
 
   return QMainWindow::event(e);
+}
+
+//-----------------------------------------------------------------
+void MusicTranscoder::onTextChanged()
+{
+  // Qt bug: QLineEdit launches the signal twice, once if the user press enter and another
+  // for losing the focus. Still not addressed in 5.8 even when it was reported in 4.x series.
+  // This is a hack but fixes it to avoid showing two message boxes.
+  if(m_messageVisible) return;
+
+  auto directory = m_directoryText->text();
+  directory = QDir::toNativeSeparators(Utils::validDirectoryCheck(directory));
+
+  if((directory != m_directoryText->text()) && (directory + QDir::separator() != m_directoryText->text()))
+  {
+    m_messageVisible = true;
+    auto icon    = QIcon(":MusicTranscoder/application.ico");
+    auto title   = tr("Invalid directory");
+    auto message = tr("The directory entered is not valid.");
+    QMessageBox msgBox(QMessageBox::Icon::Critical, title, message, QMessageBox::StandardButtons{QMessageBox::Ok}, this->centralWidget());
+    msgBox.setWindowIcon(icon);
+    msgBox.exec();
+
+    m_directoryText->setText(directory);
+    m_configuration.setRootDirectory(directory);
+  }
+
+  m_messageVisible = false;
+}
+
+//-----------------------------------------------------------------
+void MusicTranscoder::closeEvent(QCloseEvent* event)
+{
+  disconnect(m_directoryText, SIGNAL(editingFinished()),
+             this,            SLOT(onTextChanged()));
+
+  QMainWindow::closeEvent(event);
 }

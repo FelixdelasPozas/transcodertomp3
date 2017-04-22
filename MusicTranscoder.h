@@ -76,8 +76,17 @@ class MusicTranscoder
 	   */
 	  void onThreadsNumberChanged(int value);
 
+	  /** \brief Checks the directory when the user enters it manually in the directory field.
+	   *
+	   */
+	  void onTextChanged();
+
+	protected:
+	  virtual void closeEvent(QCloseEvent *event);
+
 	private:
-	  Utils::TranscoderConfiguration m_configuration; /** application configuration. */
+	  Utils::TranscoderConfiguration m_configuration;  /** application configuration.                                    */
+	  std::atomic<bool>              m_messageVisible; /** fix Qt double signal in onTextChanged(). See notes in method. */
 };
 
 #endif // MUSIC_TRANSCODER_H_

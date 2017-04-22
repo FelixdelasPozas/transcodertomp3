@@ -66,6 +66,13 @@ namespace Utils
    */
   bool isSpaces(const QString &string);
 
+  /** \brief Checks the given directory for existance and readability. If the directory is
+   *  not readable or doesn't exist it will try the parent recursively until returning a valid
+   *  path or the user home directory.
+   * \param[in] directory path.
+   */
+  const QString validDirectoryCheck(const QString &directory);
+
   /** \brief Returns the files in the specified directory tree that has the specified extensions.
    * \param[in] rootDir starting directory.
    * \param[in] filters extensions of the files to return.

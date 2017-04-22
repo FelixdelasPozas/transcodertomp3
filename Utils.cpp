@@ -30,7 +30,7 @@
 
 const QStringList Utils::MODULE_FILE_EXTENSIONS  = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
 const QStringList Utils::WAVE_FILE_EXTENSIONS    = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3", "*.aiff"};
-const QStringList Utils::MOVIE_FILE_EXTENSIONS   = {"*.mp4", "*.avi", "*.ogv", "*.webm" };
+const QStringList Utils::MOVIE_FILE_EXTENSIONS   = {"*.mp4", "*.avi", "*.ogv", "*.webm", "*.mkv" };
 const QString     Utils::TEMPORAL_FILE_EXTENSION = QString(".MusicTranscoderTemporal");
 
 const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY                 = QObject::tr("Root directory");
@@ -420,17 +420,7 @@ void Utils::TranscoderConfiguration::load()
   auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, QStringList()).toStringList();
 
   // go to parent or home if the saved directory no longer exists.
-  QDir dir{m_root_directory};
-  while(!dir.exists() && !dir.isRoot()) dir.cdUp();
-
-  if(dir.isRoot())
-  {
-    m_root_directory = QDir::homePath();
-  }
-  else
-  {
-    m_root_directory = dir.path();
-  }
+  m_root_directory = validDirectoryCheck(m_root_directory);
 
   if(!from.isEmpty())
   {
@@ -448,7 +438,7 @@ void Utils::TranscoderConfiguration::save() const
 {
   QSettings settings(SETTINGS_FILENAME, QSettings::IniFormat);
 
-  settings.setValue(ROOT_DIRECTORY, m_root_directory);
+  settings.setValue(ROOT_DIRECTORY, QDir{validDirectoryCheck(m_root_directory)}.absolutePath());
   settings.setValue(NUMBER_OF_THREADS, m_number_of_threads);
   settings.setValue(TRANSCODE_AUDIO, m_transcode_audio);
   settings.setValue(TRANSCODE_VIDEO, m_transcode_video);
@@ -712,4 +702,45 @@ bool Utils::isSpaces(const QString& string)
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------
+const QString Utils::validDirectoryCheck(const QString& directory)
+{
+  QStringList drivesPath;
+  for(auto path: QDir::drives())
+  {
+    drivesPath << path.absolutePath();
+  }
+
+  // go to parent or home if the saved directory no longer exists.
+  QDir dir{directory};
+  while(!dir.exists() && !dir.isRoot() && !drivesPath.contains(dir.absolutePath()))
+  {
+    // NOTE: dir.cdUp() doesn't work if the path is nested in more than two directories that
+    // don't exist, returning false.
+    auto path = QDir::toNativeSeparators(dir.absolutePath());
+
+    bool isValidDrive = false;
+    for(auto drive: drivesPath)
+    {
+      if(path.startsWith(drive))
+      {
+        isValidDrive = true;
+        break;
+      }
+    }
+
+    if(!isValidDrive) break;
+
+    path = path.left(path.lastIndexOf(QDir::separator()));
+    dir = QDir{path};
+  }
+
+  if(!dir.exists())
+  {
+    return QDir::homePath();
+  }
+
+  return dir.absolutePath();
 }
