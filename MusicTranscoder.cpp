@@ -78,7 +78,7 @@ MusicTranscoder::~MusicTranscoder()
 void MusicTranscoder::onDirectoryChanged()
 {
   QFileDialog fileBrowser;
-  fileBrowser.setDirectory(m_directoryText->text());
+  fileBrowser.setDirectory(Utils::validDirectoryCheck(m_directoryText->text()));
   fileBrowser.setWindowTitle("Select root directory");
   fileBrowser.setFileMode(QFileDialog::Directory);
   fileBrowser.setOption(QFileDialog::DontUseNativeDialog, false);
