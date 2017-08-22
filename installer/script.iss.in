@@ -1,0 +1,35 @@
+; Mingw64 Distribution Inno Setup File
+
+[Setup]
+AppName=Music Transcoder
+AppVersion=@MUSIC_TRANSCODER_VERSION_MAJOR@.@MUSIC_TRANSCODER_VERSION_MINOR@.@MUSIC_TRANSCODER_VERSION_PATCH@
+DefaultDirName={pf64}\Music Transcoder
+DefaultGroupName=Music Transcoder
+OutputDir=@PROJECT_BINARY_DIR@
+AppComments=Music Transcoder
+AppContact=Felix de las Pozas Alvarez
+AppCopyright=(c)2017 Felix de las Pozas Alvarez
+AppPublisher=Felix de las Pozas Alvarez
+ArchitecturesAllowed=x64
+Compression=lzma2/ultra64
+CreateUninstallRegKey=yes
+Uninstallable=yes
+ChangesAssociations=no
+CloseApplications=yes
+UninstallDisplayIcon=@CMAKE_SOURCE_DIR@/rsc/application.ico
+UninstallDisplayName=Music Transcoder v@MUSIC_TRANSCODER_VERSION_MAJOR@.@MUSIC_TRANSCODER_VERSION_MINOR@.@MUSIC_TRANSCODER_VERSION_PATCH@
+SourceDir=@PROJECT_BINARY_DIR@
+SetupIconFile=@CMAKE_SOURCE_DIR@/rsc/application.ico
+OutputBaseFilename=MusicTranscoder_v@MUSIC_TRANSCODER_VERSION_MAJOR@.@MUSIC_TRANSCODER_VERSION_MINOR@.@MUSIC_TRANSCODER_VERSION_PATCH@_Setup
+WizardImageFile=@CMAKE_SOURCE_DIR@/installer/image.bmp
+WizardSmallImageFile=@CMAKE_SOURCE_DIR@/installer/smallimage.bmp
+
+[Files]
+Source: "MusicTranscoder.exe"; DestDir: "{app}";
+Source: "*.dll"; DestDir: "{app}";
+Source: "iconengines/*.*"; DestDir: "{app}/iconengines/";
+Source: "imageformats/*.*"; DestDir: "{app}/imageformats/";
+Source: "platforms/*.*"; DestDir: "{app}/platforms/";
+
+[Run]
+Filename: "{app}\MusicTranscoder.exe"; Description: "Launch Music Transcoder"; Flags: postinstall nowait skipifsilent unchecked
