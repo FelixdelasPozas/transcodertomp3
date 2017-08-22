@@ -408,8 +408,6 @@ namespace Utils
       static const QString REFORMAT_NUMBER_OF_DIGITS;
       static const QString REFORMAT_USE_TITLE_CASE;
       static const QString REFORMAT_PREFIX_DISK_NUMBER;
-
-      static const QString SETTINGS_FILENAME;
   };
 }
 

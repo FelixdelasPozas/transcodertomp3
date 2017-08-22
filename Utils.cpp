@@ -33,6 +33,10 @@ const QStringList Utils::WAVE_FILE_EXTENSIONS    = {"*.flac", "*.ogg", "*.ape", 
 const QStringList Utils::MOVIE_FILE_EXTENSIONS   = {"*.mp4", "*.avi", "*.ogv", "*.webm", "*.mkv" };
 const QString     Utils::TEMPORAL_FILE_EXTENSION = QString(".MusicTranscoderTemporal");
 
+const QStringList fromStrings{" No.", "[", "]", "}", "{", ".", "_", ":", "~", "|", "/", ";", "\\", "pt ", "#", "arr ", "cond ", "comp ", "feat ", "alt ", "tk ", "seq", "*"};
+const QStringList toStrings{" Nº", "(", ")", ")", "(", " ", " ", " -", "-", "-", " - ", "-", "''", "part ", "Nº", "arranged ", "conductor ", "composer ", "featuring ", "alternate ", "take ", "sequence ", "_"  };
+
+
 const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY                 = QObject::tr("Root directory");
 const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS              = QObject::tr("Number of threads");
 const QString Utils::TranscoderConfiguration::TRANSCODE_AUDIO                = QObject::tr("Transcode audio");
@@ -57,8 +61,6 @@ const QString Utils::TranscoderConfiguration::REFORMAT_SEPARATOR             = Q
 const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS      = QObject::tr("Number of digits");
 const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE        = QObject::tr("Use title case");
 const QString Utils::TranscoderConfiguration::REFORMAT_PREFIX_DISK_NUMBER    = QObject::tr("Prefix track number with disk number");
-
-const QString Utils::TranscoderConfiguration::SETTINGS_FILENAME = QString("MusicTranscoder.ini");
 
 //-----------------------------------------------------------------
 bool Utils::isAudioFile(const QFileInfo &file)
@@ -109,7 +111,6 @@ QList<QFileInfo> Utils::findFiles(const QDir initialDir,
   while (it.hasNext())
   {
     it.next();
-
 
     auto info = it.fileInfo();
 
@@ -391,7 +392,7 @@ Utils::TranscoderConfiguration::TranscoderConfiguration()
 //-----------------------------------------------------------------
 void Utils::TranscoderConfiguration::load()
 {
-  QSettings settings(SETTINGS_FILENAME, QSettings::IniFormat);
+  QSettings settings("Felix de las Pozas Alvarez", "MusicTranscoder");
 
   m_root_directory                                 = settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString();
   m_number_of_threads                              = settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency() /2).toInt();
@@ -416,8 +417,8 @@ void Utils::TranscoderConfiguration::load()
   m_format_configuration.to_title_case             = settings.value(REFORMAT_USE_TITLE_CASE, true).toBool();
   m_format_configuration.prefix_disk_num           = settings.value(REFORMAT_PREFIX_DISK_NUMBER, false).toBool();
 
-  auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, QStringList()).toStringList();
-  auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, QStringList()).toStringList();
+  auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, fromStrings).toStringList();
+  auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, toStrings).toStringList();
 
   // go to parent or home if the saved directory no longer exists.
   m_root_directory = validDirectoryCheck(m_root_directory);
@@ -436,7 +437,7 @@ void Utils::TranscoderConfiguration::load()
 //-----------------------------------------------------------------
 void Utils::TranscoderConfiguration::save() const
 {
-  QSettings settings(SETTINGS_FILENAME, QSettings::IniFormat);
+  QSettings settings("Felix de las Pozas Alvarez", "MusicTranscoder");
 
   settings.setValue(ROOT_DIRECTORY, QDir{validDirectoryCheck(m_root_directory)}.absolutePath());
   settings.setValue(NUMBER_OF_THREADS, m_number_of_threads);
@@ -719,7 +720,7 @@ const QString Utils::validDirectoryCheck(const QString& directory)
   {
     // NOTE: dir.cdUp() doesn't work if the path is nested in more than two directories that
     // don't exist, returning false.
-    auto path = QDir::toNativeSeparators(dir.absolutePath());
+    auto path = dir.absolutePath();
 
     bool isValidDrive = false;
     for(auto drive: drivesPath)
@@ -733,7 +734,7 @@ const QString Utils::validDirectoryCheck(const QString& directory)
 
     if(!isValidDrive) break;
 
-    path = path.left(path.lastIndexOf(QDir::separator()));
+    path = path.left(path.lastIndexOf('/'));
     dir = QDir{path};
   }
 
@@ -742,5 +743,5 @@ const QString Utils::validDirectoryCheck(const QString& directory)
     return QDir::homePath();
   }
 
-  return dir.absolutePath();
+  return QDir::toNativeSeparators(dir.absolutePath());
 }
