@@ -40,7 +40,8 @@ The following libraries are required:
 * [Qt opensource framework](http://www.qt.io/).
 
 # Install
-The only current option is build from source as binaries are not provided. 
+
+Download and execute the ![latest release](https://github.com/FelixdelasPozas/transcodertomp3/releases) installer.
 
 # Screenshots
 Configuration dialog.
