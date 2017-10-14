@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 2.8.6)
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 2)
-set (MUSIC_TRANSCODER_VERSION_PATCH 1)
+set (MUSIC_TRANSCODER_VERSION_PATCH 2)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)

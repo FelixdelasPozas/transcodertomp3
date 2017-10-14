@@ -351,8 +351,6 @@ void AudioWorker::transcode()
       {
         emit error_message(QString("Error extracting cover picture for file '%1.").arg(m_source_info.absoluteFilePath()));
       }
-
-      av_packet_unref(m_packet);
     }
 
     m_packet->size = 0;
