@@ -122,8 +122,14 @@
          </item>
          <item>
           <widget class="QLabel" name="label_28">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
            <property name="text">
-            <string>Homepage &lt;a href=https://github.com/FelixdelasPozas/transcodertomp3&gt;https://github.com/FelixdelasPozas/transcodertomp3&lt;/a&gt;</string>
+            <string>&lt;a href=https://github.com/FelixdelasPozas/transcodertomp3&gt;Homepage&lt;/a&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -136,7 +142,7 @@
          <item>
           <widget class="QLabel" name="label_29">
            <property name="text">
-            <string>Twitch &lt;a href=https://www.twitch.tv/felixathome&gt;https://www.twitch.tv/felixathome&lt;/a&gt;</string>
+            <string>Sometimes I stream on &lt;b&gt;&lt;a href=https://www.twitch.tv/felixathome&gt;Twitch&lt;/a&gt;&lt;/b&gt;</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -626,7 +632,7 @@ Qt Framework</string>
             <item>
              <widget class="QLabel" name="label_27">
               <property name="text">
-               <string>version 5.8.0</string>
+               <string>version 5.9.0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
