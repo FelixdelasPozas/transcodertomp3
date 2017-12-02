@@ -86,35 +86,37 @@ void MP3Worker::run_implementation()
 
   QString track_title;
 
-  TagLib::MPEG::File file_metadata(temp_name.toStdString().c_str());
+  { // ensure TagLib File object is destroyed at the end of scope.
+    TagLib::MPEG::File file_metadata(temp_name.toStdString().c_str());
 
-  if(file_metadata.hasID3v1Tag() || file_metadata.hasID3v2Tag())
-  {
-    if(m_configuration.useMetadataToRenameOutput())
+    if(file_metadata.hasID3v1Tag() || file_metadata.hasID3v2Tag())
     {
-      if(!file_metadata.hasID3v2Tag())
+      if(m_configuration.useMetadataToRenameOutput())
       {
-        track_title = parse_metadata(file_metadata.tag());
+        if(!file_metadata.hasID3v2Tag())
+        {
+          track_title = parse_metadata(file_metadata.tag());
+        }
+        else
+        {
+          track_title = parse_metadata_id3v2(file_metadata.ID3v2Tag());
+        }
       }
-      else
+
+      emit progress(25);
+
+      if(m_configuration.extractMetadataCoverPicture() && file_metadata.hasID3v2Tag())
       {
-        track_title = parse_metadata_id3v2(file_metadata.ID3v2Tag());
+        extract_cover(file_metadata.ID3v2Tag());
       }
-    }
 
-    emit progress(25);
+      emit progress(50);
 
-    if(m_configuration.extractMetadataCoverPicture() && file_metadata.hasID3v2Tag())
-    {
-      extract_cover(file_metadata.ID3v2Tag());
-    }
-
-    emit progress(50);
-
-    if(m_configuration.stripTagsFromMp3())
-    {
-      file_metadata.strip();
-      file_metadata.save();
+      if(m_configuration.stripTagsFromMp3())
+      {
+        file_metadata.strip();
+        file_metadata.save();
+      }
     }
   }
 
@@ -207,7 +209,6 @@ void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
       QFile file(cover_name);
       file.open(QIODevice::WriteOnly | QIODevice::Append);
       file.write(picture->picture().data(), picture->picture().size());
-      file.flush();
       file.close();
     }
   }

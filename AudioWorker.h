@@ -109,6 +109,7 @@ class AudioWorker
 
     static const int   s_io_buffer_size = 16384+AV_INPUT_BUFFER_PADDING_SIZE;
 
+    static QMutex      s_mutex; /** mutex to init libav and write cover picture. */
   private:
     /** \brief Initializes additional libav structures to decode the video stream
      *         containing the cover picture of the source file.
@@ -143,8 +144,6 @@ class AudioWorker
     AVCodecContext    *m_audio_decoder_context; /** libav audio decoder context.       */
     AVFrame           *m_frame;                 /** libav frame (decoded data).        */
     int                m_audio_stream_id;       /** id of the audio stream in the fie. */
-
-    static QMutex      s_mutex; /** mutex to init libav and write cover picture. */
 };
 
 #endif // AUDIO_WORKER_H_

@@ -127,8 +127,12 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
     return false;
   }
 
-  unsigned char *ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
-  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &custom_IO_read, nullptr, &custom_IO_seek);
+  QMutexLocker lock(&s_mutex);
+
+  av_register_all();
+
+  auto ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
+  auto avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &custom_IO_read, nullptr, &custom_IO_seek);
   avioContext->seekable = 0;
   avioContext->write_flag = 0;
 
@@ -136,9 +140,10 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   m_libav_context->pb = avioContext;
 
   auto value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
-  if (value < 0)
+  if(value < 0)
   {
     emit error_message(QString("Couldn't open file: '%1' with libav. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
+    deinit_libav();
     m_fail = true;
     return false;
   }

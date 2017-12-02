@@ -103,7 +103,7 @@
          <item>
           <widget class="QLabel" name="label_4">
            <property name="text">
-            <string>Copyright (c) 2015 Félix de las Pozas Álvarez</string>
+            <string>Copyright (c) 2015-2017 Félix de las Pozas Álvarez</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -555,7 +555,7 @@ OpenMPT based module player library</string>
             <item>
              <widget class="QLabel" name="label_25">
               <property name="text">
-               <string>version 0.2.7774</string>
+               <string>version 0.3.3</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>

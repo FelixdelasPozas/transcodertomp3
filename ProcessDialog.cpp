@@ -18,6 +18,7 @@
  */
 
 // Application
+#include <fileapi.h>
 #include "ProcessDialog.h"
 #include "MusicTranscoder.h"
 #include "AudioWorker.h"
@@ -62,6 +63,8 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
           this,           SLOT(onClipboardPressed()));
 
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
+
+  m_log->setContextMenuPolicy(Qt::ContextMenuPolicy::NoContextMenu);
 
   m_max_workers = m_configuration.numberOfThreads();
   auto total_jobs = m_music_files.size() + m_music_folders.size();
@@ -283,8 +286,7 @@ void ProcessDialog::create_transcoder()
 //-----------------------------------------------------------------
 void ProcessDialog::create_playlistWorker()
 {
-  auto fs_handle = m_music_folders.first();
-  m_music_folders.removeFirst();
+  auto fs_handle = m_music_folders.takeFirst();
 
   ++m_num_workers;
 

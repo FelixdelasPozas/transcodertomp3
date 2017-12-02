@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 2.8.6)
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 2)
-set (MUSIC_TRANSCODER_VERSION_PATCH 2)
+set (MUSIC_TRANSCODER_VERSION_PATCH 3)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -57,8 +57,8 @@ set(TAGLIB_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/taglib-build")
 set(TAGLIB_LIBRARIES   ${TAGLIB_LIBRARY_DIR}/taglib/libtag.a)
 
 # libopenmpt library
-set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.7774")
-set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.2.7774/bin/libopenmpt.a")
+set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.3.3+release")
+set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.3.3+release/bin/libopenmpt.a")
 
 #include zlib
 set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")

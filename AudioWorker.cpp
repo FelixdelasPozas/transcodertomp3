@@ -91,14 +91,14 @@ bool AudioWorker::init_libav()
     return false;
   }
 
-  unsigned char *ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
+  auto ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
   if(nullptr == ioBuffer)
   {
     emit error_message(QString("Couldn't allocate buffer for custom libav IO for file: '%1'.").arg(source_name));
     return false;
   }
 
-  AVIOContext *avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - AV_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &custom_IO_read, nullptr, &custom_IO_seek);
+  auto avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - AV_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &custom_IO_read, nullptr, &custom_IO_seek);
   if(nullptr == avioContext)
   {
     emit error_message(QString("Couldn't allocate context for custom libav IO for file: '%1'.").arg(source_name));
