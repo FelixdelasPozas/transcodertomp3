@@ -112,8 +112,7 @@ bool AudioWorker::init_libav()
   m_libav_context->pb = avioContext;
   m_libav_context->flags |= AVFMT_FLAG_CUSTOM_IO;
 
-  int value = 0;
-  value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
+  auto value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
   if (value < 0)
   {
     emit error_message(QString("Couldn't open file: '%1' with libav. Error is \"%2\"").arg(source_name).arg(av_error_string(value)));
