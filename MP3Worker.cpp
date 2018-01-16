@@ -77,6 +77,7 @@ void MP3Worker::run_implementation()
 
   // taglib wouldn't open files with unicode names.
   temp_file.write(original_file.readAll());
+  temp_file.waitForBytesWritten(-1);
   temp_file.flush();
   temp_file.close();
 
@@ -137,7 +138,7 @@ void MP3Worker::run_implementation()
 
   if(!QFile::copy(temp_file.fileName(), final_name))
   {
-    emit error_message(QString("Couldn't rename file '%1' to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
+    emit error_message(QString("Couldn't copy file '%1' to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
     original_file.rename(original_file.fileName().remove(TEMP_EXTENSION));
   }
   else
@@ -192,7 +193,7 @@ void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
       if (!QFile::exists(cover_name))
       {
         QFile file(cover_name);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Append))
+        if (!file.open(QIODevice::WriteOnly|QIODevice::Append))
         {
           emit error_message(QString("Couldn't create cover picture file for '%1', check for file permissions.").arg(m_source_info.absoluteFilePath()));
         }
@@ -207,8 +208,10 @@ void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
     if (adquired)
     {
       QFile file(cover_name);
-      file.open(QIODevice::WriteOnly | QIODevice::Append);
+      file.open(QIODevice::WriteOnly|QIODevice::Append);
       file.write(picture->picture().data(), picture->picture().size());
+      file.waitForBytesWritten(-1);
+      file.flush();
       file.close();
     }
   }

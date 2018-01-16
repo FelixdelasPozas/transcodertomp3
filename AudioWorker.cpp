@@ -469,7 +469,7 @@ bool AudioWorker::extract_cover_picture() const
   auto cover_name = m_source_path + m_configuration.coverPictureName() + m_cover_extension;
 
   QFile file(cover_name);
-  if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
+  if(!file.open(QIODevice::WriteOnly|QIODevice::Unbuffered|QIODevice::Append))
   {
     emit error_message(QString("Couldn't create cover picture file for '%1', check file permissions.").arg(m_source_info.absoluteFilePath()));
     return false;
