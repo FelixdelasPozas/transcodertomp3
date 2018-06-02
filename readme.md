@@ -57,7 +57,7 @@ Dialog shown while processing files.
 ![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
 
 # Repository information
-**Version**: 1.2.3
+**Version**: 1.2.4
 
 **Status**: finished
 
@@ -67,7 +67,7 @@ Dialog shown while processing files.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   11          |  606        |    384           |2478  |
+| C++                          |   11          |  607        |    384           |2481  |
 | C/C++ Header                 |   10          |  242        |    693           | 463  |
 | CMake                        |    1          |   22        |     13           |  95  |
-| **Total**                    |   **22**      |  **870**    |   **1090**       |**3036**|
+| **Total**                    |   **22**      |  **871**    |   **1090**       |**3039**|

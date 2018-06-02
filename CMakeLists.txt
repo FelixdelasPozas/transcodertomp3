@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 2.8.6)
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 2)
-set (MUSIC_TRANSCODER_VERSION_PATCH 3)
+set (MUSIC_TRANSCODER_VERSION_PATCH 4)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -40,7 +40,7 @@ set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a
                       ${LIBAV_DIR}/libavcodec/libavcodec.a 
                       ${LIBAV_DIR}/libavutil/libavutil.a 
                       ${LIBAV_DIR}/libavresample/libavresample.a)
-
+					  
 # libcue library
 set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-2.1.0")
 set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-build/libcue.a")

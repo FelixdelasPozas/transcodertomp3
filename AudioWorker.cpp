@@ -536,10 +536,14 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
           track_name.replace(QChar('/'), QChar('-'));
           track_name.replace(QDir::separator(), QChar('-'));
           auto track_clean_name = Utils::formatString(QString().number(i) + QString(" ") + track_name, m_configuration.formatConfiguration());
-          auto track_length = track_get_length(track);
+          auto pregap = track_get_zero_pre(track);
+          auto postgap = track_get_zero_post(track);
+          auto track_length = track_get_length(track) + (pregap != -1 ? pregap:0) + (postgap != -1 ? postgap:0);
 
           // convert to number of samples.
           track_length = m_information.samplerate * (track_length / CD_FRAMES_PER_SECOND);
+
+          if(i == num_tracks) track_length = 0; // encode last track till the end of data.
 
           destinations << Destination(track_clean_name, track_length);
         }
