@@ -41,6 +41,10 @@ set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a
                       ${LIBAV_DIR}/libavutil/libavutil.a 
                       ${LIBAV_DIR}/libavresample/libavresample.a)
 					  
+# libvpx library
+set(LIBVPX_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvpx")
+set(LIBVPX_LIBRARY ${LIBVPX_INCLUDE_DIR}/libvpx.a)					  
+
 # libcue library
 set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-2.1.0")
 set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-build/libcue.a")
@@ -75,6 +79,7 @@ include_directories(
   ${LIBOPENMPT_INCLUDE_DIR}
   ${TAGLIB_INCLUDE_DIR}
   ${TAGLIB_LIBRARY_DIR}
+  ${LIBVPX_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows -DTAGLIB_STATIC")
@@ -121,6 +126,7 @@ set(CORE_EXTERNAL_LIBS
   ${TAGLIB_LIBRARIES}
   ${LIBOPENMPT_LIBRARY}
   ${ZLIB_LIBRARY}
+  ${LIBVPX_LIBRARY}
   ws2_32.a
   wsock32.a
 )
