@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 2.8.6)
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 2)
-set (MUSIC_TRANSCODER_VERSION_PATCH 4)
+set (MUSIC_TRANSCODER_VERSION_PATCH 5)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -14,7 +14,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 # Find the QtWidgets library
-find_package(Qt5 COMPONENTS Widgets)
+find_package(Qt5 COMPONENTS Widgets WinExtras)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
@@ -129,6 +129,7 @@ set(CORE_EXTERNAL_LIBS
   ${LIBVPX_LIBRARY}
   ws2_32.a
   wsock32.a
+  Qt5::WinExtras
 )
   
 add_executable(MusicTranscoder ${CORE_SOURCES})

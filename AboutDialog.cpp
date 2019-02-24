@@ -20,7 +20,22 @@
 // Project
 #include <AboutDialog.h>
 
-const QString AboutDialog::VERSION = QString("version 1.2.4");
+// Lame
+#include <lame.h>
+
+// libAV
+#include <avversion.h>
+
+// TagLib
+#include <taglib.h>
+
+// libopenmpt
+#include <libopenmpt/libopenmpt.hpp>
+
+// Qt
+#include <QtGlobal>
+
+const QString AboutDialog::VERSION = QString("version 1.2.5");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -35,5 +50,13 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
 
   m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
   m_version->setText(VERSION);
+
+  m_lameVersion->setText(tr("version %1").arg(get_lame_version()));
+  m_libavVersion->setText(tr("version %1").arg(LIBAV_VERSION));
+  // m_libcueVersion->setText(tr("")); // does not provide version definition.
+  m_taglibVersion->setText(tr("version %1.%2.%3").arg(TAGLIB_MAJOR_VERSION).arg(TAGLIB_MINOR_VERSION).arg(TAGLIB_PATCH_VERSION));
+  const int omptVersion = openmpt::get_library_version();
+  m_openmptVersion->setText(tr("version %1.%2.%3").arg(omptVersion >> 24 & 0xF).arg(omptVersion >> 16 & 0xF).arg(omptVersion & 0XFF));
+  m_qtVersion->setText(tr("version %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
 }
 

@@ -33,6 +33,7 @@
 #include <QProgressBar>
 #include <QMutexLocker>
 #include <QKeyEvent>
+#include <QtWinExtras/QWinTaskbarProgress>
 
 // libav
 extern "C"
@@ -46,11 +47,12 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
                              const Utils::TranscoderConfiguration &configuration,
                              QWidget *parent,
                              Qt::WindowFlags flags)
-: QDialog               {parent, flags}
-, m_music_files         {files}
-, m_music_folders       {folders}
-, m_configuration       (configuration)
-, m_errorsCount         {0}
+: QDialog        {parent, flags}
+, m_music_files  {files}
+, m_music_folders{folders}
+, m_configuration{configuration}
+, m_errorsCount  {0}
+, m_taskBarButton{nullptr}
 {
   setupUi(this);
 
@@ -69,8 +71,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
   m_max_workers = m_configuration.numberOfThreads();
   auto total_jobs = m_music_files.size() + m_music_folders.size();
 
-  m_globalProgress->setMinimum(0);
-  m_globalProgress->setMaximum(total_jobs);
+  m_globalProgress->setRange(0, total_jobs);
 
   auto boxLayout = new QVBoxLayout();
   m_workers->setLayout(boxLayout);
@@ -168,6 +169,7 @@ void ProcessDialog::increment_global_progress()
   {
     auto value = m_globalProgress->value();
     m_globalProgress->setValue(++value);
+    m_taskBarButton->progress()->setValue(value);
   }
 
   --m_num_workers;
@@ -392,4 +394,15 @@ void ProcessDialog::unregister_av_lock_manager()
 void ProcessDialog::exit_dialog()
 {
   close();
+}
+
+//-----------------------------------------------------------------
+void ProcessDialog::showEvent(QShowEvent* e)
+{
+  QDialog::showEvent(e);
+
+  m_taskBarButton = new QWinTaskbarButton(this);
+  m_taskBarButton->setWindow(this->windowHandle());
+  m_taskBarButton->progress()->setRange(0, m_music_files.size() + m_music_folders.size());
+  m_taskBarButton->progress()->setVisible(true);
 }

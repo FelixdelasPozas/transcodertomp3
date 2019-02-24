@@ -254,7 +254,7 @@ LAME Ain't an Mp3 Encoder</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_8">
+             <widget class="QLabel" name="m_lameVersion">
               <property name="text">
                <string>version 3.99.5</string>
               </property>
@@ -337,7 +337,7 @@ Open source audio &amp; video processing tools</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_12">
+             <widget class="QLabel" name="m_libavVersion">
               <property name="text">
                <string>version 12</string>
               </property>
@@ -408,7 +408,7 @@ CUE Sheet parser library</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_16">
+             <widget class="QLabel" name="m_libcueVersion">
               <property name="text">
                <string>version 2.1.0</string>
               </property>
@@ -485,7 +485,7 @@ TagLib Audio Meta-Data Library</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_21">
+             <widget class="QLabel" name="m_taglibVersion">
               <property name="text">
                <string>version 1.11.1</string>
               </property>
@@ -553,7 +553,7 @@ OpenMPT based module player library</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_25">
+             <widget class="QLabel" name="m_openmptVersion">
               <property name="text">
                <string>version 0.3.3</string>
               </property>
@@ -630,7 +630,7 @@ Qt Framework</string>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_27">
+             <widget class="QLabel" name="m_qtVersion">
               <property name="text">
                <string>version 5.9.0</string>
               </property>
