@@ -67,6 +67,8 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & Qt::WindowMaximizeButtonHint);
 
   m_log->setContextMenuPolicy(Qt::ContextMenuPolicy::NoContextMenu);
+  m_clipboard->setToolTip(tr("Wait until processes have finished."));
+  m_cancelButton->setToolTip(tr("Cancel transcoding process."));
 
   m_max_workers = m_configuration.numberOfThreads();
   auto total_jobs = m_music_files.size() + m_music_folders.size();
@@ -155,6 +157,7 @@ void ProcessDialog::increment_global_progress()
 
   auto worker = qobject_cast<Worker *>(sender());
   Q_ASSERT(worker);
+  const auto cancelled = worker->has_been_cancelled();
 
   disconnect(worker, SIGNAL(error_message(const QString &)),
              this,      SLOT(log_error(const QString &)));
@@ -165,7 +168,7 @@ void ProcessDialog::increment_global_progress()
   disconnect(worker, SIGNAL(finished()),
              this,      SLOT(increment_global_progress()));
 
-  if(!worker->has_been_cancelled())
+  if(!cancelled)
   {
     auto value = m_globalProgress->value();
     m_globalProgress->setValue(++value);
@@ -184,7 +187,6 @@ void ProcessDialog::increment_global_progress()
   bar->setEnabled(false);
   bar->setFormat("Idle");
 
-  auto cancelled = worker->has_been_cancelled();
   delete worker;
 
   if((m_globalProgress->maximum() == m_globalProgress->value()) || cancelled)
@@ -196,7 +198,9 @@ void ProcessDialog::increment_global_progress()
             this,              SLOT(exit_dialog()));
 
     m_cancelButton->setText("Exit");
+    m_cancelButton->setToolTip(tr("Close the processing dialog."));
     m_clipboard->setEnabled(true);
+    m_clipboard->setToolTip(tr("Copy log to clipboard."));
   }
 
   if(m_music_files.empty() && m_num_workers == 0)
@@ -403,6 +407,7 @@ void ProcessDialog::showEvent(QShowEvent* e)
 
   m_taskBarButton = new QWinTaskbarButton(this);
   m_taskBarButton->setWindow(this->windowHandle());
-  m_taskBarButton->progress()->setRange(0, m_music_files.size() + m_music_folders.size());
+  m_taskBarButton->progress()->setMinimum(m_globalProgress->minimum());
+  m_taskBarButton->progress()->setMaximum(m_globalProgress->maximum());
   m_taskBarButton->progress()->setVisible(true);
 }

@@ -47,7 +47,11 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QTextEdit" name="m_log"/>
+       <widget class="QTextEdit" name="m_log">
+        <property name="toolTip">
+         <string>Log of events</string>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -87,7 +91,7 @@
            <bool>false</bool>
           </property>
           <property name="toolTip">
-           <string>Copy log to clipboard</string>
+           <string/>
           </property>
           <property name="text">
            <string>...</string>

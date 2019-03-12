@@ -35,7 +35,7 @@
 // Qt
 #include <QtGlobal>
 
-const QString AboutDialog::VERSION = QString("version 1.2.5");
+const QString AboutDialog::VERSION = QString("version 1.2.6");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -53,7 +53,7 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
 
   m_lameVersion->setText(tr("version %1").arg(get_lame_version()));
   m_libavVersion->setText(tr("version %1").arg(LIBAV_VERSION));
-  // m_libcueVersion->setText(tr("")); // does not provide version definition.
+  // m_libcueVersion->setText(tr("")); // does not provide version definition, go with the one in the .ui file.
   m_taglibVersion->setText(tr("version %1.%2.%3").arg(TAGLIB_MAJOR_VERSION).arg(TAGLIB_MINOR_VERSION).arg(TAGLIB_PATCH_VERSION));
   const int omptVersion = openmpt::get_library_version();
   m_openmptVersion->setText(tr("version %1.%2.%3").arg(omptVersion >> 24 & 0xF).arg(omptVersion >> 16 & 0xF).arg(omptVersion & 0XFF));
