@@ -18,7 +18,6 @@
  */
 
 // Application
-#include <fileapi.h>
 #include "ProcessDialog.h"
 #include "MusicTranscoder.h"
 #include "AudioWorker.h"
@@ -34,6 +33,9 @@
 #include <QMutexLocker>
 #include <QKeyEvent>
 #include <QtWinExtras/QWinTaskbarProgress>
+
+// C++
+#include <algorithm>
 
 // libav
 extern "C"
@@ -74,6 +76,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
   auto total_jobs = m_music_files.size() + m_music_folders.size();
 
   m_globalProgress->setRange(0, total_jobs);
+  m_globalProgress->setValue(0);
 
   auto boxLayout = new QVBoxLayout();
   m_workers->setLayout(boxLayout);
@@ -104,6 +107,7 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
 ProcessDialog::~ProcessDialog()
 {
   m_progress_bars.clear();
+  m_taskBarButton->deleteLater();
   unregister_av_lock_manager();
 }
 
@@ -170,8 +174,8 @@ void ProcessDialog::increment_global_progress()
 
   if(!cancelled)
   {
-    auto value = m_globalProgress->value();
-    m_globalProgress->setValue(++value);
+    const auto value = m_globalProgress->value() + 1;
+    m_globalProgress->setValue(value);
     m_taskBarButton->progress()->setValue(value);
   }
 
@@ -407,7 +411,7 @@ void ProcessDialog::showEvent(QShowEvent* e)
 
   m_taskBarButton = new QWinTaskbarButton(this);
   m_taskBarButton->setWindow(this->windowHandle());
-  m_taskBarButton->progress()->setMinimum(m_globalProgress->minimum());
-  m_taskBarButton->progress()->setMaximum(m_globalProgress->maximum());
+  m_taskBarButton->progress()->setRange(m_globalProgress->minimum(), m_globalProgress->maximum());
   m_taskBarButton->progress()->setVisible(true);
+  m_taskBarButton->progress()->setValue(0);
 }
