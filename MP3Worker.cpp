@@ -48,10 +48,11 @@ MP3Worker::MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfig
 void MP3Worker::run_implementation()
 {
   const auto file_name = QDir::fromNativeSeparators(m_source_info.absoluteFilePath());
+  const auto shortName = Utils::shortFileName(QDir::toNativeSeparators(file_name));
 
   QString track_title;
 
-  TagParser::MediaFileInfo fileInfo(QDir::toNativeSeparators(file_name).toLatin1().toStdString());
+  TagParser::MediaFileInfo fileInfo(shortName);
   fileInfo.setForceFullParse(true);
 
   TagParser::Diagnostics diag;
@@ -108,17 +109,14 @@ void MP3Worker::run_implementation()
 
   if(tags && m_configuration.stripTagsFromMp3())
   {
-    TagParser::AbortableProgressFeedback::Callback nullCallback, progressCallback = [this](TagParser::AbortableProgressFeedback &p)
-    {
-      emit progress(50 + (25*p.overallPercentage())/100);
-    };
+    TagParser::AbortableProgressFeedback::Callback nullCallback;;
 
     fileInfo.removeAllTags();
-    TagParser::AbortableProgressFeedback progress(nullCallback, progressCallback);
+    TagParser::AbortableProgressFeedback progress(nullCallback, nullCallback);
     try
     {
       fileInfo.applyChanges(diag, progress);
-      QFile::remove(m_source_info.absoluteFilePath() + ".bak");
+      QFile::remove(QString::fromStdString(shortName) + ".bak");
     }
     catch(...)
     {

@@ -560,7 +560,8 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
 
     if(m_configuration.useMetadataToRenameOutput())
     {
-      TagParser::MediaFileInfo fileInfo(QDir::toNativeSeparators(m_source_info.absoluteFilePath()).toLatin1().toStdString());
+      const auto shortName = Utils::shortFileName(QDir::toNativeSeparators(m_source_info.absoluteFilePath()));
+      TagParser::MediaFileInfo fileInfo(shortName);
       fileInfo.setForceFullParse(true);
 
       TagParser::Diagnostics diag;

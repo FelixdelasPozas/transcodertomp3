@@ -27,6 +27,9 @@
 
 // C++
 #include <thread>
+#include <fileapi.h>
+#include <locale>
+#include <codecvt>
 
 const QStringList Utils::MODULE_FILE_EXTENSIONS  = {"*.669", "*.amf", "*.apun", "*.dsm", "*.far", "*.gdm", "*.it", "*.imf", "*.mod", "*.med", "*.mtm", "*.okt", "*.s3m", "*.stm", "*.stx", "*.ult", "*.uni", "*.xt", "*.xm"};
 const QStringList Utils::WAVE_FILE_EXTENSIONS    = {"*.flac", "*.ogg", "*.ape", "*.wav", "*.wma", "*.m4a", "*.voc", "*.wv", "*.mp3", "*.aiff"};
@@ -344,13 +347,13 @@ QString Utils::formatString(const QString filename,
     {
       case QChar::Punctuation_InitialQuote:
       case QChar::Punctuation_FinalQuote:
-        formattedName = formattedName.replace(formattedName.at(index), QString("''"));
+        formattedName = formattedName.replace(formattedName.at(index), QString("'"));
         break;
       case QChar::Punctuation_Dash:
         formattedName = formattedName.replace(formattedName.at(index), '-');
         break;
       default:
-        formattedName = formattedName.replace(formattedName.at(index), ' ');
+        break;
     }
   }
 
@@ -528,4 +531,43 @@ const QString Utils::validDirectoryCheck(const QString& directory)
   }
 
   return QDir::toNativeSeparators(dir.absolutePath());
+}
+
+//-----------------------------------------------------------------
+std::wstring string2widestring(const std::string& str)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.from_bytes(str);
+}
+
+//-----------------------------------------------------------------
+std::string widestring2string(const std::wstring& wstr)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.to_bytes(wstr);
+}
+
+//-----------------------------------------------------------------
+std::string Utils::shortFileName(const QString &utffilename)
+{
+  // First obtain the size needed by passing NULL and 0.
+  auto length = GetShortPathNameW(utffilename.toStdWString().c_str(), nullptr, 0);
+  if (length == 0) return utffilename.toStdString();
+
+  // Dynamically allocate the correct size
+  // (terminating null char was included in length)
+  wchar_t *buffer = new wchar_t[length];
+
+  // Now simply call again using same long path.
+  length = GetShortPathNameW(utffilename.toStdWString().c_str(), buffer, length);
+  if (length == 0) return utffilename.toStdString();
+
+  std::wstring result(buffer, length);
+  delete[] buffer;
+
+  return widestring2string(result);
 }

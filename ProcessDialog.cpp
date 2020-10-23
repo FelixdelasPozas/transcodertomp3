@@ -313,13 +313,13 @@ void ProcessDialog::create_playlistWorker()
 void ProcessDialog::assign_bar_to_worker(Worker* worker, const QString& message)
 {
   connect(worker, SIGNAL(error_message(const QString &)),
-          this,      SLOT(log_error(const QString &)));
+          this,   SLOT(log_error(const QString &)));
 
   connect(worker, SIGNAL(information_message(const QString &)),
-          this,      SLOT(log_information(const QString &)));
+          this,   SLOT(log_information(const QString &)));
 
   connect(worker, SIGNAL(finished()),
-          this,      SLOT(increment_global_progress()));
+          this,   SLOT(increment_global_progress()));
 
   for(auto bar: m_progress_bars.keys())
   {
@@ -331,7 +331,7 @@ void ProcessDialog::assign_bar_to_worker(Worker* worker, const QString& message)
       bar->setFormat(message);
 
       connect(worker, SIGNAL(progress(int)),
-              bar,       SLOT(setValue(int)));
+              bar,    SLOT(setValue(int)));
 
       break;
     }

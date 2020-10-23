@@ -144,6 +144,12 @@ namespace Utils
    */
   bool isRomanNumeral(const QString string_part);
 
+  /** \brief Returns the short file name in the Windows filesystem.
+   * \param[in] utffilename Long windows file name.
+   *
+   */
+  std::string shortFileName(const QString &utffilename);
+
   /** \class TranscoderConfiguration
    * \brief Implements the configuration storage/management.
    *

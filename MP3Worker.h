@@ -38,6 +38,7 @@ namespace TagParser
 class MP3Worker
 : public AudioWorker
 {
+    Q_OBJECT
   public:
     /** \brief MP3Worker class constructor.
      * \param[in] source_info QFileInfo struct of the source file.
