@@ -2,10 +2,12 @@ project(MusicTranscoder)
 
 cmake_minimum_required (VERSION 2.8.6)
 
+set(CMAKE_CXX_STANDARD 17)
+
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
-set (MUSIC_TRANSCODER_VERSION_MINOR 2)
-set (MUSIC_TRANSCODER_VERSION_PATCH 7)
+set (MUSIC_TRANSCODER_VERSION_MINOR 3)
+set (MUSIC_TRANSCODER_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -49,16 +51,12 @@ set(LIBVPX_LIBRARY ${LIBVPX_INCLUDE_DIR}/libvpx.a)
 set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-2.1.0")
 set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-build/libcue.a")
 
-# taglib library
-set(TAGLIB_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib"
-                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/toolkit"
-                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/ape"
-                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg"
-                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg/id3v1"
-                       "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg/id3v2"
-					   "D:/Desarrollo/Bibliotecas/taglib-1.11.1/taglib/mpeg/id3v2/frames")
-set(TAGLIB_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/taglib-build")
-set(TAGLIB_LIBRARIES   ${TAGLIB_LIBRARY_DIR}/taglib/libtag.a)
+# tagparser library
+set(TAGPARSER_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/tag-parser/source"
+                          "D:/Desarrollo/Bibliotecas/tag-parser/build/resources")
+set(TAGPARSER_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/tag-parser/build")
+set(TAGPARSER_LIBRARIES   ${TAGPARSER_LIBRARY_DIR}/libtagparser.a
+                          D:/Desarrollo/Bibliotecas/cpp-utilities/build/libc++utilities.a)
 
 # libopenmpt library
 set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.3.3+release")
@@ -77,13 +75,11 @@ include_directories(
   ${LIBAV_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
   ${LIBOPENMPT_INCLUDE_DIR}
-  ${TAGLIB_INCLUDE_DIR}
-  ${TAGLIB_LIBRARY_DIR}
+  ${TAGPARSER_INCLUDE_DIR}
   ${LIBVPX_INCLUDE_DIR}
   )
 
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows -DTAGLIB_STATIC")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++17 -mwindows")
 
 # Add Qt Resource files
 qt5_add_resources(RESOURCES
@@ -123,12 +119,13 @@ set(CORE_EXTERNAL_LIBS
   ${LAME_LIBRARY}
   ${LIBAV_LIBRARIES}
   ${LIBCUE_LIBRARY}
-  ${TAGLIB_LIBRARIES}
+  ${TAGPARSER_LIBRARIES}
   ${LIBOPENMPT_LIBRARY}
   ${ZLIB_LIBRARY}
   ${LIBVPX_LIBRARY}
   ws2_32.a
   wsock32.a
+  iconv.a
   Qt5::WinExtras
 )
   

@@ -23,9 +23,6 @@
 // Project
 #include "Worker.h"
 
-// taglib
-#include <tag.h>
-
 // Qt
 #include <QMutex>
 
@@ -33,6 +30,11 @@
 extern "C"
 {
 #include <libavformat/avformat.h>
+}
+
+namespace TagParser
+{
+  class Tag;
 }
 
 /** \class AudioWorker
@@ -60,10 +62,10 @@ class AudioWorker
     virtual void run_implementation() override;
 
     /** \brief Builds the file name based on the metadata.
-     * \param[in] tags TagLib::tags metadata.
+     * \param[in] tags TagParser::Tag metadata pointer.
      *
      */
-    QString parse_metadata(const TagLib::Tag *tags);
+    QString parse_metadata(const TagParser::Tag *tags);
 
     /** \brief Initializes libav library structures and data to decode the source file to
      *         pcm data.

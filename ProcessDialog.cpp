@@ -36,6 +36,7 @@
 
 // C++
 #include <algorithm>
+#include <iostream>
 
 // libav
 extern "C"

@@ -67,9 +67,11 @@ void PlaylistWorker::generate_playlist()
 
   auto files = get_file_names();
 
+  const auto dirName = m_source_info.absoluteFilePath().replace(SEPARATOR,QDir::separator());
+
   if(files.empty())
   {
-    emit information_message(QString("There aren't MP3 files in folder '%1'.").arg(m_source_info.absoluteFilePath()));
+    emit information_message(QString("There aren't MP3 files in folder '%1'.").arg(dirName));
     return;
   }
 
@@ -79,12 +81,12 @@ void PlaylistWorker::generate_playlist()
 
   if(!playlist.open(QFile::WriteOnly|QFile::Truncate))
   {
-    emit error_message(QString("Couldn't create playlist file in folder '%1'.").arg(m_source_info.absoluteFilePath()));
+    emit error_message(QString("Couldn't create playlist file in folder '%1'.").arg(dirName));
     m_fail = true;
     return;
   }
 
-  emit information_message(QString("Creating playlist for %1%2").arg(m_source_info.absoluteFilePath().replace(SEPARATOR,QDir::separator())).arg(QDir::separator()));
+  emit information_message(QString("Creating playlist for %1%2").arg(dirName).arg(QDir::separator()));
 
   auto newline = QString("\n");
   QByteArray contents;

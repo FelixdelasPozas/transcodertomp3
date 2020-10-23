@@ -33,8 +33,11 @@ extern "C"
 #include <libavutil/avutil.h>
 }
 
-// taglib
-#include <fileref.h>
+// tagparser
+#include <mediafileinfo.h>
+#include <diagnostics.h>
+#include <tag.h>
+#include <tagvalue.h>
 
 // Qt
 #include <QUuid>
@@ -50,7 +53,7 @@ QMutex AudioWorker::s_mutex;
 
 //-----------------------------------------------------------------
 AudioWorker::AudioWorker(const QFileInfo &origin_info, const Utils::TranscoderConfiguration &configuration)
-: Worker{origin_info, configuration}
+: Worker(origin_info, configuration)
 , m_libav_context        {nullptr}
 , m_packet               {nullptr}
 , m_cover_stream_id      {-1}
@@ -491,7 +494,7 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
   filter << "*.cue";
 
   auto files = Utils::findFiles(QDir(m_source_path), filter);
-  auto source_name = m_source_info.absoluteFilePath().split('/').last();
+  auto source_name = QDir::fromNativeSeparators(m_source_info.absoluteFilePath()).split('/').last();
   auto source_cue_name1 = m_source_path + source_name + QString(".cue");
   auto source_basename = source_name.remove(source_name.split('.').last());
   auto source_cue_name2 = m_source_path + source_basename + QString("cue");
@@ -554,33 +557,44 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
   if(destinations.empty())
   {
     QString file_name;
-    auto file_extension = m_source_info.absoluteFilePath().split('.').last();
-    auto file_metadata = TagLib::FileRef(m_source_info.absoluteFilePath().toStdString().c_str());
 
-    // try the hard way
-    if(file_metadata.isNull())
+    if(m_configuration.useMetadataToRenameOutput())
     {
-      auto id = QUuid::createUuid();
-      QTemporaryFile temp_file(id.toString());
-      QFile original_file(m_source_info.absoluteFilePath());
+      TagParser::MediaFileInfo fileInfo(QDir::toNativeSeparators(m_source_info.absoluteFilePath()).toLatin1().toStdString());
+      fileInfo.setForceFullParse(true);
 
-      if(temp_file.open() && original_file.open(QFile::ReadOnly))
+      TagParser::Diagnostics diag;
+
+      try
       {
-        temp_file.write(original_file.readAll());
-        original_file.close();
-        temp_file.flush();
-        temp_file.close();
-        temp_file.rename(temp_file.fileName() + file_extension);
+        fileInfo.open();
+        if(fileInfo.isOpen())
+        {
+          fileInfo.parseEverything(diag);
 
-        file_metadata = TagLib::FileRef(temp_file.fileName().toStdString().c_str());
-        file_name = parse_metadata(file_metadata.tag());
+          if(!fileInfo.tags().empty())
+          {
+            auto tags = fileInfo.tags().at(0);
+            tags->ensureTextValuesAreProperlyEncoded();
+
+            file_name = parse_metadata(tags);
+          }
+        }
+        else
+        {
+          emit error_message(tr("Unable to parse tags from: %1.").arg(QDir::toNativeSeparators(m_source_info.absoluteFilePath())));
+        }
       }
-      original_file.close();
-      temp_file.remove();
-    }
-    else
-    {
-      file_name = parse_metadata(file_metadata.tag());
+      catch(...)
+      {
+        for(auto error: diag)
+        {
+          const auto message = error.context() + " -> " + error.message();
+          emit error_message(tr("Error processing file: %1 (%2)").arg(m_source_info.absoluteFilePath()).arg(QString::fromStdString(message)));
+        }
+      }
+
+      if(fileInfo.isOpen()) fileInfo.close();
     }
 
     if(file_name.isEmpty())
@@ -595,35 +609,111 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
 }
 
 //-----------------------------------------------------------------
-QString AudioWorker::parse_metadata(const TagLib::Tag *tags)
+QString AudioWorker::parse_metadata(const TagParser::Tag *tags)
 {
   QString track_title;
 
-  if(tags)
+  if(!tags) return track_title;
+
+  if(m_configuration.formatConfiguration().prefix_disk_num && tags->hasField(TagParser::KnownField::DiskPosition))
   {
-    // track number
-    auto track_number = tags->track();
-    if (track_number != 0)
+    try
     {
-      auto number_string = QString().number(track_number);
-
-      track_title += QString().number(track_number) + QString(" - ");
+      const auto disc_num = tags->value(TagParser::KnownField::DiskPosition).toPositionInSet().position();
+      if(disc_num != 0)
+      {
+        track_title += QString::number(disc_num) + QString("-");
+      }
     }
-
-    // track title
-    TagLib::String temp;
-    auto title = QString::fromStdWString(tags->title().toWString());
-
-    if (!title.isEmpty() && !Utils::isSpaces(title))
+    catch(const TagParser::Failure &e)
     {
-      title.replace(QDir::separator(), QChar('-'));
-      title.replace(QChar('/'), QChar('-'));
-      track_title += title;
+      emit error_message(tr("Error processing tags from file: %1 (%2)").arg(m_source_info.absoluteFilePath()).arg(QString::fromLocal8Bit(e.what())));
+    }
+    catch(...)
+    {
+      emit error_message(tr("Error processing tags from file: %1").arg(m_source_info.absoluteFilePath()));
+    }
+  }
+
+  // track number
+  if (tags->hasField(TagParser::KnownField::TrackPosition) || tags->hasField(TagParser::KnownField::PartNumber))
+  {
+    try
+    {
+      int track_number{0};
+      if(tags->hasField(TagParser::KnownField::TrackPosition))
+      {
+        track_number = tags->value(TagParser::KnownField::TrackPosition).toInteger();
+      }
+      else
+      {
+        track_number = tags->value(TagParser::KnownField::PartNumber).toInteger();
+      }
+
+      if (track_number != 0)
+      {
+        auto number_string = QString::number(track_number);
+        while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
+        {
+          number_string = "0" + number_string;
+        }
+
+        track_title += number_string + QString(" - ");
+      }
+    }
+    catch(const TagParser::Failure &e)
+    {
+      emit error_message(tr("Error processing tags from file: %1 (%2)").arg(m_source_info.absoluteFilePath()).arg(QString::fromLocal8Bit(e.what())));
+    }
+    catch(...)
+    {
+      emit error_message(tr("Error processing tags from file: %1").arg(m_source_info.absoluteFilePath()));
+    }
+  }
+  else
+  {
+    if (tags->hasField(TagParser::KnownField::Artist))
+    {
+      try
+      {
+        const auto artist = tags->value(TagParser::KnownField::Artist).toString(TagParser::TagTextEncoding::Utf8);
+        track_title += QString::fromStdString(artist) + QString(" - ");
+      }
+      catch(const TagParser::Failure &e)
+      {
+        emit error_message(tr("Error processing tags from file: %1 (%2)").arg(m_source_info.absoluteFilePath()).arg(QString::fromLocal8Bit(e.what())));
+      }
+      catch(...)
+      {
+        emit error_message(tr("Error processing tags from file: %1").arg(m_source_info.absoluteFilePath()));
+      }
+    }
+  }
+
+  // track title
+  try
+  {
+    const auto title = tags->value(TagParser::KnownField::Title).toString(TagParser::TagTextEncoding::Utf8);
+    auto qTitle = QString::fromStdString(title);
+
+    if (!qTitle.isEmpty() && !Utils::isSpaces(qTitle))
+    {
+      qTitle.replace(QDir::separator(), QChar('-'));
+      qTitle.replace(QChar('/'), QChar('-'));
+      track_title += qTitle;
     }
     else
     {
       track_title.clear();
     }
+  }
+  catch(const TagParser::Failure &e)
+  {
+    emit error_message(tr("Error processing tags from file: %1 (%2)").arg(m_source_info.absoluteFilePath()).arg(QString::fromLocal8Bit(e.what())));
+  }
+  catch(...)
+  {
+    emit error_message(tr("Error processing tags from file: %1").arg(m_source_info.absoluteFilePath()));
   }
 
   return track_title;

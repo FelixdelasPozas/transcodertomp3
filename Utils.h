@@ -169,199 +169,236 @@ namespace Utils
       /** \brief Returns the root directory to start searching for files.
        *
        */
-      const QString &rootDirectory() const;
+      inline const QString &rootDirectory() const
+      { return m_root_directory; }
 
       /** \brief Returns the number of simultaneous threads in the transcoding process.
        *
        */
-      int numberOfThreads() const;
+      inline int numberOfThreads() const
+      { return m_number_of_threads; }
 
       /** \brief Returns the bitrate of the encoding process.
        *
        */
-      int bitrate() const;
+      inline int bitrate() const
+      { return m_bitrate; }
 
       /** \brief Returns the cover picture name
        *
        */
-      const QString &coverPictureName() const;
+      inline const QString &coverPictureName() const
+      { return m_cover_picture_name; }
 
       /** \brief Returns true if the output must be delete on process cancellation.
        *
        */
-      bool deleteOutputOnCancellation() const;
+      inline bool deleteOutputOnCancellation() const
+      { return m_delete_output_on_cancellation; }
 
       /** \brief Returns true if the cover picture is to be extracted if found in the input metadata.
        *
        */
-      bool extractMetadataCoverPicture() const;
+      inline bool extractMetadataCoverPicture() const
+      { return m_extract_metadata_cover_picture; }
 
       /** \brief Returns true if the input file is to be renamed after a successfull transcoding.
        *
        */
-      bool renameInputOnSuccess() const;
+      inline bool renameInputOnSuccess() const
+      { return m_rename_input_on_success; }
 
       /** \brief Returns the extension to use to rename input files after a successfull transcoding.
        *
        */
-      const QString renamedInputFilesExtension() const;
+      inline const QString renamedInputFilesExtension() const
+      { return m_renamed_input_extension; }
 
       /** \brief Returns the reformatting configuration.
        *
        */
-      const FormatConfiguration &formatConfiguration() const;
+      inline const FormatConfiguration &formatConfiguration() const
+      { return m_format_configuration; }
 
       /** \brief Returns the quality of the encoding process.
        *
        */
-      int quality() const;
+      inline int quality() const
+      { return m_quality; }
 
       /** \brief Returns true if after transcoding M3U playlists must be created per input directory.
        *
        */
-      bool createM3Ufiles() const;
+      inline bool createM3Ufiles() const
+      { return m_create_M3U_files; }
 
       /** \brief Returns true if the output file name must be reformatted.
        *
        */
-      bool reformatOutputFilename() const;
+      inline bool reformatOutputFilename() const
+      { return m_format_configuration.apply; }
 
       /** \brief Returns true if the tags in mp3 input files must be deleted.
        *
        */
-      bool stripTagsFromMp3() const;
+      inline bool stripTagsFromMp3() const
+      { return m_strip_tags_from_MP3; }
 
       /** \brief Returns true if the audio files must be processed.
        *
        */
-      bool transcodeAudio() const;
+      inline bool transcodeAudio() const
+      { return m_transcode_audio; }
 
       /** \brief Returns true if module files must be processed.
        *
        */
-      bool transcodeModule() const;
+      inline bool transcodeModule() const
+      { return m_transcode_module; }
 
       /** \brief Returns true if video files must be processed.
        *
        */
-      bool transcodeVideo() const;
+      inline bool transcodeVideo() const
+      { return m_transcode_video; }
 
       /** \brief Returns true if the output must be splitted into several files using a CUE file.
        *
        */
-      bool useCueToSplit() const;
+      inline bool useCueToSplit() const
+      { return m_use_CUE_to_split; }
 
       /** \brief Returns true if the output file name must be constructed from the metadata in the input file.
        *
        */
-      bool useMetadataToRenameOutput() const;
+      inline bool useMetadataToRenameOutput() const
+      { return m_use_metadata_to_rename_output; }
 
       /** \brief Sets the root directory to start searching for files to transcode.
        * \param[in] path root directory path.
        *
        */
-      void setRootDirectory(const QString &path);
+      inline void setRootDirectory(const QString &path)
+      { m_root_directory = path; }
 
       /** \brief Sets the number of simultaneous threads to use in the transcoding process.
        * \param[in] value number of threads.
        *
        */
-      void setNumberOfThreads(int value);
+      inline void setNumberOfThreads(int value)
+      { m_number_of_threads = value; }
 
       /** \brief Sets the bitrate.
        * \param[in] value encoding process bitrate.
        *
        */
-      void setBitrate(int value);
+      inline void setBitrate(int value)
+      { m_bitrate = value; }
 
       /** \brief Sets the file name for the cover picture file.
        * \param[in] filename cover file name without extension.
        *
        */
-      void setCoverPictureName(const QString& filename);
+      inline void setCoverPictureName(const QString& filename)
+      { m_cover_picture_name = filename; }
 
       /** \brief Sets if the output must be deleted if the process couldn't finish.
-       * \param[in] enabled boolean value.
+       * \param[in] value boolean value.
        *
        */
-      void setDeleteOutputOnCancellation(bool enabled);
+      inline void setDeleteOutputOnCancellation(bool value)
+      { m_delete_output_on_cancellation = value; }
 
       /** \brief Sets if the cover picture present in the input file must be extracted to disk.
-       * \param[in] enabled boolean value.
+       * \param[in] value boolean value.
        *
        */
-      void setExtractMetadataCoverPicture(bool enabled);
+      inline void setExtractMetadataCoverPicture(bool value)
+      { m_extract_metadata_cover_picture = value; }
 
       /** \brief Sets if the input file must be renamed after a successfull transcoding.
        * \param[in] enabled boolean value.
        *
        */
-      void setRenameInputOnSuccess(bool enabled);
+      inline void setRenameInputOnSuccess(bool value)
+      { m_rename_input_on_success = value; }
 
       /** \brief Sets the extension to use to rename input files after a successfil transcoding.
        * \param[in] extension extension string.
        *
        */
-      void setRenamedInputFilesExtension(const QString &extension);
+      inline void setRenamedInputFilesExtension(const QString &extension)
+      { m_renamed_input_extension = extension; }
 
       /** \brief Sets the reformatting configuration.
        * \param[in] configuration FormatConfiguration struct.
        *
        */
-      void setFormatConfiguration(const FormatConfiguration& configuration);
+      inline void setFormatConfiguration(const FormatConfiguration& configuration)
+      { m_format_configuration = configuration; }
 
       /** \brief Sets the quality of the encoding process.
        * \param[in] value quality value according to lame encoder.
        *
        */
-      void setQuality(int value);
+      inline void setQuality(int value)
+      { m_quality = value; }
 
       /** \brief Sets if after transcoding a M3U playlists must be created per input directory.
+       * \param[in] value Boolean value.
        *
        */
-      void setCreateM3Ufiles(bool enabled);
+      inline void setCreateM3Ufiles(bool value)
+      { m_create_M3U_files = value; }
 
       /** \brief Sets if the output file name must be reformatted.
-       * \param[in] enabled boolean value.
+       * \param[in] value Boolean value.
        *
        */
-      void setReformatOutputFilename(bool enabled);
+      inline void setReformatOutputFilename(bool value)
+      { m_format_configuration.apply = value; }
 
       /** \brief Sets if the tags of input mp3 files must be deleted.
-       * \param[in] enabled boolean value.
+       * \param[in] value Boolean value.
        *
        */
-      void setStripTagsFromMp3(bool enabled);
+      inline void setStripTagsFromMp3(bool value)
+      { m_strip_tags_from_MP3 = value; }
 
       /** \brief Sets if the audio files must be processed.
-       * \param[in] enabled boolean value.
+       * \param[in] value Boolean value.
        *
        */
-      void setTranscodeAudio(bool enabled);
+      inline void setTranscodeAudio(bool value)
+      { m_transcode_audio = value; }
 
       /** \brief Sets if the module files must be processed.
-       * \param[in] enabled boolean value.
+       * \param[in] value Boolean value.
        *
        */
-      void setTranscodeModule(bool enabled);
+      inline void setTranscodeModule(bool value)
+      { m_transcode_module = value; }
 
       /** \brief Sets if the audio track of video files must be processed.
-       * \param[in] enabled boolean value.
+       * \param[in] value boolean value.
        *
        */
-      void setTranscodeVideo(bool enabled);
+      inline void setTranscodeVideo(bool value)
+      { m_transcode_video = value; }
 
       /** \brief Sets if the output must be splitted into several files using a CUE file.
-       * \param[in] enabled boolean value.
+       * \param[in] value boolean value.
        *
        */
-      void setUseCueToSplit(bool enabled);
+      inline void setUseCueToSplit(bool value)
+      { m_use_CUE_to_split = value; }
 
       /** \brief Sets if the output file name must be constructed from the title and track metadata in the input file.
-       * \param[in] enabled boolean value.
+       * \param[in] value boolean value.
        *
        */
-      void setUseMetadataToRenameOutput(bool enabled);
+      inline void setUseMetadataToRenameOutput(bool value)
+      { m_use_metadata_to_rename_output = value; }
 
     private:
       QString m_root_directory;                  /** last used directory.                                                         */

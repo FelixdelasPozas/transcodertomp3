@@ -22,11 +22,13 @@
 
 // C++
 #include <cstring>
+#include <fileapi.h>
+#include <io.h>
 
 //-----------------------------------------------------------------
 Worker::Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
-: m_source_info  {source_info}
-, m_source_path  {m_source_info.absoluteFilePath().remove(m_source_info.absoluteFilePath().split('/').last())}
+: m_source_info  (source_info)
+, m_source_path  (m_source_info.absoluteFilePath().remove(m_source_info.absoluteFilePath().split('/').last()))
 , m_configuration(configuration)
 , m_fail         {false}
 , m_num_tracks   {0}
@@ -285,6 +287,7 @@ void Worker::close_destination_file()
   lame_encoder_flush();
 
   m_mp3_file_stream.flush();
+  FlushFileBuffers((HANDLE)_get_osfhandle(m_mp3_file_stream.handle()));
   m_mp3_file_stream.close();
 
   deinit_lame();

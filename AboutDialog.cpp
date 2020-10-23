@@ -26,8 +26,8 @@
 // libAV
 #include <avversion.h>
 
-// TagLib
-#include <taglib.h>
+// Tag parser
+#include <version.h>
 
 // libopenmpt
 #include <libopenmpt/libopenmpt.hpp>
@@ -35,18 +35,18 @@
 // Qt
 #include <QtGlobal>
 
-const QString AboutDialog::VERSION = QString("version 1.2.7");
+const QString AboutDialog::VERSION = QString("version 1.3.0");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
-: QDialog{parent, flags}
+: QDialog(parent, flags)
 {
   setupUi(this);
 
   setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint) & ~(Qt::WindowMaximizeButtonHint) & ~(Qt::WindowMinimizeButtonHint));
 
-  auto compilation_date = QString(__DATE__);
-  auto compilation_time = QString(" (") + QString(__TIME__) + QString(")");
+  const auto compilation_date = QString(__DATE__);
+  const auto compilation_time = QString(" (") + QString(__TIME__) + QString(")");
 
   m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
   m_version->setText(VERSION);
@@ -54,9 +54,8 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
   m_lameVersion->setText(tr("version %1").arg(get_lame_version()));
   m_libavVersion->setText(tr("version %1").arg(LIBAV_VERSION));
   // m_libcueVersion->setText(tr("")); // does not provide version definition, go with the one in the .ui file.
-  m_taglibVersion->setText(tr("version %1.%2.%3").arg(TAGLIB_MAJOR_VERSION).arg(TAGLIB_MINOR_VERSION).arg(TAGLIB_PATCH_VERSION));
-  const int omptVersion = openmpt::get_library_version();
-  m_openmptVersion->setText(tr("version %1.%2.%3").arg(omptVersion >> 24 & 0xF).arg(omptVersion >> 16 & 0xF).arg(omptVersion & 0XFF));
-  m_qtVersion->setText(tr("version %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
+  m_tagparserVersion->setText(tr("version %1").arg(TAG_PARSER_VERSION_STR));
+  m_openmptVersion->setText(tr("version %1").arg(QString::fromStdString(openmpt::string::get("library_version"))));
+  m_qtVersion->setText(tr("version %1").arg(QT_VERSION_STR));
 }
 

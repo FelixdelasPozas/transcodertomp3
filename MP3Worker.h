@@ -26,9 +26,10 @@
 // Qt
 #include <QMutex>
 
-// id3lib
-#include <tag.h>
-#include <mpegfile.h>
+namespace TagParser
+{
+  class Tag;
+}
 
 /** \class MP3Worker
  * \brief Implements a Worker to be used with MP3 audio files.
@@ -61,13 +62,7 @@ class MP3Worker
      * \param[in] tags music file metadata.
      *
      */
-    void extract_cover(const TagLib::ID3v2::Tag *tags);
-
-    /** \brief Constructs the final filename using the ID3v2 metadata.
-     * \param[in] tags music file metadata.
-     *
-     */
-    QString parse_metadata_id3v2(const TagLib::ID3v2::Tag *tags);
+    void extract_cover(const TagParser::Tag *tag);
 
     static QMutex s_mutex; /** mutex for cover extraction. */
 };

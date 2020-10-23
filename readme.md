@@ -35,7 +35,7 @@ The following libraries are required:
 * [lame](http://lame.sourceforge.net/) - Lame Ain't An Mp3 Encoder.
 * [libav](https://libav.org/) - Open source audio and video processing tools.
 * [libcue](https://github.com/lipnitsk/libcue) - CUE sheet parser library.
-* [TagLib](https://taglib.github.io/) - TagLib Audio Meta-Data Library.
+* [tagparser](https://github.com/Martchus/tagparser/) - Tag Parser Library.
 * [libopenmt](http://lib.openmpt.org/) - OpenMPT based module player library.
 * [Qt opensource framework](http://www.qt.io/).
 
@@ -57,7 +57,7 @@ Dialog shown while processing files.
 ![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
 
 # Repository information
-**Version**: 1.2.7
+**Version**: 1.3.0
 
 **Status**: finished
 
@@ -67,7 +67,7 @@ Dialog shown while processing files.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   11          |  616        |    392           |2509  |
-| C/C++ Header                 |   10          |  242        |    693           | 466  |
-| CMake                        |    1          |   23        |     14           | 100  |
-| **Total**                    |   **22**      |  **881**    |   **1099**       |**3075**|
+| C++                          |   11          |  575        |    348           |2404  |
+| C/C++ Header                 |   10          |  241        |    688           | 506  |
+| CMake                        |    1          |   24        |     14           |  96  |
+| **Total**                    |   **22**      |  **840**    |   **1050**       |**3006**|

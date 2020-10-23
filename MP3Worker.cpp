@@ -20,19 +20,11 @@
 // Project
 #include "MP3Worker.h"
 
-// taglib
+// tagparser
+#include <diagnostics.h>
+#include <mediafileinfo.h>
+#include <progressfeedback.h>
 #include <tag.h>
-#include <id3v1tag.h>
-#include <id3v2tag.h>
-#include <id3v2frame.h>
-#include <id3v2header.h>
-#include <id3v2extendedheader.h>
-#include <id3v2framefactory.h>
-#include <attachedpictureframe.h>
-#include <textidentificationframe.h>
-#include <mpegfile.h>
-#include <tstring.h>
-#include <tpropertymap.h>
 
 // Qt
 #include <QTemporaryFile>
@@ -45,7 +37,6 @@
 QMutex MP3Worker::s_mutex;
 
 QString MP3Worker::MP3_EXTENSION = ".mp3";
-QString TEMP_EXTENSION           = ".temp";
 
 //-----------------------------------------------------------------
 MP3Worker::MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfiguration &configuration)
@@ -56,222 +47,162 @@ MP3Worker::MP3Worker(const QFileInfo &source_info, const Utils::TranscoderConfig
 //-----------------------------------------------------------------
 void MP3Worker::run_implementation()
 {
-  auto file_name = m_source_info.absoluteFilePath().replace('/', QDir::separator());
-
-  // QTemporaryFile and QThreads are not playing fine together, the temp names are being reused
-  // and taglib fails upon reading the file. This approach seems to work.
-  auto id = QUuid::createUuid();
-  QTemporaryFile temp_file(id.toString());
-  if(!temp_file.open())
-  {
-    emit error_message(QString("Couldn't open temporary file for file '%1'.").arg(file_name));
-    return;
-  }
-
-  QFile original_file(file_name);
-  if(!original_file.open(QFile::ReadOnly))
-  {
-    emit error_message(QString("Couldn't open file '%1'.").arg(file_name));
-    return;
-  }
-
-  // taglib wouldn't open files with unicode names.
-  temp_file.write(original_file.readAll());
-  temp_file.waitForBytesWritten(-1);
-  temp_file.flush();
-  temp_file.close();
-
-  auto temp_name = temp_file.fileName() + MP3_EXTENSION;
-  temp_file.rename(temp_name); // taglib won't open a file if it doesn't have the correct extension. ¿¿??
-  original_file.close();
+  const auto file_name = QDir::fromNativeSeparators(m_source_info.absoluteFilePath());
 
   QString track_title;
 
-  { // ensure TagLib File object is destroyed at the end of scope.
-    TagLib::MPEG::File file_metadata(temp_name.toStdString().c_str());
+  TagParser::MediaFileInfo fileInfo(QDir::toNativeSeparators(file_name).toLatin1().toStdString());
+  fileInfo.setForceFullParse(true);
 
-    if(file_metadata.hasID3v1Tag() || file_metadata.hasID3v2Tag())
+  TagParser::Diagnostics diag;
+  TagParser::Tag *tags = nullptr;
+
+  try
+  {
+    fileInfo.open();
+    if(fileInfo.isOpen())
     {
-      if(m_configuration.useMetadataToRenameOutput())
+      fileInfo.parseEverything(diag);
+
+      for(auto t: fileInfo.tags())
       {
-        if(!file_metadata.hasID3v2Tag())
+        if(!tags)
         {
-          track_title = parse_metadata(file_metadata.tag());
+          tags = t;
         }
         else
         {
-          track_title = parse_metadata_id3v2(file_metadata.ID3v2Tag());
+          if(tags->type() < t->type()) tags = t;
         }
       }
 
-      emit progress(25);
-
-      if(m_configuration.extractMetadataCoverPicture() && file_metadata.hasID3v2Tag())
-      {
-        extract_cover(file_metadata.ID3v2Tag());
-      }
-
-      emit progress(50);
-
-      if(m_configuration.stripTagsFromMp3())
-      {
-        file_metadata.strip();
-        file_metadata.save();
-      }
+      if(tags) tags->ensureTextValuesAreProperlyEncoded();
+    }
+    else
+    {
+      emit error_message(tr("Unable to parse tags from: %1.").arg(m_source_info.absoluteFilePath()));
     }
   }
+  catch(...)
+  {
+    for(auto error: diag)
+    {
+      const auto message = error.context() + " -> " + error.message();
+      emit error_message(tr("Error processing tags from file: %1 (%2)").arg(m_source_info.absoluteFilePath()).arg(QString::fromStdString(message)));
+    }
+  }
+
+  if(tags && m_configuration.extractMetadataCoverPicture())
+  {
+    extract_cover(tags);
+  }
+
+  emit progress(25);
+
+  if(tags && m_configuration.useMetadataToRenameOutput())
+  {
+    track_title = parse_metadata(tags);
+  }
+
+  emit progress(50);
+
+  if(tags && m_configuration.stripTagsFromMp3())
+  {
+    TagParser::AbortableProgressFeedback::Callback nullCallback, progressCallback = [this](TagParser::AbortableProgressFeedback &p)
+    {
+      emit progress(50 + (25*p.overallPercentage())/100);
+    };
+
+    fileInfo.removeAllTags();
+    TagParser::AbortableProgressFeedback progress(nullCallback, progressCallback);
+    try
+    {
+      fileInfo.applyChanges(diag, progress);
+      QFile::remove(m_source_info.absoluteFilePath() + ".bak");
+    }
+    catch(...)
+    {
+      emit error_message(tr("Unable to remove tags from %1.").arg(m_source_info.absoluteFilePath()));
+    }
+  }
+
+  if(fileInfo.isOpen()) fileInfo.close();
 
   emit progress(75);
 
   if(track_title.isEmpty())
   {
-    track_title = m_source_info.absoluteFilePath().split('/').last().remove(MP3_EXTENSION);
+    track_title = file_name.split('/').last().remove(MP3_EXTENSION);
   }
   track_title = Utils::formatString(track_title, m_configuration.formatConfiguration());
 
-  auto source_name = m_source_info.absoluteFilePath().split('/').last();
-  emit information_message(QString("Renaming '%1' from '%2'.").arg(track_title).arg(source_name));
-
-  auto final_name = m_source_path + track_title;
-
-  original_file.rename(original_file.fileName() + TEMP_EXTENSION);
-
-  if(!QFile::copy(temp_file.fileName(), final_name))
+  auto source_name = file_name.split('/').last();
+  if(track_title.compare(source_name, Qt::CaseSensitive) != 0)
   {
-    emit error_message(QString("Couldn't copy file '%1' to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
-    original_file.rename(original_file.fileName().remove(TEMP_EXTENSION));
+    emit information_message(QString("Renaming '%1' from '%2'.").arg(track_title).arg(source_name));
+
+    const auto final_name = m_source_path + track_title;
+
+    if(!QFile::rename(m_source_info.absoluteFilePath(), final_name))
+    {
+      emit error_message(QString("Couldn't rename file '%1' to '%2'.").arg(m_source_info.absoluteFilePath()).arg(final_name));
+    }
   }
   else
   {
-    original_file.remove();
+    emit information_message(QString("Renaming not needed for '%1'.").arg(track_title));
   }
+
+  emit progress(100);
 }
 
 //-----------------------------------------------------------------
-void MP3Worker::extract_cover(const TagLib::ID3v2::Tag *tags)
+void MP3Worker::extract_cover(const TagParser::Tag *tag)
 {
-  auto picture_frames = tags->frameList("APIC");
-  int i = 0;
-  for(auto it = picture_frames.begin(); it != picture_frames.end(); ++it)
+  if(!tag || !tag->hasField(TagParser::KnownField::Cover)) return;
+
+  const auto cover = tag->value(TagParser::KnownField::Cover);
+
+  const auto name = m_configuration.coverPictureName();
+  QString extension = "picture_unknown_format";
+
+  auto mime = QString::fromStdString(cover.mimeType());
+
+  if(mime.contains("jpg") || mime.contains("jpeg"))
   {
-    bool adquired = false;
-    QString name = m_configuration.coverPictureName();
-    QString extension = "picture_unknown_format";
-    if(picture_frames.size() > 1)
-    {
-      name = "Image_" + QString::number(i);
-    }
+    extension = ".jpg";
+  }
+  else if(mime.contains("png"))
+  {
+    extension = ".png";
+  }
+  else if(mime.contains("bmp"))
+  {
+    extension = ".bmp";
+  }
+  else if(mime.contains("tiff"))
+  {
+    extension = ".tif";
+  }
 
-    auto picture = reinterpret_cast<TagLib::ID3v2::AttachedPictureFrame *>(*it);
-    auto mime = QString::fromStdWString(picture->mimeType().toWString());
-
-    if(mime.contains("jpg") || mime.contains("jpeg"))
-    {
-      extension = ".jpg";
-    }
-
-    if(mime.contains("png"))
-    {
-      extension = ".png";
-    }
-
-    if(mime.contains("bmp"))
-    {
-      extension = ".bmp";
-    }
-
-    if(mime.contains("tiff"))
-    {
-      extension = ".tif";
-    }
-
-    auto cover_name = m_source_path + name + extension;
-
-    {
-      // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
-      QMutexLocker lock(&s_mutex);
-      if (!QFile::exists(cover_name))
-      {
-        QFile file(cover_name);
-        if (!file.open(QIODevice::WriteOnly|QIODevice::Append))
-        {
-          emit error_message(QString("Couldn't create cover picture file for '%1', check for file permissions.").arg(m_source_info.absoluteFilePath()));
-        }
-        else
-        {
-          file.close();
-          adquired = true;
-        }
-      }
-    }
-
-    if (adquired)
+  const auto cover_name = m_source_path + name + extension;
+  {
+    // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
+    QMutexLocker lock(&s_mutex);
+    if (!QFile::exists(cover_name))
     {
       QFile file(cover_name);
-      file.open(QIODevice::WriteOnly|QIODevice::Append);
-      file.write(picture->picture().data(), picture->picture().size());
-      file.waitForBytesWritten(-1);
-      file.flush();
-      file.close();
-    }
-  }
-}
-
-//-----------------------------------------------------------------
-QString MP3Worker::parse_metadata_id3v2(const TagLib::ID3v2::Tag *tags)
-{
-  QString track_title;
-
-  // disc in set
-  auto frames = tags->frameList();
-
-  for(auto it = frames.begin(); it != frames.end(); ++it)
-  {
-    auto frameId = QString::fromStdWString(TagLib::String((*it)->frameID()).toWString());
-    if(frameId.compare("TPOS") == 0)
-    {
-      auto tposFrame = static_cast<TagLib::ID3v2::TextIdentificationFrame *>(*it);
-      if(tposFrame)
+      if (!file.open(QIODevice::WriteOnly|QIODevice::Append))
       {
-        auto disc_num = tposFrame->toString().toInt();
-
-        if(disc_num != 0)
-        {
-          track_title += QString::number(tposFrame->toString().toInt()) + QString("-");
-        }
+        emit error_message(QString("Couldn't create cover picture file for '%1', check for file permissions.").arg(m_source_info.absoluteFilePath()));
       }
-
+      else
+      {
+        file.write(cover.dataPointer(), cover.dataSize());
+        file.waitForBytesWritten(-1);
+        file.flush();
+        file.close();
+      }
     }
   }
-
-  // track number
-  auto track_number = tags->track();
-  if (track_number != 0)
-  {
-    auto number_string = QString().number(track_number);
-
-    while (m_configuration.formatConfiguration().number_of_digits > number_string.length())
-    {
-      number_string = "0" + number_string;
-    }
-
-    track_title += QString().number(track_number) + QString(" - ");
-  }
-
-  // track title
-  TagLib::String temp;
-  auto title = QString::fromStdWString(tags->title().toWString());
-
-  if (!title.isEmpty() && !Utils::isSpaces(title))
-  {
-    title.replace(QDir::separator(), QChar('-'));
-    title.replace(QChar('/'), QChar('-'));
-    track_title += title;
-  }
-  else
-  {
-    track_title.clear();
-  }
-
-  return track_title;
 }
