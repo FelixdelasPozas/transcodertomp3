@@ -159,6 +159,28 @@ QString Utils::formatString(const QString filename,
     }
   }
 
+  // check for unwanted unicode chars
+  while(formattedName.toLatin1().contains('?'))
+  {
+    auto index = formattedName.toLatin1().indexOf('?');
+
+    switch(formattedName.at(index).category())
+    {
+      case QChar::Punctuation_Open:
+      case QChar::Punctuation_Close:
+      case QChar::Punctuation_InitialQuote:
+      case QChar::Punctuation_FinalQuote:
+        formattedName = formattedName.replace(formattedName.at(index), QString("''"));
+        break;
+      case QChar::Punctuation_Dash:
+        formattedName = formattedName.replace(formattedName.at(index), '-');
+        break;
+      default:
+        formattedName = formattedName.replace(formattedName.at(index), QChar::Space);
+        break;
+    }
+  }
+
   if (conf.apply)
   {
     // delete specified chars
@@ -337,25 +359,6 @@ QString Utils::formatString(const QString filename,
 
   // remove any unwanted spaces
   formattedName = formattedName.simplified();
-
-  // check for unwanted unicode chars
-  while(formattedName.toLatin1().contains('?'))
-  {
-    auto index = formattedName.toLatin1().indexOf('?');
-
-    switch(formattedName.at(index).category())
-    {
-      case QChar::Punctuation_InitialQuote:
-      case QChar::Punctuation_FinalQuote:
-        formattedName = formattedName.replace(formattedName.at(index), QString("'"));
-        break;
-      case QChar::Punctuation_Dash:
-        formattedName = formattedName.replace(formattedName.at(index), '-');
-        break;
-      default:
-        break;
-    }
-  }
 
   return formattedName;
 }
