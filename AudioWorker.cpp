@@ -328,9 +328,15 @@ void AudioWorker::transcode()
   }
 
   int value;
+  int progressVal = 0;
   while(0 == (value = av_read_frame(m_libav_context, m_packet)))
   {
-    emit progress(m_libav_context->pb->pos * 100 / m_source_info.size());
+    const int currentProgress = m_libav_context->pb->pos * 100 / m_source_info.size();
+    if(progressVal != currentProgress)
+    {
+      progressVal = currentProgress;
+      emit progress(progressVal);
+    }
 
     // decode audio and encode it to mp3
     if (m_packet->stream_index == m_audio_stream_id)

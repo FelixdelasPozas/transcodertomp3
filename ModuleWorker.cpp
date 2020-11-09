@@ -127,6 +127,7 @@ void ModuleWorker::process_module()
   auto duration = mod.get_duration_seconds();
 
   bool finished = false;
+  int progressVal = 0;
   while (!has_been_cancelled() && !finished)
   {
     std::size_t count = mod.read(m_information.samplerate, BUFFER_SIZE, reinterpret_cast<short *>(&m_left_buffer[0]), reinterpret_cast<short *>(&m_right_buffer[0]));
@@ -138,10 +139,14 @@ void ModuleWorker::process_module()
     else
     {
       auto position = mod.get_position_seconds();
-
       if(duration != 0)
       {
-        emit progress((position * 100) / duration);
+        const int currentProgress = (position * 100) / duration;
+        if(progressVal != currentProgress)
+        {
+          progressVal = currentProgress;
+          emit progress(progressVal);
+        }
       }
 
       encode(0, count, reinterpret_cast<unsigned char *>(&m_left_buffer), reinterpret_cast<unsigned char *>(&m_right_buffer));

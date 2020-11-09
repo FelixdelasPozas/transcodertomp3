@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 3)
-set (MUSIC_TRANSCODER_VERSION_PATCH 2)
+set (MUSIC_TRANSCODER_VERSION_PATCH 3)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -21,6 +21,8 @@ find_package(Qt5 COMPONENTS Widgets WinExtras)
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
+
+string(TIMESTAMP CURRENT_YEAR "%Y")
 
 if(DEFINED MINGW)
   configure_file("${PROJECT_SOURCE_DIR}/resources.rc.in" "${PROJECT_BINARY_DIR}/resources.rc")

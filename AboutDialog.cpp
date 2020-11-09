@@ -35,7 +35,7 @@
 // Qt
 #include <QtGlobal>
 
-const QString AboutDialog::VERSION = QString("version 1.3.2");
+const QString AboutDialog::VERSION = QString("version 1.3.3");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)

@@ -92,9 +92,15 @@ void PlaylistWorker::generate_playlist()
   QByteArray contents;
   contents.append(QString("#EXTM3U") + newline);
 
+  int progressVal = 0;
   for(auto file: files)
   {
-    emit progress(((files.indexOf(file) + 1) * 100) / files.size());
+    const int currentProgress = ((files.indexOf(file) + 1) * 100) / files.size();
+    if(progressVal != currentProgress)
+    {
+      progressVal = currentProgress;
+      emit progress(progressVal);
+    }
 
     long long duration = 0;
     if(has_been_cancelled() || !get_song_duration(file, duration))
