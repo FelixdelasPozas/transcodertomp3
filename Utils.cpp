@@ -263,19 +263,27 @@ QString Utils::formatString(const QString filename,
         bool ends_with_parenthesis = false;
         bool starts_with_quote = false;
         bool ends_with_quote = false;
+        bool ends_with_comma = false;
         int begin_quote_num = 0;
         int end_quote_num = 0;
+
+
+        if(parts[i].endsWith(',') && parts[i].size() > 1)
+        {
+          ends_with_comma = true;
+          parts[i] = parts[i].mid(0, parts[i].length()-1);
+        }
 
         if(parts[i].startsWith('(') && parts[i].size() > 1)
         {
           starts_with_parenthesis = true;
-          parts[i].remove('(');
+          parts[i] = parts[i].mid(1, parts[i].length()-1);
         }
 
         if(parts[i].endsWith(')') && parts[i].size() > 1)
         {
           ends_with_parenthesis = true;
-          parts[i].remove(')');
+          parts[i] = parts[i].mid(0, parts[i].length()-1);
         }
         
         if(parts[i].startsWith('\'') && parts[i].size() > 1)
@@ -334,6 +342,11 @@ QString Utils::formatString(const QString filename,
         if (ends_with_parenthesis)
         {
           parts[i] = parts[i] + QString(')');
+        }
+
+        if(ends_with_comma)
+        {
+          parts[i] = parts[i] + QString(',');
         }
 
         ++i;
