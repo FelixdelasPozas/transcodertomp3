@@ -99,6 +99,7 @@ namespace Utils
     QString                       number_and_name_separator; /** separator between the number and the rest of the name. */
     bool                          to_title_case;             /** capitalize the first letter of every word in the name. */
     bool                          prefix_disk_num;           /** true to prefix the track number with the disk number.  */
+    bool                          character_simplification;  /** true to use unicode character decomposition.           */
 
     FormatConfiguration()
     {
@@ -126,6 +127,7 @@ namespace Utils
       number_of_digits          = 2;
       to_title_case             = true;
       prefix_disk_num           = false;
+      character_simplification  = false;
     }
   };
 
@@ -424,7 +426,7 @@ namespace Utils
       int     m_quality;                         /** mp3 output file quality level.                                               */
       bool    m_create_M3U_files;                /** true to create playlists after the transcoding process.                      */
 
-      FormatConfiguration m_format_configuration; /** application configuration. */
+      FormatConfiguration m_format_configuration; /** title formatting configuration. */
 
       /** settings key strings. */
       static const QString ROOT_DIRECTORY;
@@ -451,6 +453,7 @@ namespace Utils
       static const QString REFORMAT_NUMBER_OF_DIGITS;
       static const QString REFORMAT_USE_TITLE_CASE;
       static const QString REFORMAT_PREFIX_DISK_NUMBER;
+      static const QString REFORMAT_APPLY_CHAR_SIMPLIFICATION;
   };
 }
 

@@ -40,30 +40,31 @@ const QStringList fromStrings{" No.", "[", "]", "}", "{", ".", "_", ":", "~", "|
 const QStringList toStrings{" Nº", "(", ")", ")", "(", " ", " ", " -", "-", "-", " - ", "-", "''", "part ", "Nº", "arranged ", "conductor ", "composer ", "featuring ", "alternate ", "take ", "sequence ", "_"  };
 
 
-const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY                 = QObject::tr("Root directory");
-const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS              = QObject::tr("Number of threads");
-const QString Utils::TranscoderConfiguration::TRANSCODE_AUDIO                = QObject::tr("Transcode audio");
-const QString Utils::TranscoderConfiguration::TRANSCODE_VIDEO                = QObject::tr("Transcode video files");
-const QString Utils::TranscoderConfiguration::TRANSCODE_MODULE               = QObject::tr("Transcode Module files");
-const QString Utils::TranscoderConfiguration::STRIP_MP3                      = QObject::tr("Strip MP3 metadata");
-const QString Utils::TranscoderConfiguration::USE_CUE_SHEET                  = QObject::tr("Use CUE sheet");
-const QString Utils::TranscoderConfiguration::RENAME_INPUT_ON_SUCCESS        = QObject::tr("Rename input files on successfull transcoding");
-const QString Utils::TranscoderConfiguration::RENAMED_INPUT_EXTENSION        = QObject::tr("Renamed input files extension");
-const QString Utils::TranscoderConfiguration::USE_METADATA_TO_RENAME         = QObject::tr("Use metadata to rename output");
-const QString Utils::TranscoderConfiguration::DELETE_ON_CANCELLATION         = QObject::tr("Delete output on cancel");
-const QString Utils::TranscoderConfiguration::EXTRACT_COVER_PICTURE          = QObject::tr("Extract cover picture");
-const QString Utils::TranscoderConfiguration::COVER_PICTURE_NAME             = QObject::tr("Cover picture output filename");
-const QString Utils::TranscoderConfiguration::BITRATE                        = QObject::tr("Output bitrate");
-const QString Utils::TranscoderConfiguration::QUALITY                        = QObject::tr("Output quality");
-const QString Utils::TranscoderConfiguration::CREATE_M3U_FILES               = QObject::tr("Create M3U playlists in input directories");
-const QString Utils::TranscoderConfiguration::REFORMAT_APPLY                 = QObject::tr("Reformat output filename");
-const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_DELETE       = QObject::tr("Characters to delete");
-const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_FROM = QObject::tr("List of characters to replace from");
-const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_TO   = QObject::tr("List of characters to replace to");
-const QString Utils::TranscoderConfiguration::REFORMAT_SEPARATOR             = QObject::tr("Track and title separator");
-const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS      = QObject::tr("Number of digits");
-const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE        = QObject::tr("Use title case");
-const QString Utils::TranscoderConfiguration::REFORMAT_PREFIX_DISK_NUMBER    = QObject::tr("Prefix track number with disk number");
+const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY                     = QObject::tr("Root directory");
+const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS                  = QObject::tr("Number of threads");
+const QString Utils::TranscoderConfiguration::TRANSCODE_AUDIO                    = QObject::tr("Transcode audio");
+const QString Utils::TranscoderConfiguration::TRANSCODE_VIDEO                    = QObject::tr("Transcode video files");
+const QString Utils::TranscoderConfiguration::TRANSCODE_MODULE                   = QObject::tr("Transcode Module files");
+const QString Utils::TranscoderConfiguration::STRIP_MP3                          = QObject::tr("Strip MP3 metadata");
+const QString Utils::TranscoderConfiguration::USE_CUE_SHEET                      = QObject::tr("Use CUE sheet");
+const QString Utils::TranscoderConfiguration::RENAME_INPUT_ON_SUCCESS            = QObject::tr("Rename input files on successfull transcoding");
+const QString Utils::TranscoderConfiguration::RENAMED_INPUT_EXTENSION            = QObject::tr("Renamed input files extension");
+const QString Utils::TranscoderConfiguration::USE_METADATA_TO_RENAME             = QObject::tr("Use metadata to rename output");
+const QString Utils::TranscoderConfiguration::DELETE_ON_CANCELLATION             = QObject::tr("Delete output on cancel");
+const QString Utils::TranscoderConfiguration::EXTRACT_COVER_PICTURE              = QObject::tr("Extract cover picture");
+const QString Utils::TranscoderConfiguration::COVER_PICTURE_NAME                 = QObject::tr("Cover picture output filename");
+const QString Utils::TranscoderConfiguration::BITRATE                            = QObject::tr("Output bitrate");
+const QString Utils::TranscoderConfiguration::QUALITY                            = QObject::tr("Output quality");
+const QString Utils::TranscoderConfiguration::CREATE_M3U_FILES                   = QObject::tr("Create M3U playlists in input directories");
+const QString Utils::TranscoderConfiguration::REFORMAT_APPLY                     = QObject::tr("Reformat output filename");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_DELETE           = QObject::tr("Characters to delete");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_FROM     = QObject::tr("List of characters to replace from");
+const QString Utils::TranscoderConfiguration::REFORMAT_CHARS_TO_REPLACE_TO       = QObject::tr("List of characters to replace to");
+const QString Utils::TranscoderConfiguration::REFORMAT_SEPARATOR                 = QObject::tr("Track and title separator");
+const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS          = QObject::tr("Number of digits");
+const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE            = QObject::tr("Use title case");
+const QString Utils::TranscoderConfiguration::REFORMAT_PREFIX_DISK_NUMBER        = QObject::tr("Prefix track number with disk number");
+const QString Utils::TranscoderConfiguration::REFORMAT_APPLY_CHAR_SIMPLIFICATION = QObject::tr("Character simplification");
 
 //-----------------------------------------------------------------
 bool Utils::isAudioFile(const QFileInfo &file)
@@ -157,6 +158,28 @@ QString Utils::formatString(const QString filename,
     {
       formattedName.remove(formattedName.lastIndexOf('.'), extension.length() + 1);
     }
+  }
+
+  if(conf.character_simplification)
+  {
+    QString simplified;
+
+    auto simplifyCharacter = [&simplified](QChar &c)
+    {
+      if(c.isLetter())
+      {
+        const auto decomposition = c.decomposition();
+        if(decomposition.length() > 1)
+        {
+          simplified.append(decomposition.at(0));
+          return;
+        }
+      }
+      simplified.append(c);
+    };
+    std::for_each(formattedName.begin(), formattedName.end(), simplifyCharacter);
+
+    if(!simplified.isEmpty()) formattedName = simplified;
   }
 
   // check for unwanted unicode chars
@@ -435,6 +458,7 @@ void Utils::TranscoderConfiguration::load()
   m_format_configuration.number_and_name_separator = settings.value(REFORMAT_SEPARATOR, QString("-")).toString();
   m_format_configuration.to_title_case             = settings.value(REFORMAT_USE_TITLE_CASE, true).toBool();
   m_format_configuration.prefix_disk_num           = settings.value(REFORMAT_PREFIX_DISK_NUMBER, false).toBool();
+  m_format_configuration.character_simplification  = settings.value(REFORMAT_APPLY_CHAR_SIMPLIFICATION, false).toBool();
 
   auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, fromStrings).toStringList();
   auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, toStrings).toStringList();
@@ -480,6 +504,7 @@ void Utils::TranscoderConfiguration::save() const
   settings.setValue(REFORMAT_SEPARATOR, m_format_configuration.number_and_name_separator);
   settings.setValue(REFORMAT_USE_TITLE_CASE, m_format_configuration.to_title_case);
   settings.setValue(REFORMAT_PREFIX_DISK_NUMBER, m_format_configuration.prefix_disk_num);
+  settings.setValue(REFORMAT_APPLY_CHAR_SIMPLIFICATION, m_format_configuration.character_simplification);
 
   QStringList from, to;
   for(auto pair: m_format_configuration.chars_to_replace)

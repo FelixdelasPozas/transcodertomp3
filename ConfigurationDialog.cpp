@@ -160,6 +160,7 @@ void ConfigurationDialog::applyConfiguration(const Utils::TranscoderConfiguratio
   m_create_m3u->setChecked(configuration.createM3Ufiles());
 
   m_deleteChars->setText(configuration.formatConfiguration().chars_to_delete);
+  m_simplifyChars->setChecked(configuration.formatConfiguration().character_simplification);
 
   m_replaceChars->setRowCount(configuration.formatConfiguration().chars_to_replace.size());
   for(auto i = 0; i < configuration.formatConfiguration().chars_to_replace.size(); ++i)
@@ -301,6 +302,7 @@ const Utils::TranscoderConfiguration ConfigurationDialog::getConfiguration() con
   format.number_of_digits          = m_prefixNumDigits->value();
   format.to_title_case             = m_titleCase->isChecked();
   format.prefix_disk_num           = m_prefix_disk->isChecked();
+  format.character_simplification  = m_simplifyChars->isChecked();
 
   format.chars_to_replace.clear();
   for(int i = 0; i < m_replaceChars->rowCount(); ++i)
