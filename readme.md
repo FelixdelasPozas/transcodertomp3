@@ -46,7 +46,7 @@ Download and execute the ![latest release](https://github.com/FelixdelasPozas/tr
 # Screenshots
 Configuration dialog.
 
-![Configuration Dialog](https://cloud.githubusercontent.com/assets/12167134/14055036/94e9906a-f2de-11e5-8f8c-5989a96dc791.jpg)
+![Configuration Dialog](https://user-images.githubusercontent.com/12167134/107889759-0c857000-6f15-11eb-9764-cb135c585c75.png)
 
 Simple main dialog.
 
