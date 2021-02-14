@@ -342,13 +342,6 @@ QGroupBox::title {
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="m_simplifyChars">
-        <property name="text">
-         <string>Character simplification by Unicode decomposition</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QGroupBox" name="m_replaceGroup">
         <property name="toolTip">
          <string>Pair of strings, replace the first one with the second in the output file name.</string>
@@ -525,6 +518,13 @@ QGroupBox::title {
        <widget class="QCheckBox" name="m_prefix_disk">
         <property name="text">
          <string>Prefix track number with the disk number in metatada</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="m_simplifyChars">
+        <property name="text">
+         <string>Character simplification by Unicode decomposition</string>
         </property>
        </widget>
       </item>

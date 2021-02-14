@@ -147,7 +147,7 @@ void MusicTranscoder::onConversionStarted()
   ProcessDialog processDialog(files, folders, m_configuration);
   processDialog.exec();
 
-  this->show();
+  this->showNormal();
 }
 
 //-----------------------------------------------------------------
