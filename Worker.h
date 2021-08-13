@@ -126,8 +126,9 @@ class Worker
       long          samplerate;   /** sample rate of the source file.                           */
       MPEG_mode_e   mode;         /** mpeg mode of the source if it's an MP3.                   */
       Sample_format format;       /** sample format of the source file.                         */
+      bool          isFlac;       /** true if flac encoded source file.                         */
 	  
-      Source_Info(): init{false}, num_channels{-1}, samplerate{-1}, mode{MPEG_mode_e::STEREO}, format{Sample_format::UNDEFINED} {};
+      Source_Info(): init{false}, num_channels{-1}, samplerate{-1}, mode{MPEG_mode_e::STEREO}, format{Sample_format::UNDEFINED}, isFlac{false} {};
     };
 
     /** \struct Destination

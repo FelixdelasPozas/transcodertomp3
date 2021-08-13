@@ -22,6 +22,7 @@
 
 // C++
 #include <iostream>
+#include <bitset>
 
 // Qt
 #include <QStringList>
@@ -170,6 +171,7 @@ bool AudioWorker::init_libav()
   m_information.samplerate   = m_audio_decoder_context->sample_rate;
   m_information.num_channels = m_audio_decoder_context->channels;
   m_information.format       = Sample_format::UNDEFINED;
+  m_information.isFlac       = m_source_info.fileName().endsWith("flac", Qt::CaseInsensitive);
 
   switch(m_audio_decoder_context->sample_fmt)
   {
@@ -395,6 +397,18 @@ void AudioWorker::transcode()
 //-----------------------------------------------------------------
 bool AudioWorker::process_audio_packet()
 {
+  if(m_information.isFlac && m_packet && m_packet->data)
+  {
+    // apparently flac metadata is passed as audio stream info. discard those frames.
+    const auto temp = reinterpret_cast<uint8_t *>(m_packet->data)[0];
+    if(temp != 0xFF)
+    {
+      m_packet->size = 0;
+      m_packet->data = nullptr;
+      return true;
+    }
+  }
+
   // Try to decode the packet into a frame/multiple frames.
   auto result = avcodec_send_packet(m_audio_decoder_context, m_packet);
 
