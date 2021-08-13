@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 4)
-set (MUSIC_TRANSCODER_VERSION_PATCH 0)
+set (MUSIC_TRANSCODER_VERSION_PATCH 1)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -61,8 +61,8 @@ set(TAGPARSER_LIBRARIES   ${TAGPARSER_LIBRARY_DIR}/libtagparser.a
                           D:/Desarrollo/Bibliotecas/cpp-utilities/build/libc++utilities.a)
 
 # libopenmpt library
-set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.3.3+release")
-set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.3.3+release/bin/libopenmpt.a")
+set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.5.9+release")
+set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.5.9+release/bin/libopenmpt.a")
 
 #include zlib
 set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
