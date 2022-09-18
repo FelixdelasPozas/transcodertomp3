@@ -10,7 +10,7 @@ BEGIN
   BEGIN
     BLOCK "040904B0"
     BEGIN
-    VALUE "CompanyName", "Unknown"
+    VALUE "CompanyName", "Felix de las Pozas Alvarez"
     VALUE "FileDescription", "Music Transcoder to MP3 format."
       VALUE "FileVersion", "@MUSIC_TRANSCODER_VERSION_MAJOR@.@MUSIC_TRANSCODER_VERSION_MINOR@.@MUSIC_TRANSCODER_VERSION_PATCH@"
       VALUE "InternalName", "Music Transcoder"
