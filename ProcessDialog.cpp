@@ -202,7 +202,7 @@ void ProcessDialog::increment_global_progress()
     connect(m_cancelButton,    SIGNAL(clicked()),
             this,              SLOT(exit_dialog()));
 
-    m_cancelButton->setText("Exit");
+    m_cancelButton->setText("Close");
     m_cancelButton->setToolTip(tr("Close the processing dialog."));
     m_clipboard->setEnabled(true);
     m_clipboard->setToolTip(tr("Copy log to clipboard."));

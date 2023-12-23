@@ -66,6 +66,10 @@ MusicTranscoder::MusicTranscoder()
 
   connect(m_threads, SIGNAL(valueChanged(int)),
           this,      SLOT(onThreadsNumberChanged(int)));
+
+  connect(m_quitButton, SIGNAL(clicked()),
+          this,      SLOT(close()));
+
 }
 
 //-----------------------------------------------------------------

@@ -147,7 +147,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
     return false;
   }
 
-  auto avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - FF_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &custom_IO_read, nullptr, &custom_IO_seek);
+  auto avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - AV_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &custom_IO_read, nullptr, &custom_IO_seek);
   if(nullptr == avioContext)
   {
     emit error_message(QString("Couldn't allocate context for custom libav IO for file: '%1'.").arg(file_name));

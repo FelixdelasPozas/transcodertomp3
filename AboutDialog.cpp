@@ -27,7 +27,7 @@
 #include <avversion.h>
 
 // Tag parser
-#include <version.h>
+//#include <tagparser/version.h>
 
 // libopenmpt
 #include <libopenmpt/libopenmpt.hpp>
@@ -35,7 +35,7 @@
 // Qt
 #include <QtGlobal>
 
-const QString AboutDialog::VERSION = QString("version 1.4.1");
+const QString AboutDialog::VERSION = QString("version 1.4.2");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -53,8 +53,9 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
 
   m_lameVersion->setText(tr("version %1").arg(get_lame_version()));
   m_libavVersion->setText(tr("version %1").arg(LIBAV_VERSION));
-  // m_libcueVersion->setText(tr("")); // does not provide version definition, go with the one in the .ui file.
-  m_tagparserVersion->setText(tr("version %1").arg(TAG_PARSER_VERSION_STR));
+  m_libcueVersion->setText(tr("version 2.3.0")); // does not provide version definition, go with the one in the .ui file.
+  //m_tagparserVersion->setText(tr("version %1").arg(TAG_PARSER_VERSION_STR)); // Current version doesn't provide version string?
+  m_tagparserVersion->setText(tr("version 12.1.0"));
   m_openmptVersion->setText(tr("version %1").arg(QString::fromStdString(openmpt::string::get("library_version"))));
   m_qtVersion->setText(tr("version %1").arg(QT_VERSION_STR));
 }

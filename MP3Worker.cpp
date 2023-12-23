@@ -21,10 +21,10 @@
 #include "MP3Worker.h"
 
 // tagparser
-#include <diagnostics.h>
-#include <mediafileinfo.h>
-#include <progressfeedback.h>
-#include <tag.h>
+#include <tagparser/diagnostics.h>
+#include <tagparser/mediafileinfo.h>
+#include <tagparser/progressfeedback.h>
+#include <tagparser/tag.h>
 
 // Qt
 #include <QTemporaryFile>
@@ -56,6 +56,7 @@ void MP3Worker::run_implementation()
   fileInfo.setForceFullParse(true);
 
   TagParser::Diagnostics diag;
+  TagParser::AbortableProgressFeedback progressFeedback;
   TagParser::Tag *tags = nullptr;
 
   try
@@ -63,7 +64,7 @@ void MP3Worker::run_implementation()
     fileInfo.open();
     if(fileInfo.isOpen())
     {
-      fileInfo.parseEverything(diag);
+      fileInfo.parseEverything(diag, progressFeedback);
 
       for(auto t: fileInfo.tags())
       {

@@ -1,13 +1,13 @@
-project(MusicTranscoder)
+cmake_minimum_required (VERSION 3.5.0)
 
-cmake_minimum_required (VERSION 2.8.6)
+project(MusicTranscoder)
 
 set(CMAKE_CXX_STANDARD 17)
 
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 4)
-set (MUSIC_TRANSCODER_VERSION_PATCH 1)
+set (MUSIC_TRANSCODER_VERSION_PATCH 2)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -33,38 +33,38 @@ if(DEFINED MINGW)
 endif(DEFINED MINGW)
 
 
-# LAME library
-set(LAME_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/lame-3.99.5/include")
-set(LAME_LIBRARY     "D:/Desarrollo/Bibliotecas/lame-3.99.5/libmp3lame/.libs/libmp3lame.a")
+# LAME library 3.100.1
+set(LAME_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/lame-3.100.1/include")
+set(LAME_LIBRARY     "D:/Desarrollo/Bibliotecas/lame-3.100.1/libmp3lame/.libs/libmp3lame.a")
 
-# libav library
-set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/libav-12")
+# libav library 13
+set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/libav-13")
 set(LIBAV_INCLUDE_DIR ${LIBAV_DIR})
 set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a 
                       ${LIBAV_DIR}/libavcodec/libavcodec.a 
                       ${LIBAV_DIR}/libavutil/libavutil.a 
                       ${LIBAV_DIR}/libavresample/libavresample.a)
 					  
-# libvpx library
+# libvpx library 1.13.1
 set(LIBVPX_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvpx")
 set(LIBVPX_LIBRARY ${LIBVPX_INCLUDE_DIR}/libvpx.a)					  
 
-# libcue library
-set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-2.1.0")
+# libcue library 2.3.0
+set(LIBCUE_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libcue-2.3.0")
 set(LIBCUE_LIBRARY     "D:/Desarrollo/Bibliotecas/libcue-build/libcue.a")
 
-# tagparser library
+# tagparser library 12.1.1
 set(TAGPARSER_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/tag-parser/source"
-                          "D:/Desarrollo/Bibliotecas/tag-parser/build/resources")
+                          "D:/Desarrollo/Bibliotecas/tag-parser/build")
 set(TAGPARSER_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/tag-parser/build")
-set(TAGPARSER_LIBRARIES   ${TAGPARSER_LIBRARY_DIR}/libtagparser.a
-                          D:/Desarrollo/Bibliotecas/cpp-utilities/build/libc++utilities.a)
+set(TAGPARSER_LIBRARIES   ${TAGPARSER_LIBRARY_DIR}/tag-parser/libtag_parser.a
+                          "D:/Desarrollo/Bibliotecas/tag-parser/build/c++utilities/libc++utilities.a")
 
-# libopenmpt library
-set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.5.9+release")
-set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.5.9+release/bin/libopenmpt.a")
+# libopenmpt library 0.7.3
+set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release")
+set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release/.libs/libopenmpt.a")
 
-#include zlib
+#include zlib 1.3
 set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
 
 include_directories(
@@ -81,7 +81,7 @@ include_directories(
   ${LIBVPX_INCLUDE_DIR}
   )
 
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++17 -mwindows")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++17 -mwindows -march=native")
 
 # Add Qt Resource files
 qt5_add_resources(RESOURCES
@@ -128,6 +128,8 @@ set(CORE_EXTERNAL_LIBS
   ws2_32.a
   wsock32.a
   iconv.a
+  pthread.a
+  bcrypt.a
   Qt5::WinExtras
 )
   

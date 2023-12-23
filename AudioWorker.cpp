@@ -35,10 +35,11 @@ extern "C"
 }
 
 // tagparser
-#include <mediafileinfo.h>
-#include <diagnostics.h>
-#include <tag.h>
-#include <tagvalue.h>
+#include <tagparser/mediafileinfo.h>
+#include <tagparser/diagnostics.h>
+#include <tagparser/tag.h>
+#include <tagparser/tagvalue.h>
+#include <tagparser/progressfeedback.h>
 
 // Qt
 #include <QUuid>
@@ -377,7 +378,7 @@ void AudioWorker::transcode()
   }
 
   // flush buffered frames from the decoder
-  if (m_audio_decoder->capabilities & CODEC_CAP_DELAY)
+  if (m_audio_decoder->capabilities & AV_CODEC_CAP_DELAY)
   {
     m_packet = av_packet_alloc();
 
@@ -585,13 +586,14 @@ QList<AudioWorker::Destination> AudioWorker::compute_destinations()
       fileInfo.setForceFullParse(true);
 
       TagParser::Diagnostics diag;
+      TagParser::AbortableProgressFeedback progressFeedback;
 
       try
       {
         fileInfo.open();
         if(fileInfo.isOpen())
         {
-          fileInfo.parseEverything(diag);
+          fileInfo.parseEverything(diag, progressFeedback);
 
           if(!fileInfo.tags().empty())
           {
