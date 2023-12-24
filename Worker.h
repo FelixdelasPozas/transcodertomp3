@@ -103,7 +103,6 @@ class Worker
      */
     bool encode(unsigned int buffer_start, unsigned int buffer_length, unsigned char *buffer1, unsigned char *buffer2);
 
-
     /** \brief Opens the next destination file, initializes the lame context and computes the number
      *         of samples of duration if specified by the cue file.
      *

@@ -59,6 +59,7 @@ AudioWorker::AudioWorker(const QFileInfo &origin_info, const Utils::TranscoderCo
 , m_libav_context        {nullptr}
 , m_packet               {nullptr}
 , m_cover_stream_id      {-1}
+, m_cover_extension      {".picture_unknown_format"}
 , m_audio_decoder        {nullptr}
 , m_audio_decoder_context{nullptr}
 , m_frame                {nullptr}
@@ -235,7 +236,6 @@ void AudioWorker::init_libav_cover_extraction()
         m_cover_extension = QString(".tif");
         break;
       default:
-        m_cover_extension = QString(".picture_unknown_format");
         break;
     }
 

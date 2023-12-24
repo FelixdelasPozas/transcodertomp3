@@ -29,7 +29,6 @@
 // Qt
 #include <QTemporaryFile>
 #include <QUuid>
-#include <QDebug>
 
 // C++
 #include <memory>

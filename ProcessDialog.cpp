@@ -50,12 +50,14 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
                              const Utils::TranscoderConfiguration &configuration,
                              QWidget *parent,
                              Qt::WindowFlags flags)
-: QDialog        {parent, flags}
-, m_music_files  {files}
-, m_music_folders{folders}
-, m_configuration{configuration}
-, m_errorsCount  {0}
-, m_taskBarButton{nullptr}
+: QDialog               {parent, flags}
+, m_music_files         {files}
+, m_music_folders       {folders}
+, m_num_workers         {0}
+, m_configuration       {configuration}
+, m_errorsCount         {0}
+, m_finished_transcoding{false}
+, m_taskBarButton       {nullptr}
 {
   setupUi(this);
 
@@ -365,7 +367,8 @@ bool ProcessDialog::event(QEvent *e)
 //-----------------------------------------------------------------
 int ProcessDialog::lock_manager(void **mutex, AVLockOp operation)
 {
-  QMutex *passed_mutex;
+  QMutex *passed_mutex = nullptr;
+
   switch (operation)
   {
     case AV_LOCK_CREATE:
@@ -382,6 +385,7 @@ int ProcessDialog::lock_manager(void **mutex, AVLockOp operation)
     case AV_LOCK_DESTROY:
       passed_mutex = reinterpret_cast<QMutex *>(*mutex);
       delete passed_mutex;
+      *mutex = nullptr;
       return 0;
   }
   return 1;

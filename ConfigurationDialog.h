@@ -69,7 +69,7 @@ class ConfigurationDialog
 
   private:
     /** \brief Helper method to update the UI state with the configuration values.
-     * \param[in] configuratio configuration struct.
+     * \param[in] configuration configuration struct.
      *
      */
     void applyConfiguration(const Utils::TranscoderConfiguration &configuration);
