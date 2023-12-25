@@ -33,7 +33,7 @@ The following file formats are detected and supported by the tool as input files
 ## External dependencies:
 The following libraries are required:
 * [lame](http://lame.sourceforge.net/) - Lame Ain't An Mp3 Encoder.
-* [libav](https://libav.org/) - Open source audio and video processing tools.
+* [libav](https://github.com/libav/libav) - Open source audio and video processing tools.
 * [libcue](https://github.com/lipnitsk/libcue) - CUE sheet parser library.
 * [tagparser](https://github.com/Martchus/tagparser/) - Tag Parser Library.
 * [libopenmt](http://lib.openmpt.org/) - OpenMPT based module player library.
