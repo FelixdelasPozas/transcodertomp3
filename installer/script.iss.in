@@ -3,7 +3,7 @@
 [Setup]
 AppName=Music Transcoder
 AppVersion=@MUSIC_TRANSCODER_VERSION_MAJOR@.@MUSIC_TRANSCODER_VERSION_MINOR@.@MUSIC_TRANSCODER_VERSION_PATCH@
-DefaultDirName={pf64}\Music Transcoder
+DefaultDirName={commonpf64}\Music Transcoder
 DefaultGroupName=Music Transcoder
 OutputDir=@PROJECT_BINARY_DIR@
 AppComments=Music Transcoder
