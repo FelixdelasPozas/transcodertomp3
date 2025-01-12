@@ -396,6 +396,13 @@ QString Utils::formatString(const QString filename,
   // remove any unwanted spaces
   formattedName = formattedName.simplified();
 
+  // remove wrong apostrophes
+  const auto count = formattedName.count("''");
+  if(count == 1)
+  {
+    formattedName = formattedName.replace("''", "'");
+  }
+ 
   return formattedName;
 }
 
