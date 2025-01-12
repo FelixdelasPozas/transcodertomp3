@@ -28,6 +28,7 @@
 #include <QString>
 #include <QPair>
 #include <QMutex>
+#include <QLabel>
 
 namespace Utils
 {
@@ -454,6 +455,63 @@ namespace Utils
       static const QString REFORMAT_USE_TITLE_CASE;
       static const QString REFORMAT_PREFIX_DISK_NUMBER;
       static const QString REFORMAT_APPLY_CHAR_SIMPLIFICATION;
+  };
+
+  /** \class ClickableHoverLabel
+  * \brief ClickableLabel subclass that changes the mouse cursor when hovered.
+  *
+  */
+  class ClickableHoverLabel
+  : public QLabel
+  {
+      Q_OBJECT
+    public:
+      /** \brief ClickableHoverLabel class constructor.
+      * \param[in] parent Raw pointer of the widget parent of this one.
+      * \f Widget flags.
+      *
+      */
+      explicit ClickableHoverLabel(QWidget *parent=0, Qt::WindowFlags f=0)
+      : QLabel(parent, f)
+      {};
+
+      /** \brief ClickableHoverLabel class constructor.
+      * \param[in] text Label text.
+      * \param[in] parent Raw pointer of the widget parent of this one.
+      * \f Widget flags.
+      *
+      */
+      explicit ClickableHoverLabel(const QString &text, QWidget *parent=0, Qt::WindowFlags f=0)
+      : QLabel(text, parent, f)
+      {};
+      
+      /** \brief ClickableHoverLabel class virtual destructor.
+      *
+      */
+      virtual ~ClickableHoverLabel()
+      {};
+
+    signals:
+      void clicked();
+
+    protected:
+      void mousePressEvent(QMouseEvent* e)
+      {
+        emit clicked();
+        QLabel::mousePressEvent(e);
+      }  
+
+      virtual void enterEvent(QEvent *event) override
+      {
+        setCursor(Qt::PointingHandCursor);
+        QLabel::enterEvent(event);
+      }
+
+      virtual void leaveEvent(QEvent *event) override
+      {
+        setCursor(Qt::ArrowCursor);
+        QLabel::leaveEvent(event);
+      }
   };
 }
 

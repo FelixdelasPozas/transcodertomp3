@@ -35,6 +35,8 @@
 // Qt
 #include <QtGlobal>
 #include <QDateTime>
+#include <QDesktopServices>
+#include <QUrl>
 
 const QString AboutDialog::VERSION = QString("version 1.4.4");
 const QString COPYRIGHT{"Copyright (c) 2015-%1 Félix de las Pozas Álvarez"};
@@ -61,5 +63,8 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
   m_openmptVersion->setText(tr("version %1").arg(QString::fromStdString(openmpt::string::get("library_version"))));
   m_qtVersion->setText(tr("version %1").arg(QT_VERSION_STR));
   m_copyright->setText(COPYRIGHT.arg(QDateTime::currentDateTime().date().year()));
+
+  QObject::connect(m_kofiLabel, &Utils::ClickableHoverLabel::clicked,
+                   [this](){ QDesktopServices::openUrl(QUrl{"https://ko-fi.com/felixdelaspozas"}); });  
 }
 
