@@ -41,7 +41,7 @@ The following libraries are required:
 
 # Install
 
-Download and execute the ![latest release](https://github.com/FelixdelasPozas/transcodertomp3/releases) installer.
+MusicTranscoder is available for Windows 7 onwards. You can download the lastest installer from the [releases page](https://github.com/FelixdelasPozas/transcodertomp3/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
 
 # Screenshots
 Configuration dialog.
