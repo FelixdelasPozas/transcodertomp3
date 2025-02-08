@@ -32,6 +32,8 @@ Source: "*.dll"; DestDir: "{app}";
 Source: "iconengines/*.*"; DestDir: "{app}/iconengines/";
 Source: "imageformats/*.*"; DestDir: "{app}/imageformats/";
 Source: "platforms/*.*"; DestDir: "{app}/platforms/";
+Source: "networkinformation/*.*"; DestDir: "{app}/platforms/";
+Source: "styles/*.*"; DestDir: "{app}/platforms/";
 
 [Run]
 Filename: "{app}\MusicTranscoder.exe"; Description: "Launch Music Transcoder"; Flags: postinstall nowait skipifsilent unchecked
