@@ -25,6 +25,7 @@
 #include <QDirIterator>
 #include <QTemporaryFile>
 #include <QRegularExpression>
+#include <QCoreApplication>
 
 // C++
 #include <thread>
@@ -39,7 +40,6 @@ const QString     Utils::TEMPORAL_FILE_EXTENSION = QString(".MusicTranscoderTemp
 
 const QStringList fromStrings{" No.", "[", "]", "}", "{", ".", "_", ":", "~", "|", "/", ";", "\\", "pt ", "#", "arr ", "cond ", "comp ", "feat ", "alt ", "tk ", "seq", "*"};
 const QStringList toStrings{" Nº", "(", ")", ")", "(", " ", " ", " -", "-", "-", " - ", "-", "''", "part ", "Nº", "arranged ", "conductor ", "composer ", "featuring ", "alternate ", "take ", "sequence ", "_"  };
-
 
 const QString Utils::TranscoderConfiguration::ROOT_DIRECTORY                     = QObject::tr("Root directory");
 const QString Utils::TranscoderConfiguration::NUMBER_OF_THREADS                  = QObject::tr("Number of threads");
@@ -66,6 +66,8 @@ const QString Utils::TranscoderConfiguration::REFORMAT_NUMBER_OF_DIGITS         
 const QString Utils::TranscoderConfiguration::REFORMAT_USE_TITLE_CASE            = QObject::tr("Use title case");
 const QString Utils::TranscoderConfiguration::REFORMAT_PREFIX_DISK_NUMBER        = QObject::tr("Prefix track number with disk number");
 const QString Utils::TranscoderConfiguration::REFORMAT_APPLY_CHAR_SIMPLIFICATION = QObject::tr("Character simplification");
+
+const QString INI_FILENAME{"MusicTranscoder.ini"};
 
 //-----------------------------------------------------------------
 bool Utils::isAudioFile(const QFileInfo &file)
@@ -442,34 +444,34 @@ Utils::TranscoderConfiguration::TranscoderConfiguration()
 //-----------------------------------------------------------------
 void Utils::TranscoderConfiguration::load()
 {
-  QSettings settings("Felix de las Pozas Alvarez", "MusicTranscoder");
+  const auto settings = applicationSettings();
 
-  m_root_directory                                 = settings.value(ROOT_DIRECTORY, QDir::currentPath()).toString();
-  m_number_of_threads                              = settings.value(NUMBER_OF_THREADS, std::thread::hardware_concurrency() /2).toInt();
-  m_transcode_audio                                = settings.value(TRANSCODE_AUDIO, true).toBool();
-  m_transcode_video                                = settings.value(TRANSCODE_VIDEO, true).toBool();
-  m_transcode_module                               = settings.value(TRANSCODE_MODULE, true).toBool();
-  m_strip_tags_from_MP3                            = settings.value(STRIP_MP3, true).toBool();
-  m_use_CUE_to_split                               = settings.value(USE_CUE_SHEET, true).toBool();
-  m_rename_input_on_success                        = settings.value(RENAME_INPUT_ON_SUCCESS, true).toBool();
-  m_renamed_input_extension                        = settings.value(RENAMED_INPUT_EXTENSION, QObject::tr("done")).toString();
-  m_use_metadata_to_rename_output                  = settings.value(USE_METADATA_TO_RENAME, true).toBool();
-  m_delete_output_on_cancellation                  = settings.value(DELETE_ON_CANCELLATION, true).toBool();
-  m_extract_metadata_cover_picture                 = settings.value(EXTRACT_COVER_PICTURE, true).toBool();
-  m_cover_picture_name                             = settings.value(COVER_PICTURE_NAME, QObject::tr("Frontal")).toString();
-  m_bitrate                                        = settings.value(BITRATE, 320).toInt();
-  m_quality                                        = settings.value(QUALITY, 0).toInt();
-  m_create_M3U_files                               = settings.value(CREATE_M3U_FILES, true).toBool();
-  m_format_configuration.apply                     = settings.value(REFORMAT_APPLY, true).toBool();
-  m_format_configuration.chars_to_delete           = settings.value(REFORMAT_CHARS_TO_DELETE, QString()).toString();
-  m_format_configuration.number_of_digits          = settings.value(REFORMAT_NUMBER_OF_DIGITS, 2).toInt();
-  m_format_configuration.number_and_name_separator = settings.value(REFORMAT_SEPARATOR, QString("-")).toString();
-  m_format_configuration.to_title_case             = settings.value(REFORMAT_USE_TITLE_CASE, true).toBool();
-  m_format_configuration.prefix_disk_num           = settings.value(REFORMAT_PREFIX_DISK_NUMBER, false).toBool();
-  m_format_configuration.character_simplification  = settings.value(REFORMAT_APPLY_CHAR_SIMPLIFICATION, false).toBool();
+  m_root_directory                                 = settings->value(ROOT_DIRECTORY, QDir::currentPath()).toString();
+  m_number_of_threads                              = settings->value(NUMBER_OF_THREADS, std::thread::hardware_concurrency() /2).toInt();
+  m_transcode_audio                                = settings->value(TRANSCODE_AUDIO, true).toBool();
+  m_transcode_video                                = settings->value(TRANSCODE_VIDEO, true).toBool();
+  m_transcode_module                               = settings->value(TRANSCODE_MODULE, true).toBool();
+  m_strip_tags_from_MP3                            = settings->value(STRIP_MP3, true).toBool();
+  m_use_CUE_to_split                               = settings->value(USE_CUE_SHEET, true).toBool();
+  m_rename_input_on_success                        = settings->value(RENAME_INPUT_ON_SUCCESS, true).toBool();
+  m_renamed_input_extension                        = settings->value(RENAMED_INPUT_EXTENSION, QObject::tr("done")).toString();
+  m_use_metadata_to_rename_output                  = settings->value(USE_METADATA_TO_RENAME, true).toBool();
+  m_delete_output_on_cancellation                  = settings->value(DELETE_ON_CANCELLATION, true).toBool();
+  m_extract_metadata_cover_picture                 = settings->value(EXTRACT_COVER_PICTURE, true).toBool();
+  m_cover_picture_name                             = settings->value(COVER_PICTURE_NAME, QObject::tr("Frontal")).toString();
+  m_bitrate                                        = settings->value(BITRATE, 320).toInt();
+  m_quality                                        = settings->value(QUALITY, 0).toInt();
+  m_create_M3U_files                               = settings->value(CREATE_M3U_FILES, true).toBool();
+  m_format_configuration.apply                     = settings->value(REFORMAT_APPLY, true).toBool();
+  m_format_configuration.chars_to_delete           = settings->value(REFORMAT_CHARS_TO_DELETE, QString()).toString();
+  m_format_configuration.number_of_digits          = settings->value(REFORMAT_NUMBER_OF_DIGITS, 2).toInt();
+  m_format_configuration.number_and_name_separator = settings->value(REFORMAT_SEPARATOR, QString("-")).toString();
+  m_format_configuration.to_title_case             = settings->value(REFORMAT_USE_TITLE_CASE, true).toBool();
+  m_format_configuration.prefix_disk_num           = settings->value(REFORMAT_PREFIX_DISK_NUMBER, false).toBool();
+  m_format_configuration.character_simplification  = settings->value(REFORMAT_APPLY_CHAR_SIMPLIFICATION, false).toBool();
 
-  auto from = settings.value(REFORMAT_CHARS_TO_REPLACE_FROM, fromStrings).toStringList();
-  auto to   = settings.value(REFORMAT_CHARS_TO_REPLACE_TO, toStrings).toStringList();
+  auto from = settings->value(REFORMAT_CHARS_TO_REPLACE_FROM, fromStrings).toStringList();
+  auto to   = settings->value(REFORMAT_CHARS_TO_REPLACE_TO, toStrings).toStringList();
 
   // go to parent or home if the saved directory no longer exists.
   m_root_directory = validDirectoryCheck(m_root_directory);
@@ -488,31 +490,31 @@ void Utils::TranscoderConfiguration::load()
 //-----------------------------------------------------------------
 void Utils::TranscoderConfiguration::save() const
 {
-  QSettings settings("Felix de las Pozas Alvarez", "MusicTranscoder");
+  auto settings = applicationSettings();
 
-  settings.setValue(ROOT_DIRECTORY, QDir{validDirectoryCheck(m_root_directory)}.absolutePath());
-  settings.setValue(NUMBER_OF_THREADS, m_number_of_threads);
-  settings.setValue(TRANSCODE_AUDIO, m_transcode_audio);
-  settings.setValue(TRANSCODE_VIDEO, m_transcode_video);
-  settings.setValue(TRANSCODE_MODULE, m_transcode_module);
-  settings.setValue(STRIP_MP3, m_strip_tags_from_MP3);
-  settings.setValue(USE_CUE_SHEET, m_use_CUE_to_split);
-  settings.setValue(RENAME_INPUT_ON_SUCCESS, m_rename_input_on_success);
-  settings.setValue(RENAMED_INPUT_EXTENSION, m_renamed_input_extension);
-  settings.setValue(USE_METADATA_TO_RENAME, m_use_metadata_to_rename_output);
-  settings.setValue(DELETE_ON_CANCELLATION, m_delete_output_on_cancellation);
-  settings.setValue(EXTRACT_COVER_PICTURE, m_extract_metadata_cover_picture);
-  settings.setValue(COVER_PICTURE_NAME, m_cover_picture_name);
-  settings.setValue(BITRATE, m_bitrate);
-  settings.setValue(QUALITY, m_quality);
-  settings.setValue(CREATE_M3U_FILES, m_create_M3U_files);
-  settings.setValue(REFORMAT_APPLY, m_format_configuration.apply);
-  settings.setValue(REFORMAT_CHARS_TO_DELETE, m_format_configuration.chars_to_delete);
-  settings.setValue(REFORMAT_NUMBER_OF_DIGITS, m_format_configuration.number_of_digits);
-  settings.setValue(REFORMAT_SEPARATOR, m_format_configuration.number_and_name_separator);
-  settings.setValue(REFORMAT_USE_TITLE_CASE, m_format_configuration.to_title_case);
-  settings.setValue(REFORMAT_PREFIX_DISK_NUMBER, m_format_configuration.prefix_disk_num);
-  settings.setValue(REFORMAT_APPLY_CHAR_SIMPLIFICATION, m_format_configuration.character_simplification);
+  settings->setValue(ROOT_DIRECTORY, QDir{validDirectoryCheck(m_root_directory)}.absolutePath());
+  settings->setValue(NUMBER_OF_THREADS, m_number_of_threads);
+  settings->setValue(TRANSCODE_AUDIO, m_transcode_audio);
+  settings->setValue(TRANSCODE_VIDEO, m_transcode_video);
+  settings->setValue(TRANSCODE_MODULE, m_transcode_module);
+  settings->setValue(STRIP_MP3, m_strip_tags_from_MP3);
+  settings->setValue(USE_CUE_SHEET, m_use_CUE_to_split);
+  settings->setValue(RENAME_INPUT_ON_SUCCESS, m_rename_input_on_success);
+  settings->setValue(RENAMED_INPUT_EXTENSION, m_renamed_input_extension);
+  settings->setValue(USE_METADATA_TO_RENAME, m_use_metadata_to_rename_output);
+  settings->setValue(DELETE_ON_CANCELLATION, m_delete_output_on_cancellation);
+  settings->setValue(EXTRACT_COVER_PICTURE, m_extract_metadata_cover_picture);
+  settings->setValue(COVER_PICTURE_NAME, m_cover_picture_name);
+  settings->setValue(BITRATE, m_bitrate);
+  settings->setValue(QUALITY, m_quality);
+  settings->setValue(CREATE_M3U_FILES, m_create_M3U_files);
+  settings->setValue(REFORMAT_APPLY, m_format_configuration.apply);
+  settings->setValue(REFORMAT_CHARS_TO_DELETE, m_format_configuration.chars_to_delete);
+  settings->setValue(REFORMAT_NUMBER_OF_DIGITS, m_format_configuration.number_of_digits);
+  settings->setValue(REFORMAT_SEPARATOR, m_format_configuration.number_and_name_separator);
+  settings->setValue(REFORMAT_USE_TITLE_CASE, m_format_configuration.to_title_case);
+  settings->setValue(REFORMAT_PREFIX_DISK_NUMBER, m_format_configuration.prefix_disk_num);
+  settings->setValue(REFORMAT_APPLY_CHAR_SIMPLIFICATION, m_format_configuration.character_simplification);
 
   QStringList from, to;
   for(auto pair: m_format_configuration.chars_to_replace)
@@ -521,10 +523,10 @@ void Utils::TranscoderConfiguration::save() const
     to   << pair.second;
   }
 
-  settings.setValue(REFORMAT_CHARS_TO_REPLACE_FROM, from);
-  settings.setValue(REFORMAT_CHARS_TO_REPLACE_TO, to);
+  settings->setValue(REFORMAT_CHARS_TO_REPLACE_FROM, from);
+  settings->setValue(REFORMAT_CHARS_TO_REPLACE_TO, to);
 
-  settings.sync();
+  settings->sync();
 }
 
 //-----------------------------------------------------------------
@@ -619,4 +621,16 @@ std::string Utils::shortFileName(const QString &utffilename)
   delete[] buffer;
 
   return widestring2string(result);
+}
+
+//-----------------------------------------------------------------
+std::unique_ptr<QSettings> Utils::applicationSettings()
+{
+  QDir applicationDir{QCoreApplication::applicationDirPath()};
+  if(applicationDir.exists(INI_FILENAME))
+  {
+    return std::make_unique<QSettings>(INI_FILENAME, QSettings::IniFormat);
+  }
+
+  return std::make_unique<QSettings>("Felix de las Pozas Alvarez", "MusicTranscoder");
 }

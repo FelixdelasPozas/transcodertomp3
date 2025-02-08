@@ -30,6 +30,11 @@
 #include <QMutex>
 #include <QLabel>
 
+// C++
+#include <memory>
+
+class QSettings;
+
 namespace Utils
 {
   extern const QStringList MODULE_FILE_EXTENSIONS;
@@ -513,6 +518,10 @@ namespace Utils
         QLabel::leaveEvent(event);
       }
   };
+
+  /** \brief Returns the relevant QSettings object depeding on the presence of the INI filename.
+   */
+  std::unique_ptr<QSettings> applicationSettings();
 }
 
 #endif // UTILS_H_
