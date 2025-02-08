@@ -27,6 +27,8 @@
 #include <QDialog>
 #include "ui_ConfigurationDialog.h"
 
+class QShowEvent;
+
 /** \class ConfigurationDialog
  * \brief Implements the configuration dialog.
  *
@@ -55,6 +57,9 @@ class ConfigurationDialog
      *
      */
     const Utils::TranscoderConfiguration getConfiguration() const;
+
+  protected:
+    virtual void showEvent(QShowEvent *e) override;
 
   private slots:
     void onMainJobsCheckStateChanged(int state);

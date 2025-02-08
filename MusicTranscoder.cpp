@@ -31,6 +31,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSettings>
+#include <QKeyEvent>
+#include <QEvent>
 
 // C++
 #include <thread>
@@ -88,7 +90,7 @@ void MusicTranscoder::onDirectoryChanged()
   fileBrowser.setOption(QFileDialog::DontUseNativeDialog, false);
   fileBrowser.setOption(QFileDialog::ShowDirsOnly);
   fileBrowser.setViewMode(QFileDialog::List);
-  fileBrowser.setWindowIcon(QIcon(":/MusicTranscoder/folder.ico"));
+  fileBrowser.setWindowIcon(QIcon(":/MusicTranscoder/folder.svg"));
 
   if(fileBrowser.exec() == QDialog::Accepted)
   {
@@ -139,7 +141,7 @@ void MusicTranscoder::onConversionStarted()
     msgBox.setText("Can't find any file in the specified folder that can be processed.");
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIcon(QMessageBox::Information);
-    msgBox.setWindowIcon(QIcon(":/MusicTranscoder/application.ico"));
+    msgBox.setWindowIcon(QIcon(":/MusicTranscoder/application.svg"));
     msgBox.setWindowTitle(QObject::tr("Unable to start the conversion process"));
     msgBox.exec();
 
@@ -214,7 +216,7 @@ void MusicTranscoder::onTextChanged()
   if((directory != m_directoryText->text()) && (directory + QDir::separator() != m_directoryText->text()))
   {
     m_messageVisible = true;
-    auto icon    = QIcon(":MusicTranscoder/application.ico");
+    auto icon    = QIcon(":MusicTranscoder/application.svg");
     auto title   = tr("Invalid directory");
     auto message = tr("The directory entered is not valid.");
     QMessageBox msgBox(QMessageBox::Icon::Critical, title, message, QMessageBox::StandardButtons{QMessageBox::Ok}, this->centralWidget());

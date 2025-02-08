@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>346</width>
-    <height>792</height>
+    <width>378</width>
+    <height>870</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>346</width>
-    <height>792</height>
+    <width>378</width>
+    <height>870</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>346</width>
-    <height>792</height>
+    <width>378</width>
+    <height>870</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MusicTranscoder/settings.ico</normaloff>:/MusicTranscoder/settings.ico</iconset>
+    <normaloff>:/MusicTranscoder/settings.svg</normaloff>:/MusicTranscoder/settings.svg</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -103,7 +103,7 @@ QGroupBox::title {
         <string>Input files options</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
@@ -373,7 +373,13 @@ QGroupBox::title {
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicTranscoder/add.ico</normaloff>:/MusicTranscoder/add.ico</iconset>
+                 <normaloff>:/MusicTranscoder/add.svg</normaloff>:/MusicTranscoder/add.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -387,7 +393,13 @@ QGroupBox::title {
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicTranscoder/delete.ico</normaloff>:/MusicTranscoder/delete.ico</iconset>
+                 <normaloff>:/MusicTranscoder/delete.svg</normaloff>:/MusicTranscoder/delete.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -401,7 +413,13 @@ QGroupBox::title {
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicTranscoder/up.ico</normaloff>:/MusicTranscoder/up.ico</iconset>
+                 <normaloff>:/MusicTranscoder/up.svg</normaloff>:/MusicTranscoder/up.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -415,7 +433,13 @@ QGroupBox::title {
                </property>
                <property name="icon">
                 <iconset resource="rsc/resources.qrc">
-                 <normaloff>:/MusicTranscoder/down.ico</normaloff>:/MusicTranscoder/down.ico</iconset>
+                 <normaloff>:/MusicTranscoder/down.svg</normaloff>:/MusicTranscoder/down.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
                </property>
               </widget>
              </item>
@@ -459,7 +483,7 @@ QGroupBox::title {
             <string>Substitutions will be made in order, top to bottom.</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -550,10 +574,10 @@ QGroupBox::title {
       <locale language="English" country="UnitedStates"/>
      </property>
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
      <property name="centerButtons">
       <bool>false</bool>

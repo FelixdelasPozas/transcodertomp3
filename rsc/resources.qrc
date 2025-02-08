@@ -1,17 +1,18 @@
 <RCC>
   <qresource prefix="/MusicTranscoder">
     <file>application.ico</file>
-    <file>process.ico</file>
-    <file>folder.ico</file>
-	<file>settings.ico</file>
+	<file>application.svg</file>
+    <file>process.svg</file>
+    <file>folder.svg</file>
+	<file>settings.svg</file>
 	<file>lame.ico</file>
 	<file>libav.ico</file>
 	<file>qt.ico</file>
-	<file>add.ico</file>
-	<file>delete.ico</file>
-	<file>up.ico</file>
-	<file>down.ico</file>
-	<file>clipboard.ico</file>
+	<file>add.svg</file>
+	<file>delete.svg</file>
+	<file>up.svg</file>
+	<file>down.svg</file>
+	<file>clipboard.svg</file>
 	<file>kofi_logo.png</file>
   </qresource>
 </RCC>

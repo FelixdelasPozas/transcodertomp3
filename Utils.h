@@ -471,7 +471,7 @@ namespace Utils
       * \f Widget flags.
       *
       */
-      explicit ClickableHoverLabel(QWidget *parent=0, Qt::WindowFlags f=0)
+      explicit ClickableHoverLabel(QWidget *parent=nullptr, Qt::WindowFlags f=Qt::WindowFlags())
       : QLabel(parent, f)
       {};
 
@@ -481,7 +481,7 @@ namespace Utils
       * \f Widget flags.
       *
       */
-      explicit ClickableHoverLabel(const QString &text, QWidget *parent=0, Qt::WindowFlags f=0)
+      explicit ClickableHoverLabel(const QString &text, QWidget *parent=0, Qt::WindowFlags f=Qt::WindowFlags())
       : QLabel(text, parent, f)
       {};
       
@@ -501,7 +501,7 @@ namespace Utils
         QLabel::mousePressEvent(e);
       }  
 
-      virtual void enterEvent(QEvent *event) override
+      virtual void enterEvent(QEnterEvent *event) override
       {
         setCursor(Qt::PointingHandCursor);
         QLabel::enterEvent(event);

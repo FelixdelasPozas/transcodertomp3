@@ -47,8 +47,6 @@ ConfigurationDialog::ConfigurationDialog(const Utils::TranscoderConfiguration &c
   QStringList labels = { tr("from"), tr("to") };
   m_replaceChars->setHorizontalHeaderLabels(labels);
   m_replaceChars->setSelectionBehavior(QTableWidget::SelectionBehavior::SelectRows);
-  m_replaceChars->setColumnWidth(0, 110);
-  m_replaceChars->setColumnWidth(1, 110);
   m_replaceChars->horizontalHeader()->resizeSections(QHeaderView::Fixed);
   m_replaceChars->selectRow(0);
 
@@ -69,7 +67,7 @@ void ConfigurationDialog::onMainJobsCheckStateChanged(int state)
   if(!atLeastOneChecked)
   {
     QMessageBox msgBox;
-    msgBox.setWindowIcon(QIcon(":/MusicTranscoder/settings.ico"));
+    msgBox.setWindowIcon(QIcon(":/MusicTranscoder/settings.svg"));
     msgBox.setText("Invalid options.");
     msgBox.setInformativeText("At least one of the transcoding options must be checked for the program to do something.");
     msgBox.setStandardButtons(QMessageBox::Ok);
@@ -313,4 +311,15 @@ const Utils::TranscoderConfiguration ConfigurationDialog::getConfiguration() con
   configuration.setFormatConfiguration(format);
 
   return configuration;
+}
+
+//-----------------------------------------------------------------
+void ConfigurationDialog::showEvent(QShowEvent *e)
+{
+  QDialog::showEvent(e);
+
+  constexpr int WIDGET_MARGIN = 8;
+  const int columnWidth = (m_replaceChars->size().width()-(2*WIDGET_MARGIN))/2;
+  m_replaceChars->setColumnWidth(0, columnWidth);
+  m_replaceChars->setColumnWidth(1, columnWidth);
 }

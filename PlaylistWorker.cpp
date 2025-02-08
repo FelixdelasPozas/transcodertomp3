@@ -90,7 +90,7 @@ void PlaylistWorker::generate_playlist()
 
   auto newline = QString("\n");
   QByteArray contents;
-  contents.append(QString("#EXTM3U") + newline);
+  contents.append((QString("#EXTM3U") + newline).toLocal8Bit());
 
   int progressVal = 0;
   for(auto file: files)
@@ -112,13 +112,13 @@ void PlaylistWorker::generate_playlist()
 
     auto basename = file.split(SEPARATOR).last().toUtf8();
 
-    contents.append(QString("#EXTINF:") +
+    contents.append((QString("#EXTINF:") +
                     QString().number(duration) +
                     QString(",") +
                     basename.split('.').first() +
-                    newline);
+                    newline).toLocal8Bit());
 
-    contents.append(basename + newline);
+    contents.append((basename + newline).toLocal8Bit());
   }
 
   playlist.write(contents);

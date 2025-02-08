@@ -3,7 +3,7 @@
  <class>ProcessDialog</class>
  <widget class="QDialog" name="ProcessDialog">
   <property name="windowModality">
-   <enum>Qt::WindowModal</enum>
+   <enum>Qt::WindowModality::WindowModal</enum>
   </property>
   <property name="geometry">
    <rect>
@@ -24,7 +24,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MusicTranscoder/process.ico</normaloff>:/MusicTranscoder/process.ico</iconset>
+    <normaloff>:/MusicTranscoder/process.svg</normaloff>:/MusicTranscoder/process.svg</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -75,7 +75,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -98,7 +98,13 @@
           </property>
           <property name="icon">
            <iconset resource="rsc/resources.qrc">
-            <normaloff>:/MusicTranscoder/clipboard.ico</normaloff>:/MusicTranscoder/clipboard.ico</iconset>
+            <normaloff>:/MusicTranscoder/clipboard.svg</normaloff>:/MusicTranscoder/clipboard.svg</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -116,7 +122,7 @@
       <number>0</number>
      </property>
      <property name="alignment">
-      <set>Qt::AlignCenter</set>
+      <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
      <property name="format">
       <string>Processed %p%</string>

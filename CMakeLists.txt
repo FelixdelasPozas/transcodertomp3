@@ -3,20 +3,22 @@ cmake_minimum_required (VERSION 3.5.0)
 project(MusicTranscoder)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
-set (MUSIC_TRANSCODER_VERSION_MINOR 4)
-set (MUSIC_TRANSCODER_VERSION_PATCH 4)
+set (MUSIC_TRANSCODER_VERSION_MINOR 5)
+set (MUSIC_TRANSCODER_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
 
-# Find the QtWidgets library
-find_package(Qt5 COMPONENTS Widgets WinExtras)
+find_package(Qt6 COMPONENTS Core Widgets)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   set(CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
@@ -60,12 +62,16 @@ set(TAGPARSER_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/tag-parser/build")
 set(TAGPARSER_LIBRARIES   ${TAGPARSER_LIBRARY_DIR}/tag-parser/libtag_parser.a
                           "D:/Desarrollo/Bibliotecas/tag-parser/build/c++utilities/libc++utilities.a")
 
-# libopenmpt library 0.7.3
-set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release")
-set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release/.libs/libopenmpt.a")
+# # libopenmpt library 0.7.3
+# set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release")
+# set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release/.libs/libopenmpt.a")
 
 #include zlib 1.3
 set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mwindows -Wno-deprecated")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Core_EXECUTABLE_COMPILE_FLAGS}")
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -76,20 +82,19 @@ include_directories(
   ${LAME_INCLUDE_DIR}
   ${LIBAV_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
-  ${LIBOPENMPT_INCLUDE_DIR}
+#  ${LIBOPENMPT_INCLUDE_DIR}
   ${TAGPARSER_INCLUDE_DIR}
   ${LIBVPX_INCLUDE_DIR}
+  ${Qt6Widgets_INCLUDE_DIRS}
+  ${Qt6Core_INCLUDE_DIRS}
   )
 
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++17 -mwindows -march=native")
-
 # Add Qt Resource files
-qt5_add_resources(RESOURCES
+qt6_add_resources(RESOURCES
   rsc/resources.qrc
 )
 
-qt5_wrap_ui(CORE_UI
-  # .ui for Qt
+qt6_wrap_ui(CORE_UI
   MusicTranscoder.ui
   ProcessDialog.ui
   AboutDialog.ui
@@ -97,10 +102,9 @@ qt5_wrap_ui(CORE_UI
 )
 	
 set (CORE_SOURCES
-  # project files
-  ${CORE_SOURCES}
   ${RESOURCES}
   ${CORE_UI}
+  ${CORE_SOURCES}
   Main.cpp
   MusicTranscoder.cpp
   ProcessDialog.cpp
@@ -112,9 +116,8 @@ set (CORE_SOURCES
   AboutDialog.cpp
   ConfigurationDialog.cpp
   PlaylistWorker.cpp
+  external/QTaskBarButton.cpp
 )
-
-SET_SOURCE_FILES_PROPERTIES(${CORE_SOURCES} PROPERTIES OBJECT_DEPENDS "${CORE_UI}")
 
 set(CORE_EXTERNAL_LIBS
   ${QT_LIBRARIES}
@@ -125,14 +128,21 @@ set(CORE_EXTERNAL_LIBS
   ${LIBOPENMPT_LIBRARY}
   ${ZLIB_LIBRARY}
   ${LIBVPX_LIBRARY}
+  openmpt
+  Qt6::Core
+  Qt6::Widgets
   ws2_32.a
   wsock32.a
   iconv.a
   pthread.a
   bcrypt.a
-  Qt5::WinExtras
 )
   
 add_executable(MusicTranscoder ${CORE_SOURCES})
 target_link_libraries (MusicTranscoder ${CORE_EXTERNAL_LIBS})
-qt5_use_modules(MusicTranscoder Widgets)
+
+# get_cmake_property(_variableNames VARIABLES)
+# list (SORT _variableNames)
+# foreach (_variableName ${_variableNames})
+#     message(STATUS "${_variableName}=${${_variableName}}")
+# endforeach()

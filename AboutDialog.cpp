@@ -38,7 +38,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-const QString AboutDialog::VERSION = QString("version 1.4.4");
+const QString AboutDialog::VERSION = QString("version 1.5.0");
 const QString COPYRIGHT{"Copyright (c) 2015-%1 Félix de las Pozas Álvarez"};
 
 //-----------------------------------------------------------------

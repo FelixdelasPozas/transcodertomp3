@@ -18,12 +18,12 @@
  */
 
 // Application
-#include "ProcessDialog.h"
-#include "MusicTranscoder.h"
-#include "AudioWorker.h"
-#include "MP3Worker.h"
-#include "ModuleWorker.h"
-#include "PlaylistWorker.h"
+#include <ProcessDialog.h>
+#include <MusicTranscoder.h>
+#include <AudioWorker.h>
+#include <MP3Worker.h>
+#include <ModuleWorker.h>
+#include <PlaylistWorker.h>
 
 // Qt
 #include <QObject>
@@ -32,7 +32,7 @@
 #include <QProgressBar>
 #include <QMutexLocker>
 #include <QKeyEvent>
-#include <QtWinExtras/QWinTaskbarProgress>
+#include <QStyleFactory>
 
 // C++
 #include <algorithm>
@@ -57,11 +57,14 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
 , m_configuration       {configuration}
 , m_errorsCount         {0}
 , m_finished_transcoding{false}
-, m_taskBarButton       {nullptr}
+, m_taskBarButton       {this}
 {
   setupUi(this);
 
   register_av_lock_manager();
+
+  m_globalProgress->setStyle(QStyleFactory::create("windowsvista"));
+  m_taskBarButton.setState(QTaskBarButton::State::Normal);
 
   connect(m_cancelButton, SIGNAL(clicked()),
           this,           SLOT(stop()));
@@ -84,12 +87,13 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
   auto boxLayout = new QVBoxLayout();
   m_workers->setLayout(boxLayout);
 
-  auto initial_jobs = (m_music_files.size() != 0) ? m_music_files.size() : m_music_folders.size();
+  int initial_jobs = (m_music_files.size() != 0) ? m_music_files.size() : m_music_folders.size();
 
   auto bars_num = std::min(m_max_workers, initial_jobs);
   for(int i = 0; i < bars_num; ++i)
   {
     auto bar = new QProgressBar();
+    bar->setStyle(QStyleFactory::create("windowsvista"));
     bar->setAlignment(Qt::AlignCenter);
     bar->setMaximum(0);
     bar->setMaximum(100);
@@ -110,7 +114,6 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
 ProcessDialog::~ProcessDialog()
 {
   m_progress_bars.clear();
-  m_taskBarButton->deleteLater();
   unregister_av_lock_manager();
 }
 
@@ -179,7 +182,7 @@ void ProcessDialog::increment_global_progress()
   {
     const auto value = m_globalProgress->value() + 1;
     m_globalProgress->setValue(value);
-    m_taskBarButton->progress()->setValue(value);
+    m_taskBarButton.setValue(value);
   }
 
   --m_num_workers;
@@ -214,10 +217,11 @@ void ProcessDialog::increment_global_progress()
   {
     m_finished_transcoding = true;
 
-    auto bars_num = std::min(m_max_workers, m_music_folders.size());
+    const auto bars_num = std::min(m_max_workers, static_cast<int>(m_music_folders.size()));
     while(m_progress_bars.size() < bars_num)
     {
       auto bar = new QProgressBar();
+      bar->setStyle(QStyleFactory::create("windowsvista"));
       bar->setAlignment(Qt::AlignCenter);
       bar->setMaximum(0);
       bar->setMaximum(100);
@@ -407,16 +411,4 @@ void ProcessDialog::unregister_av_lock_manager()
 void ProcessDialog::exit_dialog()
 {
   close();
-}
-
-//-----------------------------------------------------------------
-void ProcessDialog::showEvent(QShowEvent* e)
-{
-  QDialog::showEvent(e);
-
-  m_taskBarButton = new QWinTaskbarButton(this);
-  m_taskBarButton->setWindow(this->windowHandle());
-  m_taskBarButton->progress()->setRange(m_globalProgress->minimum(), m_globalProgress->maximum());
-  m_taskBarButton->progress()->setVisible(true);
-  m_taskBarButton->progress()->setValue(0);
 }

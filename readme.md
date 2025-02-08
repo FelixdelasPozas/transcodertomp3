@@ -11,6 +11,8 @@ Music Transcoder To MP3
 # Description
 Music Transcoder To MP3 is a cross-platform tool to transcode music files from multiple formats (music files, audio track of video files and module files) to MP3 format. 
 
+If you want to support this project you can do it on [Ko-fi](https://ko-fi.com/felixdelaspozas).
+
 ## Options
 The tool can be configured:
 * the output files can be renamed according to the input file metadata and the specified reformatting options.
@@ -41,7 +43,9 @@ The following libraries are required:
 
 # Install
 
-MusicTranscoder is available for Windows 7 onwards. You can download the lastest installer from the [releases page](https://github.com/FelixdelasPozas/transcodertomp3/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
+MusicTranscoder is available for Windows 10 onwards. You can download the lastest installer from the [releases page](https://github.com/FelixdelasPozas/transcodertomp3/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
+
+The last version compatible with Windows 7 & 8 is version 1.4.4, you can download it [here](https://github.com/FelixdelasPozas/transcodertomp3/releases/tag/1.4.4).
 
 # Screenshots
 Configuration dialog.
@@ -57,7 +61,7 @@ Dialog shown while processing files.
 ![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
 
 # Repository information
-**Version**: 1.4.4
+**Version**: 1.5.0
 
 **Status**: finished
 
@@ -65,9 +69,9 @@ Dialog shown while processing files.
 
 **cloc statistics**
 
-| Language                     |files          |blank        |comment        |code  |
-|:-----------------------------|--------------:|------------:|--------------:|-----:|
-| C++                          |   11          |  595        |    358        |2515  |
-| C/C++ Header                 |   10          |  248        |    710        | 546  |
-| CMake                        |    1          |   25        |     14        |  99  |
-| **Total**                    |   **22**      |  **868**    |   **1082**    |**3160**|
+| Language                     |files          |blank        |comment        |code     |
+|:-----------------------------|--------------:|------------:|--------------:|--------:|
+| C++                          |   12          |  631        |    402        | 2687    |
+| C/C++ Header                 |   11          |  273        |    793        |  605    |
+| CMake                        |    1          |   25        |     19        |  104    |
+| **Total**                    |   **24**      |  **929**    |   **1214**    | **3396**|

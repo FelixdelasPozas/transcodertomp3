@@ -24,6 +24,7 @@
 #include <QSettings>
 #include <QDirIterator>
 #include <QTemporaryFile>
+#include <QRegularExpression>
 
 // C++
 #include <thread>
@@ -228,18 +229,18 @@ QString Utils::formatString(const QString filename,
 
     // adjust the number prefix and insert the default separator.
     // Format 1: 01 ...
-    QRegExp re1("\\d*");
-    auto re1_match = re1.exactMatch(parts[index]);
+    QRegularExpression re1("\\d*");
+    auto re1_match = re1.match(parts[index]);
 
     // Format 2: 1-01 ...
-    QRegExp re2("\\d-\\d*");
-    auto re2_match = re2.exactMatch(parts[index]);
+    QRegularExpression re2("\\d-\\d*");
+    auto re2_match = re2.match(parts[index]);
 
     // only check number format if it exists
-    if (re1_match || re2_match)
+    if (re1_match.hasMatch() || re2_match.hasMatch())
     {
       QString number_string, number_disc_id;
-      if(re1_match)
+      if(re1_match.hasMatch())
       {
         number_string = parts[index];
       }

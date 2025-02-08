@@ -3,26 +3,26 @@
  <class>MusicTranscoder</class>
  <widget class="QMainWindow" name="MusicTranscoder">
   <property name="windowModality">
-   <enum>Qt::WindowModal</enum>
+   <enum>Qt::WindowModality::WindowModal</enum>
   </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>472</width>
-    <height>122</height>
+    <width>471</width>
+    <height>139</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>472</width>
-    <height>122</height>
+    <width>471</width>
+    <height>139</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>472</width>
-    <height>122</height>
+    <width>471</width>
+    <height>139</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/resources.qrc">
-    <normaloff>:/MusicTranscoder/application.ico</normaloff>:/MusicTranscoder/application.ico</iconset>
+    <normaloff>:/MusicTranscoder/application.svg</normaloff>:/MusicTranscoder/application.svg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -60,7 +60,7 @@
         </property>
         <property name="icon">
          <iconset resource="rsc/resources.qrc">
-          <normaloff>:/MusicTranscoder/folder.ico</normaloff>:/MusicTranscoder/folder.ico</iconset>
+          <normaloff>:/MusicTranscoder/folder.svg</normaloff>:/MusicTranscoder/folder.svg</iconset>
         </property>
        </widget>
       </item>
@@ -111,7 +111,7 @@
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -162,8 +162,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>472</width>
-     <height>21</height>
+     <width>471</width>
+     <height>33</height>
     </rect>
    </property>
   </widget>
