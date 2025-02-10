@@ -50,15 +50,15 @@ The last version compatible with Windows 7 & 8 is version 1.4.4, you can downloa
 # Screenshots
 Configuration dialog.
 
-![Configuration Dialog](https://user-images.githubusercontent.com/12167134/107889759-0c857000-6f15-11eb-9764-cb135c585c75.png)
+![Configuration Dialog](https://github.com/user-attachments/assets/458966f0-5ed9-41da-aeb7-20926d2eed5a)
 
 Simple main dialog.
 
-![Main dialog](https://cloud.githubusercontent.com/assets/12167134/7867872/e2fd4c28-0578-11e5-93bb-56c7ee8b26df.jpg)
+![Main dialog](https://github.com/user-attachments/assets/a2802058-fbf4-4b55-a767-36a164882379)
 
 Dialog shown while processing files.
 
-![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
+![Process Dialog](https://github.com/user-attachments/assets/f2f7c919-a791-4004-b96c-c9886028782b)
 
 # Repository information
 **Version**: 1.5.0
