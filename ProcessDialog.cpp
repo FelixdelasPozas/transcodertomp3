@@ -83,6 +83,8 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
 
   m_globalProgress->setRange(0, total_jobs);
   m_globalProgress->setValue(0);
+  m_taskBarButton.setRange(0,total_jobs);
+  m_taskBarButton.setValue(0);
 
   auto boxLayout = new QVBoxLayout();
   m_workers->setLayout(boxLayout);

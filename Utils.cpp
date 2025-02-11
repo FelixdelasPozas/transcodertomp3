@@ -145,7 +145,7 @@ QString Utils::formatString(const QString filename,
 {
   // works for filenames and plain strings
   QString formattedName = filename;
-
+  
   auto fileInfo = QFileInfo(filename);
   if(fileInfo.exists())
   {
@@ -218,7 +218,7 @@ QString Utils::formatString(const QString filename,
     // replace specified strings
     for (int i = 0; i < conf.chars_to_replace.size(); ++i)
     {
-      auto charPair = conf.chars_to_replace[i];
+      const auto charPair = conf.chars_to_replace[i];
       formattedName.replace(charPair.first, charPair.second, Qt::CaseInsensitive);
     }
 
@@ -235,11 +235,11 @@ QString Utils::formatString(const QString filename,
     auto re1_match = re1.match(parts[index]);
 
     // Format 2: 1-01 ...
-    QRegularExpression re2("\\d-\\d*");
+    QRegularExpression re2("\\d*-\\d*");
     auto re2_match = re2.match(parts[index]);
 
-    // only check number format if it exists
-    if (re1_match.hasMatch() || re2_match.hasMatch())
+    // only check number format if it exists, only for mp3 files.
+    if (add_mp3_extension && (re1_match.hasMatch() || re2_match.hasMatch()))
     {
       QString number_string, number_disc_id;
       if(re1_match.hasMatch())
@@ -292,7 +292,6 @@ QString Utils::formatString(const QString filename,
         bool ends_with_comma = false;
         int begin_quote_num = 0;
         int end_quote_num = 0;
-
 
         if(parts[i].endsWith(',') && parts[i].size() > 1)
         {

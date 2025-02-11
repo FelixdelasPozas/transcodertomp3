@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>593</width>
-    <height>724</height>
+    <height>705</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>593</width>
-    <height>724</height>
+    <height>705</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>593</width>
-    <height>724</height>
+    <height>705</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -92,7 +92,7 @@
          <item>
           <widget class="QLabel" name="m_version">
            <property name="text">
-            <string>version 1.2.2</string>
+            <string>version</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignmentFlag::AlignCenter</set>

@@ -61,7 +61,7 @@ Dialog shown while processing files.
 ![Process Dialog](https://github.com/user-attachments/assets/f2f7c919-a791-4004-b96c-c9886028782b)
 
 # Repository information
-**Version**: 1.5.0
+**Version**: 1.5.1
 
 **Status**: finished
 

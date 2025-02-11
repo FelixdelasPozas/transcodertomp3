@@ -14,7 +14,7 @@ BEGIN
     VALUE "FileDescription", "Music Transcoder to MP3 format."
       VALUE "FileVersion", "@MUSIC_TRANSCODER_VERSION_MAJOR@.@MUSIC_TRANSCODER_VERSION_MINOR@.@MUSIC_TRANSCODER_VERSION_PATCH@"
       VALUE "InternalName", "Music Transcoder"
-      VALUE "LegalCopyright", "GNU Public License"
+      VALUE "LegalCopyright", "(c)2015-@CURRENT_YEAR@ Felix de las Pozas Alvarez"
       VALUE "OriginalFilename", "MusicTranscoder.exe"
       VALUE "ProductName", "Music Transcoder"
       VALUE "ProductVersion", "@MUSIC_TRANSCODER_VERSION_MAJOR@.@MUSIC_TRANSCODER_VERSION_MINOR@.@MUSIC_TRANSCODER_VERSION_PATCH@"

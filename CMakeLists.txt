@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
 set (MUSIC_TRANSCODER_VERSION_MINOR 5)
-set (MUSIC_TRANSCODER_VERSION_PATCH 0)
+set (MUSIC_TRANSCODER_VERSION_PATCH 1)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -62,14 +62,11 @@ set(TAGPARSER_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/tag-parser/build")
 set(TAGPARSER_LIBRARIES   ${TAGPARSER_LIBRARY_DIR}/tag-parser/libtag_parser.a
                           "D:/Desarrollo/Bibliotecas/tag-parser/build/c++utilities/libc++utilities.a")
 
-# # libopenmpt library 0.7.3
-# set(LIBOPENMPT_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release")
-# set(LIBOPENMPT_LIBRARY     "D:/Desarrollo/Bibliotecas/libopenmpt-0.7.3+release/.libs/libopenmpt.a")
-
 #include zlib 1.3
 set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mwindows -Wno-deprecated")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mwindows -Wno-deprecated")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mconsole -Wno-deprecated")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Core_EXECUTABLE_COMPILE_FLAGS}")
 
@@ -140,9 +137,3 @@ set(CORE_EXTERNAL_LIBS
   
 add_executable(MusicTranscoder ${CORE_SOURCES})
 target_link_libraries (MusicTranscoder ${CORE_EXTERNAL_LIBS})
-
-# get_cmake_property(_variableNames VARIABLES)
-# list (SORT _variableNames)
-# foreach (_variableName ${_variableNames})
-#     message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()
