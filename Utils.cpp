@@ -231,11 +231,11 @@ QString Utils::formatString(const QString filename,
 
     // adjust the number prefix and insert the default separator.
     // Format 1: 01 ...
-    QRegularExpression re1("\\d*");
+    QRegularExpression re1("\\d+");
     auto re1_match = re1.match(parts[index]);
 
     // Format 2: 1-01 ...
-    QRegularExpression re2("\\d*-\\d*");
+    QRegularExpression re2("\\d+-\\d+");
     auto re2_match = re2.match(parts[index]);
 
     // only check number format if it exists, only for mp3 files.

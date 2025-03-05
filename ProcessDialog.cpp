@@ -199,7 +199,7 @@ void ProcessDialog::increment_global_progress()
   bar->setEnabled(false);
   bar->setFormat("Idle");
 
-  delete worker;
+  worker->deleteLater();
 
   if((m_globalProgress->maximum() == m_globalProgress->value()) || cancelled)
   {
