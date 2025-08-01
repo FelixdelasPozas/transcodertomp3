@@ -17,8 +17,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Qt
 #include <QApplication>
-#include "MusicTranscoder.h"
+#include <QMessageBox>
+#include <QSharedMemory>
+
+// Project
+#include <MusicTranscoder.h>
 
 // C++
 #include <iostream>
@@ -39,6 +44,21 @@ int main(int argc, char *argv[])
   qInstallMessageHandler(myMessageOutput);
 
 	QApplication app(argc, argv);
+
+  // allow only one instance
+  QSharedMemory guard;
+  guard.setKey("MusicTranscoder");
+
+  if (!guard.create(1))
+  {
+    QMessageBox msgBox;
+    msgBox.setWindowIcon(QIcon(":/MusicTranscoder/application.svg"));
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setText("Music Transcoder To MP3 is already running!");
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+    std::exit(0);
+  }
 
 	MusicTranscoder transcoder;
 	transcoder.show();

@@ -61,7 +61,7 @@ Dialog shown while processing files.
 ![Process Dialog](https://github.com/user-attachments/assets/f2f7c919-a791-4004-b96c-c9886028782b)
 
 # Repository information
-**Version**: 1.5.2
+**Version**: 1.5.3
 
 **Status**: finished
 
@@ -71,7 +71,7 @@ Dialog shown while processing files.
 
 | Language                     |files          |blank        |comment        |code     |
 |:-----------------------------|--------------:|------------:|--------------:|--------:|
-| C++                          |   12          |  632        |    403        | 2700    |
+| C++                          |   12          |  635        |    406        | 2714    |
 | C/C++ Header                 |   11          |  276        |    796        |  608    |
-| CMake                        |    1          |   23        |     19        |  104    |
-| **Total**                    |   **24**      |  **931**    |   **1211**    | **3412**|
+| CMake                        |    1          |   23        |     11        |  104    |
+| **Total**                    |   **24**      |  **934**    |   **1213**    | **3426**|
