@@ -87,8 +87,6 @@ bool AudioWorker::init_libav()
 {
   QMutexLocker lock(&s_mutex);
 
-  av_register_all();
-
   auto source_name = m_source_info.absoluteFilePath();
   m_input_file.setFileName(source_name);
   if(!m_input_file.open(QIODevice::ReadOnly))
@@ -97,28 +95,7 @@ bool AudioWorker::init_libav()
     return false;
   }
 
-  auto ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
-  if(nullptr == ioBuffer)
-  {
-    emit error_message(QString("Couldn't allocate buffer for custom libav IO for file: '%1'.").arg(source_name));
-    return false;
-  }
-
-  auto avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - AV_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&m_input_file), &custom_IO_read, nullptr, &custom_IO_seek);
-  if(nullptr == avioContext)
-  {
-    emit error_message(QString("Couldn't allocate context for custom libav IO for file: '%1'.").arg(source_name));
-    return false;
-  }
-
-  avioContext->seekable = 0;
-  avioContext->write_flag = 0;
-
-  m_libav_context = avformat_alloc_context();
-  m_libav_context->pb = avioContext;
-  m_libav_context->flags |= AVFMT_FLAG_CUSTOM_IO;
-
-  auto value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
+  auto value = avformat_open_input(&m_libav_context, source_name.toStdString().c_str(), nullptr, nullptr);
   if (value < 0)
   {
     emit error_message(QString("Couldn't open file: '%1' with libav. Error is \"%2\"").arg(source_name).arg(av_error_string(value)));
@@ -135,7 +112,7 @@ bool AudioWorker::init_libav()
     return false;
   }
 
-  m_audio_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_AUDIO, -1, -1, &m_audio_decoder, 0);
+  m_audio_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_AUDIO, -1, -1, const_cast<const AVCodec**>(&m_audio_decoder), 0);
   if (m_audio_stream_id < 0)
   {
     emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(m_audio_stream_id)));
@@ -153,11 +130,15 @@ bool AudioWorker::init_libav()
     init_libav_cover_extraction();
   }
 
-  // NOTE: the use of streams is deprecated but I couldn't find another way to correctly init a
-  // decoder context with the correct parameters found during av_format_find_info(). The method:
-  // avcodec_alloc_context3(const AVCodec *codec) returns an uninitalized context that fails in
-  // the send_packet() API. Also, in the examples it's done this way. Why if it's being deprecated?
-  m_audio_decoder_context = m_libav_context->streams[m_audio_stream_id]->codec;
+  AVStream *stream = m_libav_context->streams[m_audio_stream_id];
+  const AVCodec *codec = avcodec_find_decoder(stream->codecpar->codec_id);
+  m_audio_decoder_context = avcodec_alloc_context3(codec);
+
+  if (avcodec_parameters_to_context(m_audio_decoder_context, stream->codecpar) < 0)
+  {
+    emit error_message(QString("Couldn't fill decoder context in '%1'. Error is \"%2\".").arg(source_name).arg(av_error_string(m_audio_stream_id)));
+    return false;
+  }
 
   value = avcodec_open2(m_audio_decoder_context, m_audio_decoder, nullptr);
   if (value < 0 || !avcodec_is_open(m_audio_decoder_context))
@@ -171,7 +152,7 @@ bool AudioWorker::init_libav()
 
   m_information.init         = true;
   m_information.samplerate   = m_audio_decoder_context->sample_rate;
-  m_information.num_channels = m_audio_decoder_context->channels;
+  m_information.num_channels = m_audio_decoder_context->ch_layout.nb_channels;
   m_information.format       = Sample_format::UNDEFINED;
   m_information.isFlac       = m_source_info.fileName().endsWith("flac", Qt::CaseInsensitive);
 
@@ -217,7 +198,7 @@ void AudioWorker::init_libav_cover_extraction()
 {
   // try to guess if the other stream is the album cover picture.
   AVCodec *picture_codec = nullptr;
-  m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, &picture_codec, 0);
+  m_cover_stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_VIDEO, -1, -1, const_cast<const AVCodec**>(&picture_codec), 0);
   if(m_cover_stream_id > 0)
   {
     auto codec_id = picture_codec->id;
@@ -245,8 +226,9 @@ void AudioWorker::init_libav_cover_extraction()
     {
       // if there are several files with the same cover I just need one of the workers to dump the cover, not all of them.
       QFile file(cover_name);
-      file.open(QIODevice::WriteOnly|QIODevice::Append);
-      file.close();
+      auto opened = file.open(QIODevice::WriteOnly|QIODevice::Append);
+      if(opened)
+        file.close();
     }
     else
     {
@@ -266,7 +248,7 @@ void AudioWorker::deinit_libav()
 
   if(m_audio_decoder_context)
   {
-    avcodec_close(m_audio_decoder_context);
+    avcodec_free_context(&m_audio_decoder_context);
   }
 
   if(m_frame)
@@ -276,7 +258,6 @@ void AudioWorker::deinit_libav()
 
   if(m_libav_context)
   {
-    av_free(m_libav_context->pb->buffer);
     avformat_close_input(&m_libav_context);
   }
 
@@ -742,30 +723,3 @@ QString AudioWorker::parse_metadata(const TagParser::Tag *tags)
   return track_title;
 }
 
-//-----------------------------------------------------------------
-int AudioWorker::custom_IO_read(void* opaque, unsigned char* buffer, int buffer_size)
-{
-  auto reader = reinterpret_cast<QFile *>(opaque);
-  return reader->read(reinterpret_cast<char *>(buffer), buffer_size);
-}
-
-//-----------------------------------------------------------------
-long long int AudioWorker::custom_IO_seek(void* opaque, long long int offset, int whence)
-{
-  auto reader = reinterpret_cast<QFile *>(opaque);
-  switch(whence)
-  {
-    case AVSEEK_SIZE:
-      return reader->size();
-    case SEEK_SET:
-      return reader->seek(offset);
-    case SEEK_END:
-      return reader->seek(reader->size());
-    case SEEK_CUR:
-      return reader->pos();
-      break;
-    default:
-      Q_ASSERT(false);
-  }
-  return 0;
-}

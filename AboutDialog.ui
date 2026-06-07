@@ -290,7 +290,7 @@ LAME Ain't an Mp3 Encoder</string>
              <string/>
             </property>
             <property name="pixmap">
-             <pixmap resource="rsc/resources.qrc">:/MusicTranscoder/libav.ico</pixmap>
+             <pixmap resource="rsc/resources.qrc">:/MusicTranscoder/ffmpeg.ico</pixmap>
             </property>
             <property name="scaledContents">
              <bool>true</bool>
@@ -310,8 +310,8 @@ LAME Ain't an Mp3 Encoder</string>
                </font>
               </property>
               <property name="text">
-               <string>libav
-Open source audio &amp; video processing tools</string>
+               <string>ffmpeg
+libavcodec</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -333,7 +333,7 @@ Open source audio &amp; video processing tools</string>
           <item>
            <widget class="QLabel" name="label_13">
             <property name="text">
-             <string>&lt;a href=&quot;https://libav.org/&quot;&gt;https://libav.org/&lt;/a&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://ffmpeg.org/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#003e92;&quot;&gt;https://ffmpeg.org/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="textFormat">
              <enum>Qt::TextFormat::RichText</enum>

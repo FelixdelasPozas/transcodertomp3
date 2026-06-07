@@ -132,24 +132,6 @@ class ProcessDialog
      */
     void create_playlistWorker();
 
-    /** \brief Registers the lock manager for the libav library.
-     *
-     */
-    void register_av_lock_manager();
-
-    /** \brief Unregisters the lock manager for the libav library.
-     *
-     */
-    void unregister_av_lock_manager();
-
-    /** \brief Lock manager that complies with the specifications required
-     *         by libav. Needed for concurrent file transcoding.
-     *  \param[inout] mutex custom mutex object (QMutex in this case).
-     *  \param[in] op manager operation to perform.
-     *
-     */
-    static int lock_manager(void **mutex, enum AVLockOp op);
-
     QList<QFileInfo>                      m_music_files;          /** list of file informations.                 */
     QList<QFileInfo>                      m_music_folders;        /** list of folder informations.               */
     int                                   m_max_workers;          /** max number of simultaneous threads.        */

@@ -63,8 +63,6 @@ QStringList PlaylistWorker::get_file_names() const
 //-----------------------------------------------------------------
 void PlaylistWorker::generate_playlist()
 {
-  av_register_all();
-
   auto files = get_file_names();
 
   const auto dirName = m_source_info.absoluteFilePath().replace(SEPARATOR,QDir::separator());
@@ -137,32 +135,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
 
   QMutexLocker lock(&s_mutex);
 
-  av_register_all();
-
-  auto ioBuffer = reinterpret_cast<unsigned char *>(av_malloc(s_io_buffer_size)); // can get freed with av_free() by libav
-  if(nullptr == ioBuffer)
-  {
-    emit error_message(QString("Couldn't allocate buffer for custom libav IO for file: '%1'.").arg(file_name));
-    m_fail = true;
-    return false;
-  }
-
-  auto avioContext = avio_alloc_context(ioBuffer, s_io_buffer_size - AV_INPUT_BUFFER_PADDING_SIZE, 0, reinterpret_cast<void*>(&input_file), &custom_IO_read, nullptr, &custom_IO_seek);
-  if(nullptr == avioContext)
-  {
-    emit error_message(QString("Couldn't allocate context for custom libav IO for file: '%1'.").arg(file_name));
-    m_fail = true;
-    return false;
-  }
-
-  avioContext->seekable = 0;
-  avioContext->write_flag = 0;
-
-  m_libav_context = avformat_alloc_context();
-  m_libav_context->pb = avioContext;
-  m_libav_context->flags |= AVFMT_FLAG_CUSTOM_IO;
-
-  auto value = avformat_open_input(&m_libav_context, "dummy", nullptr, nullptr);
+  auto value = avformat_open_input(&m_libav_context, file_name.toStdString().c_str(), nullptr, nullptr);
   if(value < 0)
   {
     emit error_message(QString("Couldn't open file: '%1' with libav. Error is \"%2\"").arg(file_name).arg(av_error_string(value)));
@@ -184,7 +157,7 @@ bool PlaylistWorker::get_song_duration(const QString &file_name, long long &dura
   }
 
   AVCodec *dummy_decoder = nullptr;
-  auto stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_AUDIO, -1, -1, &dummy_decoder, 0);
+  auto stream_id = av_find_best_stream(m_libav_context, AVMEDIA_TYPE_AUDIO, -1, -1, const_cast<const AVCodec **>(&dummy_decoder), 0);
   if (stream_id < 0)
   {
     emit error_message(QString("Couldn't find any audio stream in '%1'. Error is \"%2\".").arg(file_name).arg(av_error_string(stream_id)));

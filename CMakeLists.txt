@@ -40,12 +40,20 @@ set(LAME_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/lame-3.100.1/include")
 set(LAME_LIBRARY     "D:/Desarrollo/Bibliotecas/lame-3.100.1/libmp3lame/.libs/libmp3lame.a")
 
 # libav library 13
-set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/libav-13")
+set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/FFmpeg-master")
 set(LIBAV_INCLUDE_DIR ${LIBAV_DIR})
 set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a 
                       ${LIBAV_DIR}/libavcodec/libavcodec.a 
                       ${LIBAV_DIR}/libavutil/libavutil.a 
-                      ${LIBAV_DIR}/libavresample/libavresample.a)
+                      ${LIBAV_DIR}/libswresample/libswresample.a
+                      bz2.a
+                      libva.a
+                      va_win32.a
+                      ncrypt.a
+                      Crypt32.a
+                      Secur32.a
+                      strmiids.a
+                      liblzma.a)
 					  
 # libvpx library 1.13.1
 set(LIBVPX_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvpx")
@@ -65,8 +73,8 @@ set(TAGPARSER_LIBRARIES   ${TAGPARSER_LIBRARY_DIR}/tag-parser/libtag_parser.a
 #include zlib 1.3
 set(ZLIB_LIBRARY "D:/Desarrollo/Bibliotecas/zlib-build/libzlibstatic.a")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mwindows -Wno-deprecated")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mconsole -Wno-deprecated")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mwindows -Wno-deprecated")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -m64 -Wall -mconsole -Wno-deprecated")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt6Core_EXECUTABLE_COMPILE_FLAGS}")
 

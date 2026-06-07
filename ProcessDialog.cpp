@@ -61,8 +61,6 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
 {
   setupUi(this);
 
-  register_av_lock_manager();
-
   m_globalProgress->setStyle(QStyleFactory::create("windowsvista"));
   m_taskBarButton.setState(QTaskBarButton::State::Normal);
 
@@ -116,7 +114,6 @@ ProcessDialog::ProcessDialog(const QList<QFileInfo> &files,
 ProcessDialog::~ProcessDialog()
 {
   m_progress_bars.clear();
-  unregister_av_lock_manager();
 }
 
 //-----------------------------------------------------------------
@@ -368,45 +365,6 @@ bool ProcessDialog::event(QEvent *e)
   }
 
   return QDialog::event(e);
-}
-
-//-----------------------------------------------------------------
-int ProcessDialog::lock_manager(void **mutex, AVLockOp operation)
-{
-  QMutex *passed_mutex = nullptr;
-
-  switch (operation)
-  {
-    case AV_LOCK_CREATE:
-      *mutex =  new QMutex();
-      return 0;
-    case AV_LOCK_OBTAIN:
-      passed_mutex = reinterpret_cast<QMutex *>(*mutex);
-      passed_mutex->lock();
-      return 0;
-    case AV_LOCK_RELEASE:
-      passed_mutex = reinterpret_cast<QMutex *>(*mutex);
-      passed_mutex->unlock();
-      return 0;
-    case AV_LOCK_DESTROY:
-      passed_mutex = reinterpret_cast<QMutex *>(*mutex);
-      delete passed_mutex;
-      *mutex = nullptr;
-      return 0;
-  }
-  return 1;
-}
-
-//-----------------------------------------------------------------
-void ProcessDialog::register_av_lock_manager()
-{
-  av_lockmgr_register(ProcessDialog::lock_manager);
-}
-
-//-----------------------------------------------------------------
-void ProcessDialog::unregister_av_lock_manager()
-{
-  av_lockmgr_register(nullptr);
 }
 
 //-----------------------------------------------------------------

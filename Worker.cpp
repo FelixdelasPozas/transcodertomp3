@@ -256,9 +256,9 @@ bool Worker::open_next_destination_file()
   auto destination = m_destinations.first();
   auto mp3_file = m_source_path + destination.name;
   m_mp3_file_stream.setFileName(mp3_file);
-  m_mp3_file_stream.open(QIODevice::WriteOnly|QIODevice::Truncate|QIODevice::Unbuffered);
+  auto opened = m_mp3_file_stream.open(QIODevice::WriteOnly|QIODevice::Truncate|QIODevice::Unbuffered);
 
-  if(!m_mp3_file_stream.isOpen())
+  if(!m_mp3_file_stream.isOpen() || !opened)
   {
     emit error_message(QString("Couldn't open destination file: %1. Error is: %2.").arg(mp3_file).arg(m_mp3_file_stream.error()));
     m_fail = true;

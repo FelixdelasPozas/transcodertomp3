@@ -30,6 +30,7 @@
 extern "C"
 {
 #include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
 }
 
 namespace TagParser
@@ -88,22 +89,6 @@ class AudioWorker
      *
      */
     QString av_error_string(const int error_number) const;
-
-    /** \brief Custom I/O read for libav, using a QFile.
-     * \param[in] opaque pointer to the reader.
-     * \param[in] buffer buffer to fill
-     * \param[in] buffer_size buffer size.
-     *
-     */
-    static int custom_IO_read(void *opaque, unsigned char *buffer, int buffer_size);
-
-    /** \brief Custom I/O seek for libav, using a QFile.
-     * \param[in] opaque pointer to the reader.
-     * \param[in] offset seek value.
-     * \param[in] whence seek direction.
-     *
-     */
-    static long long int custom_IO_seek(void *opaque, long long int offset, int whence);
 
     AVFormatContext   *m_libav_context;   /** file context.                                                                */
     AVPacket          *m_packet;          /** libav packet (encodec data).                                                 */

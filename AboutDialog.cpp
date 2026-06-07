@@ -24,7 +24,7 @@
 #include <lame.h>
 
 // libAV
-#include <avversion.h>
+#include <libavcodec\version.h>
 
 // Tag parser
 //#include <tagparser/version.h>
@@ -56,7 +56,7 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
   m_version->setText(VERSION);
 
   m_lameVersion->setText(tr("version %1").arg(get_lame_version()));
-  m_libavVersion->setText(tr("version %1").arg(LIBAV_VERSION));
+  m_libavVersion->setText(tr("version %1,%2,%3").arg(LIBAVCODEC_VERSION_MAJOR).arg(LIBAVCODEC_VERSION_MINOR).arg(LIBAVCODEC_VERSION_MICRO));
   m_libcueVersion->setText(tr("version 2.3.0")); // does not provide version definition, go with the one in the .ui file.
   //m_tagparserVersion->setText(tr("version %1").arg(TAG_PARSER_VERSION_STR)); // Current version doesn't provide version string?
   m_tagparserVersion->setText(tr("version 12.1.0"));
