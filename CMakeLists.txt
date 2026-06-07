@@ -8,8 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Version Number
 set (MUSIC_TRANSCODER_VERSION_MAJOR 1)
-set (MUSIC_TRANSCODER_VERSION_MINOR 5)
-set (MUSIC_TRANSCODER_VERSION_PATCH 3)
+set (MUSIC_TRANSCODER_VERSION_MINOR 6)
+set (MUSIC_TRANSCODER_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -39,21 +39,13 @@ endif(DEFINED MINGW)
 set(LAME_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/lame-3.100.1/include")
 set(LAME_LIBRARY     "D:/Desarrollo/Bibliotecas/lame-3.100.1/libmp3lame/.libs/libmp3lame.a")
 
-# libav library 13
-set(LIBAV_DIR "D:/Desarrollo/Bibliotecas/FFmpeg-master")
-set(LIBAV_INCLUDE_DIR ${LIBAV_DIR})
-set(LIBAV_LIBRARIES   ${LIBAV_DIR}/libavformat/libavformat.a 
-                      ${LIBAV_DIR}/libavcodec/libavcodec.a 
-                      ${LIBAV_DIR}/libavutil/libavutil.a 
-                      ${LIBAV_DIR}/libswresample/libswresample.a
-                      bz2.a
-                      libva.a
-                      va_win32.a
-                      ncrypt.a
-                      Crypt32.a
-                      Secur32.a
-                      strmiids.a
-                      liblzma.a)
+# ffmpeg library
+set(LIBFFMPEG_DIR "D:/Desarrollo/Bibliotecas/FFmpeg-master")
+set(LIBFFMPEG_INCLUDE_DIR ${LIBFFMPEG_DIR})
+set(LIBFFMPEG_LIBRARIES   ${LIBFFMPEG_DIR}/libavformat/libavformat.a 
+                          ${LIBFFMPEG_DIR}/libavcodec/libavcodec.a 
+                          ${LIBFFMPEG_DIR}/libavutil/libavutil.a 
+                          ${LIBFFMPEG_DIR}/libswresample/libswresample.a)
 					  
 # libvpx library 1.13.1
 set(LIBVPX_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvpx")
@@ -85,7 +77,7 @@ include_directories(
   ${CMAKE_BINARY_DIR}          # Generated .h files
   ${CMAKE_CURRENT_BINARY_DIR}  # For wrap/ui files
   ${LAME_INCLUDE_DIR}
-  ${LIBAV_INCLUDE_DIR}
+  ${LIBFFMPEG_INCLUDE_DIR}
   ${LIBCUE_INCLUDE_DIR}
   ${TAGPARSER_INCLUDE_DIR}
   ${LIBVPX_INCLUDE_DIR}
@@ -126,7 +118,7 @@ set (CORE_SOURCES
 set(CORE_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${LAME_LIBRARY}
-  ${LIBAV_LIBRARIES}
+  ${LIBFFMPEG_LIBRARIES}
   ${LIBCUE_LIBRARY}
   ${TAGPARSER_LIBRARIES}
   ${LIBOPENMPT_LIBRARY}
@@ -140,6 +132,14 @@ set(CORE_EXTERNAL_LIBS
   iconv.a
   pthread.a
   bcrypt.a
+  bz2.a
+  libva.a
+  va_win32.a
+  ncrypt.a
+  Crypt32.a
+  Secur32.a
+  strmiids.a
+  liblzma.a  
 )
   
 add_executable(MusicTranscoder ${CORE_SOURCES})
